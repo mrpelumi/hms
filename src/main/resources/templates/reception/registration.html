@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Patient Registration | Tel Health</title>
+</head>
+<body>
+
+<!-- Page Content -->
+<div layout:fragment="content">
+    <!-- Main Content Area -->
+    <main class="ml-sidebar-width w-full h-[calc(100vh-72px)] p-xl flex flex-col items-center overflow-y-auto overflow-x-hidden">
+        <div class="w-full max-w-[1000px]">
+            <!-- Breadcrumb -->
+            <nav class="flex items-center gap-xs mb-lg text-text-secondary font-caption text-caption">
+                <a class="hover:text-primary transition-colors flex items-center" href="#">
+                    <span class="material-symbols-outlined text-[16px] mr-1">home</span> Home
+                </a>
+                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                <span class="">Registration</span>
+                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                <span class="text-primary font-bold">New Patient</span>
+            </nav>
+            <!-- Page Header -->
+            <div class="flex justify-between items-end mb-xxl">
+                <div>
+                    <h1 class="font-page-title text-page-title text-text-primary mb-xs">Patient Registration</h1>
+                    <p class="text-text-secondary font-body text-body">Create a new digital clinical record for admissions and outpatient visits.</p>
+                </div>
+                <div class="flex gap-md">
+                    <button class="px-xl py-md rounded-lg border border-primary text-primary font-card-heading hover:bg-primary/5 transition-all">Cancel</button>
+                    <button class="px-xl py-md rounded-lg bg-primary text-white font-card-heading hover:opacity-90 shadow-sm transition-all flex items-center gap-sm">
+                        <span class="material-symbols-outlined text-[20px]">save</span>
+                        Save Patient
+                    </button>
+                </div>
+            </div>
+            <!-- Guided Multi-Step Navigation -->
+            <div class="bg-surface border border-border-base rounded-xl overflow-hidden shadow-sm mb-xl">
+                <div class="flex border-b border-border-base">
+                    <button class="flex-1 py-lg text-center font-card-heading text-card-heading transition-all border-r border-border-base step-active" id="step-personal" onclick="showSection('personal')">
+                        Personal Information
+                    </button>
+                    <button class="flex-1 py-lg text-center font-card-heading text-card-heading text-text-secondary transition-all border-r border-border-base" id="step-contact" onclick="showSection('contact')">
+                        Contact Details
+                    </button>
+                    <button class="flex-1 py-lg text-center font-card-heading text-card-heading text-text-secondary transition-all border-r border-border-base" id="step-insurance" onclick="showSection('insurance')">
+                        Insurance Info
+                    </button>
+                    <button class="flex-1 py-lg text-center font-card-heading text-card-heading text-text-secondary transition-all" id="step-emergency" onclick="showSection('emergency')">
+                        Emergency Contact
+                    </button>
+                </div>
+                <form class="p-xxl w-full" th:action="@{/api/patients}" method="post">
+                    <!-- Section: Personal Information -->
+                    <div class="form-section space-y-xl animate-in fade-in duration-300 active" id="section-personal">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Full Name</label>
+                                <input name="fullName" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="e.g. Johnathan Doe" type="text">
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Date of Birth</label>
+                                <input name="dateOfBirth" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" type="date">
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Gender</label>
+                                <select name="gender" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none bg-no-repeat bg-[right_1rem_center]" style="background-image: url(&quot;data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23475569%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E&quot;);">
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Non-binary</option>
+                                    <option>Other</option>
+                                    <option>Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Blood Group</label>
+                                <select name="bloodGroup" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all appearance-none bg-no-repeat bg-[right_1rem_center]" style="background-image: url(&quot;data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23475569%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E&quot;);">
+                                    <option>A+</option>
+                                    <option>A-</option>
+                                    <option>B+</option>
+                                    <option>B-</option>
+                                    <option>AB+</option>
+                                    <option>AB-</option>
+                                    <option>O+</option>
+                                    <option>O-</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-sm">
+                            <label class="font-card-heading text-text-primary flex items-center gap-sm">
+                                Allergies
+                                <span class="text-danger font-bold text-caption uppercase tracking-wider">High Risk</span>
+                            </label>
+                            <textarea name="allergies" class="w-full p-md border border-error/50 rounded-lg focus:ring-2 focus:ring-error focus:border-error outline-none transition-all bg-error-container/10" placeholder="List all known drug, food, or environmental allergies..." rows="3"></textarea>
+                        </div>
+                    </div>
+                    <!-- Section: Contact Details -->
+                    <div class="form-section space-y-xl animate-in fade-in duration-300" id="section-contact">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Phone Number</label>
+                                <input name="phoneNumber" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="+1 (555) 000-0000" type="tel">
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Email Address</label>
+                                <input name="emailAddress" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="patient@example.com" type="email">
+                            </div>
+                        </div>
+                        <div class="space-y-sm">
+                            <label class="font-card-heading text-text-primary">Residential Address</label>
+                            <textarea name="residentialAddress" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Street address, Apartment, City, Zip Code" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <!-- Section: Insurance Info -->
+                    <div class="form-section space-y-xl animate-in fade-in duration-300" id="section-insurance">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Insurance Provider</label>
+                                <input name="insuranceProvider" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="e.g. Blue Cross" type="text">
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Policy Number</label>
+                                <input name="policyNumber" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="e.g. ABC-12345678" type="text">
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Group ID</label>
+                                <input name="groupId" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Optional" type="text">
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Expiration Date</label>
+                                <input name="insuranceExpirationDate" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" type="month">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Section: Emergency Contact -->
+                    <div class="form-section space-y-xl animate-in fade-in duration-300" id="section-emergency">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Contact Name</label>
+                                <input class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Full name of emergency contact" type="text">
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Relationship</label>
+                                <input class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="e.g. Spouse, Parent" type="text">
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-card-heading text-text-primary">Contact Phone</label>
+                                <input class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="+1 (555) 000-0000" type="tel">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- Tertiary Actions -->
+            <div class="flex items-center justify-between bg-surface-container-low p-lg rounded-xl border border-border-base">
+                <div class="flex items-center gap-md">
+                    <span class="material-symbols-outlined text-text-secondary">print</span>
+                    <span class="font-body text-body text-text-primary">Need a physical copy of the registration card?</span>
+                </div>
+                <button class="px-lg py-sm rounded-lg border border-border-base bg-white text-text-primary font-card-heading flex items-center gap-xs hover:bg-surface-muted transition-all">
+                    Print ID Card
+                </button>
+            </div>
+        </div>
+    </main>
+    <!-- Footer -->
+    <footer class="w-full bg-surface-container-low border-t border-border-base flex-shrink-0 py-md px-layout-margin">
+        <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
+            <div class="flex flex-wrap items-center gap-xl">
+                <span class="font-caption text-caption text-text-secondary">© 2024 Tel Health Enterprise. Clinical Precision Redefined.</span>
+                <div class="flex items-center gap-md">
+                    <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Privacy Policy</a>
+                    <span class="w-1 h-1 bg-border-base rounded-full"></span>
+                    <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Terms of Service</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-md">
+                <div class="flex items-center gap-xs px-sm py-1 bg-white rounded border border-border-base shadow-sm">
+                    <span class="material-symbols-outlined text-success text-[16px]">verified_user</span>
+                    <span class="font-caption text-[10px] font-bold text-text-secondary uppercase tracking-tight">HIPAA Compliant Environment</span>
+                </div>
+                <a class="font-caption text-[11px] font-bold text-text-secondary hover:text-primary transition-all flex items-center gap-1" href="#">
+                    <span class="material-symbols-outlined text-[14px]">security</span> Contact Security
+                </a>
+            </div>
+        </div>
+    </footer>
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            // Show target section
+            document.getElementById('section-' + sectionId).classList.add('active');
+
+            // Reset all buttons
+            document.querySelectorAll('[id^="step-"]').forEach(btn => {
+                btn.classList.remove('step-active');
+                btn.classList.add('text-text-secondary');
+            });
+            // Set active button
+            const activeBtn = document.getElementById('step-' + sectionId);
+            activeBtn.classList.add('step-active');
+            activeBtn.classList.remove('text-text-secondary');
+        }
+
+        // Initialize micro-interactions
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('focus', () => {
+                element.parentElement.querySelector('label')?.classList.add('text-primary');
+            });
+            element.addEventListener('blur', () => {
+                element.parentElement.querySelector('label')?.classList.remove('text-primary');
+            });
+        });
+
+        // Active Navigation Logic for Sidebar
+        document.querySelectorAll('#main-sidebar a').forEach(item => {
+            item.addEventListener('click', function(e) {
+                document.querySelectorAll('#main-sidebar a').forEach(nav => nav.classList.remove('sidebar-item-active'));
+                this.classList.add('sidebar-item-active');
+            });
+        });
+    </script>
+</div>
+</body>
+
+</html>

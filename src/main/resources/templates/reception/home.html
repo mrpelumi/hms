@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<div layout:fragment="content" id="content">
+    <!-- Main Workspace -->
+    <main class="flex-1 md:ml-[264px] flex flex-col h-screen overflow-hidden bg-background min-h-screen">
+        <!-- Top Utility Bar (Preserved layout) -->
+        <header class="h-header-height bg-surface-container-lowest border-b border-border-base flex items-center justify-between px-layout-margin shadow-sm z-40">
+            <div class="flex items-center gap-xl flex-1 max-w-2xl">
+                <div class="relative flex-1 group">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors">search</span>
+                    <input class="w-full bg-surface-container border-none rounded-lg pl-10 pr-4 py-2 text-small focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search patients, medical records, or doctors..." type="text">
+                </div>
+                <div class="flex items-center gap-md border-l border-border-base pl-xl h-8">
+                    <span class="material-symbols-outlined text-text-secondary">location_on</span>
+                    <select class="bg-transparent border-none text-small font-bold text-text-primary p-0 pr-8 focus:ring-0 cursor-pointer">
+                        <option>City General - Main</option>
+                        <option>West Side Clinic</option>
+                        <option>Emergency Annex</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex items-center gap-lg">
+                <button class="relative p-2 text-text-secondary hover:bg-surface-container rounded-full transition-colors">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+                </button>
+                <button class="p-2 text-text-secondary hover:bg-surface-container rounded-full transition-colors">
+                    <span class="material-symbols-outlined">help</span>
+                </button>
+                <div class="flex items-center gap-md pl-md border-l border-border-base h-8">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-small font-bold leading-none">Sarah Chen</p>
+                        <p class="text-caption text-text-secondary leading-none mt-1">Senior Receptionist</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-full bg-tertiary-fixed flex items-center justify-center overflow-hidden border border-border-base">
+                        <img class="w-full h-full object-cover" data-alt="Professional headshot of a female hospital receptionist with a warm, approachable expression, wearing a clean medical administrative uniform, bright clinical office background with soft bokeh." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7KxTzPm6WBcGw2HEvbKZ24y3qoxE8fCK3pM99fAMcbxFnv-HVy_3Ra__6nf5Lv2TJDT4s1JiLopdxv6KKIDgG5JKXfK7Hjjm808z_6kERaT6OQxCIUNd-1zGJDdC9dxO8mwOpY5lPyH9GpgV_cyVGUFk6Nc_dj7JJsfXm-HzaVbjiguUW39Ij79EDEOI5xjudkc5huUUwzTdzyHBW-BUNon5lGX16-wdW0rQ25qCUS-wmXM33yO579Sqa26grLIQ6IfQR1puaFNBq">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-xl">
+            <div class="max-w-[1440px] mx-auto space-y-xl">
+                <!-- Page Header & Breadcrumbs -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-lg">
+                    <div>
+                        <nav class="flex items-center gap-xs text-caption text-text-secondary mb-sm">
+                            <a class="hover:text-primary transition-colors" href="#">Home</a>
+                            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                            <span class="text-primary font-bold">Receptionist Dashboard</span>
+                        </nav>
+                        <h2 class="font-page-title text-page-title text-text-primary">Receptionist Overview</h2>
+                    </div>
+                    <!-- Quick Actions Component -->
+                    <div class="flex flex-wrap gap-md">
+                        <button class="px-lg py-2.5 bg-white border border-border-base rounded-lg text-small font-bold text-text-primary hover:bg-surface-container-low flex items-center gap-sm transition-all shadow-sm active:scale-95">
+                            <span class="material-symbols-outlined text-primary">person_add</span>
+                            New Registration
+                        </button>
+                        <button class="px-lg py-2.5 bg-white border border-border-base rounded-lg text-small font-bold text-text-primary hover:bg-surface-container-low flex items-center gap-sm transition-all shadow-sm active:scale-95">
+                            <span class="material-symbols-outlined text-primary">calendar_add_on</span>
+                            Book Appointment
+                        </button>
+                        <button class="px-lg py-2.5 bg-primary text-on-primary rounded-lg text-small font-bold flex items-center gap-sm transition-all shadow-md active:scale-95">
+                            <span class="material-symbols-outlined">how_to_reg</span>
+                            Check-in Patient
+                        </button>
+                    </div>
+                </div>
+                <!-- KPI Cards Section -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
+                    <div class="bg-white p-xl rounded-xl border border-border-base shadow-sm flex flex-col gap-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="p-2 bg-primary/10 text-primary rounded-lg material-symbols-outlined">assignment_ind</span>
+                            <span class="text-success text-caption font-bold flex items-center gap-xs">+12% <span class="material-symbols-outlined text-[14px]">trending_up</span></span>
+                        </div>
+                        <div>
+                            <p class="text-caption text-text-secondary uppercase tracking-wider font-bold">Today's Registrations</p>
+                            <h3 class="text-display font-display text-text-primary">24</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-xl rounded-xl border border-border-base shadow-sm flex flex-col gap-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="p-2 bg-warning/10 text-warning rounded-lg material-symbols-outlined">event_note</span>
+                            <span class="text-text-secondary text-caption">Daily Target: 20</span>
+                        </div>
+                        <div>
+                            <p class="text-caption text-text-secondary uppercase tracking-wider font-bold">Pending Appointments</p>
+                            <h3 class="text-display font-display text-text-primary">12</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-xl rounded-xl border border-border-base shadow-sm flex flex-col gap-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="p-2 bg-secondary/10 text-secondary rounded-lg material-symbols-outlined">group</span>
+                            <span class="px-2 py-0.5 bg-error/10 text-error rounded-full text-[10px] font-bold">High Volume</span>
+                        </div>
+                        <div>
+                            <p class="text-caption text-text-secondary uppercase tracking-wider font-bold">Patients in Queue</p>
+                            <h3 class="text-display font-display text-text-primary">08</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-xl rounded-xl border border-border-base shadow-sm flex flex-col gap-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="p-2 bg-success/10 text-success rounded-lg material-symbols-outlined">payments</span>
+                            <span class="text-text-secondary text-caption">Card/Cash</span>
+                        </div>
+                        <div>
+                            <p class="text-caption text-text-secondary uppercase tracking-wider font-bold">Total Collected</p>
+                            <h3 class="text-display font-display text-text-primary">$1,250</h3>
+                        </div>
+                    </div>
+                </div>
+                <!-- Queue Management & Visual Data Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+                    <!-- Queue Table -->
+                    <div class="lg:col-span-2 bg-white rounded-xl border border-border-base shadow-sm overflow-hidden flex flex-col">
+                        <div class="p-lg border-b border-border-base flex items-center justify-between bg-surface-container-lowest">
+                            <div class="flex items-center gap-md">
+                                <h3 class="font-section-heading text-card-heading text-text-primary">Live Patient Queue</h3>
+                                <span class="px-3 py-1 bg-primary/10 text-primary text-caption rounded-full font-bold">All Departments</span>
+                            </div>
+                            <div class="flex gap-sm">
+                                <button class="p-2 text-text-secondary hover:bg-surface-container rounded-lg border border-border-base transition-all"><span class="material-symbols-outlined">filter_list</span></button>
+                                <button class="p-2 text-text-secondary hover:bg-surface-container rounded-lg border border-border-base transition-all"><span class="material-symbols-outlined">refresh</span></button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left table-sticky-header">
+                                <thead>
+                                <tr class="bg-surface-muted text-text-secondary uppercase font-bold text-[11px] tracking-widest border-b border-border-base">
+                                    <th class="px-lg py-md">Patient</th>
+                                    <th class="px-lg py-md">Time</th>
+                                    <th class="px-lg py-md">Assigned Doctor</th>
+                                    <th class="px-lg py-md">Priority</th>
+                                    <th class="px-lg py-md">Status</th>
+                                    <th class="px-lg py-md text-right">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border-base">
+                                <tr class="hover:bg-surface-container-low transition-colors group">
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-md">
+                                            <div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary font-bold text-caption">JA</div>
+                                            <div>
+                                                <p class="text-small font-bold text-text-primary">James Anderson</p>
+                                                <p class="text-[11px] text-text-secondary">ID: #PH-9921</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md text-small font-medium text-text-primary">09:15 AM</td>
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-sm">
+                                            <div class="w-6 h-6 rounded-full overflow-hidden">
+                                                <img class="w-full h-full object-cover" data-alt="A portrait of a male doctor in a white clinical lab coat, looking professional and trustworthy, set against a clean medical office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4593BcLH9ZZlaeedLZFZi9kyWGQDYTSnQ99osgSuCezDVRrjPjYXI0V5xpjqC7dulkUKSMCzmk_T426oIgjjPWpgwyeMB0GQ_SuoEfTXjLKw7kdY69yYAAdiUoTTez2AqO5nBotyhNj5elheBIye0SlZc7WB-4CAXgJ3xgpgu2WGpI8-ZvgLIVXrOp4pH4xhmDzwqSHEJqWWpPbCgQVaigV0bzeoRbZeqhGT7eM-tzxq2zyN18W-WRCx3eswqeHRZOrhfTeEXFWLP">
+                                            </div>
+                                            <span class="text-small text-text-secondary">Dr. Sarah Miller</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md">
+                                        <span class="px-2 py-0.5 bg-warning/10 text-warning text-[10px] font-bold rounded uppercase">Medium</span>
+                                    </td>
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-xs text-small font-medium text-success">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
+                                            Checked-in
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md text-right">
+                                        <button class="p-1.5 text-text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-surface-container-low transition-colors group">
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-md">
+                                            <div class="w-8 h-8 rounded-full bg-secondary/5 flex items-center justify-center text-secondary font-bold text-caption">EB</div>
+                                            <div>
+                                                <p class="text-small font-bold text-text-primary">Elena Belova</p>
+                                                <p class="text-[11px] text-text-secondary">ID: #PH-4310</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md text-small font-medium text-text-primary">09:30 AM</td>
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-sm">
+                                            <div class="w-6 h-6 rounded-full overflow-hidden">
+                                                <img class="w-full h-full object-cover" data-alt="A profile photo of a male doctor with grey hair wearing a stethoscope around his neck, clinical blue background, high quality portrait." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSvxwNlS3vIYPuSL5ReqncYHyGJIrELGoGhdZUd83nhKfXXFHBqf9hqasoNPSoOhmUtq8_bfZg77ToZkHQhWYZphI8AxiS-45M2iv-jEyqcOUpiDjUq1wkDwHCDFHx2im7KQq0K01d-eOXGGLlWTxz-IzdfFz-hUGpSdFCj3NGVtKVOLV6zYtNeFvY_0HSQbFpA9zhB90BwDam2LNrsr_F51IS8AOfheMKQlYqEObKfTMcq0YXsHuIXrzx3hsqqM7zqWC2R_F8DxzP">
+                                            </div>
+                                            <span class="text-small text-text-secondary">Dr. Robert Vance</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md">
+                                        <span class="px-2 py-0.5 bg-error/10 text-error text-[10px] font-bold rounded uppercase">High</span>
+                                    </td>
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-xs text-small font-medium text-text-secondary">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-text-secondary/30"></span>
+                                            Waiting
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md text-right">
+                                        <button class="p-1.5 text-text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-surface-container-low transition-colors group">
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-md">
+                                            <div class="w-8 h-8 rounded-full bg-warning/5 flex items-center justify-center text-warning font-bold text-caption">MK</div>
+                                            <div>
+                                                <p class="text-small font-bold text-text-primary">Marcus King</p>
+                                                <p class="text-[11px] text-text-secondary">ID: #PH-1102</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md text-small font-medium text-text-primary">09:00 AM</td>
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-sm">
+                                            <div class="w-6 h-6 rounded-full overflow-hidden">
+                                                <img class="w-full h-full object-cover" data-alt="Female Asian doctor in clinical setting, wearing glasses and a lab coat, gentle professional expression, soft office lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFCF8QWKrghu7M_ed2HrexP_KxenHyAg4GTqgdSS7fJfhJ3x08qDNRkBltszvo0Rn8s4kc8BIMaBy8g74fL30ASdMCeRDl93ynYgCFM3PVpNEFHL2vNb21LCgAWhnHK4meKxvV0kGZZnuvk_dAnXiz1kHIeqW-Y7qXO0XlcDX00APFLHmtxFxdhIOHrC7inDYGtUC7HpNNBhC5k1ig6n3s5UsIAlnJfzY86v6_3BNkLYPos_U3f3YLAesZotcvDHgrcVbIznC0JcB4">
+                                            </div>
+                                            <span class="text-small text-text-secondary">Dr. Amy Zhang</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md">
+                                        <span class="px-2 py-0.5 bg-text-secondary/10 text-text-secondary text-[10px] font-bold rounded uppercase">Routine</span>
+                                    </td>
+                                    <td class="px-lg py-md">
+                                        <div class="flex items-center gap-xs text-small font-medium text-primary">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                                            In-Consultation
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-md text-right">
+                                        <button class="p-1.5 text-text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-md bg-surface-container-low border-t border-border-base flex justify-center">
+                            <button class="text-small font-bold text-primary hover:underline">View All Patients in Queue (8)</button>
+                        </div>
+                    </div>
+                    <!-- Side Panel -->
+                    <div class="space-y-xl">
+                        <!-- Wait Time alert (Matches dashboard widgets) -->
+                        <div class="bg-primary text-on-primary rounded-xl p-xl shadow-md relative overflow-hidden">
+                            <div class="relative z-10">
+                                <h4 class="font-card-heading text-card-heading mb-sm">Wait Time Alert</h4>
+                                <p class="text-small opacity-90 mb-lg">Average wait time for General Medicine has increased to 45 mins. Consider re-routing non-urgent cases.</p>
+                                <div class="flex items-center gap-md">
+                                    <div class="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
+                                        <div class="w-3/4 h-full bg-white rounded-full"></div>
+                                    </div>
+                                    <span class="text-caption font-bold">75% Load</span>
+                                </div>
+                            </div>
+                            <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] opacity-10">hourglass_empty</span>
+                        </div>
+                        <!-- Doctor Availability Bento Widget -->
+                        <div class="bg-white rounded-xl border border-border-base shadow-sm p-xl">
+                            <div class="flex items-center justify-between mb-lg">
+                                <h4 class="font-card-heading text-card-heading text-text-primary">Doctor Availability</h4>
+                                <span class="text-caption text-text-secondary">Morning Shift</span>
+                            </div>
+                            <div class="space-y-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-md">
+                                        <div class="w-2 h-10 bg-success rounded-full"></div>
+                                        <div>
+                                            <p class="text-small font-bold text-text-primary">Cardiology</p>
+                                            <p class="text-caption text-text-secondary">3 Doctors Active</p>
+                                        </div>
+                                    </div>
+                                    <span class="material-symbols-outlined text-success">check_circle</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-md">
+                                        <div class="w-2 h-10 bg-warning rounded-full"></div>
+                                        <div>
+                                            <p class="text-small font-bold text-text-primary">Pediatrics</p>
+                                            <p class="text-caption text-text-secondary">1 Doctor Active</p>
+                                        </div>
+                                    </div>
+                                    <span class="material-symbols-outlined text-warning">warning</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-md">
+                                        <div class="w-2 h-10 bg-primary rounded-full"></div>
+                                        <div>
+                                            <p class="text-small font-bold text-text-primary">General Medicine</p>
+                                            <p class="text-caption text-text-secondary">5 Doctors Active</p>
+                                        </div>
+                                    </div>
+                                    <span class="material-symbols-outlined text-primary">person</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Updated Footer Section based on SCREEN_2 -->
+        <footer class="bg-surface-container-low border-t border-border-base flex-shrink-0 mt-auto pt-lg">
+            <div class="px-layout-margin py-md max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
+                <div class="flex flex-wrap items-center gap-xl">
+                    <span class="font-caption text-caption text-text-secondary">© 2024 Tel Health Enterprise. Clinical Precision Redefined.</span>
+                    <div class="flex items-center gap-md">
+                        <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Privacy Policy</a>
+                        <span class="w-1 h-1 bg-border-base rounded-full"></span>
+                        <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Terms of Service</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-md">
+                    <div class="flex items-center gap-xs px-sm py-1 bg-white rounded border border-border-base shadow-sm">
+                        <span class="material-symbols-outlined text-success text-[16px]">verified_user</span>
+                        <span class="font-caption text-[10px] font-bold text-text-secondary uppercase tracking-tight">HIPAA Compliant Environment</span>
+                    </div>
+                    <a class="font-caption text-[11px] font-bold text-text-secondary hover:text-primary transition-all flex items-center gap-1" href="#">
+                        <span class="material-symbols-outlined text-[14px]">security</span> Contact Security
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Active Navigation Logic
+            const navLinks = document.querySelectorAll('#main-sidebar nav a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    navLinks.forEach(l => l.classList.remove('sidebar-item-active'));
+                    this.classList.add('sidebar-item-active');
+                });
+            });
+
+            // Visual feedback for buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    this.classList.add('opacity-70');
+                    setTimeout(() => this.classList.remove('opacity-70'), 150);
+                });
+            });
+
+            // Table row highlight logic
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach(row => {
+                row.addEventListener('click', () => {
+                    tableRows.forEach(r => r.classList.remove('bg-primary/5'));
+                    row.classList.add('bg-primary/5');
+                });
+            });
+        });
+    </script>
+</div>
+</html>

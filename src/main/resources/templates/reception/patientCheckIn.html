@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Patient Registration | Tel Health</title>
+</head>
+<body>
+
+<!-- Page Content -->
+<div layout:fragment="content">
+
+    <header class="h-header-height fixed top-0 right-0 z-50 flex items-center justify-between px-xl w-[calc(100%-264px)] ml-[264px] bg-surface-container-lowest dark:bg-surface-dim border-b border-border-base shadow-sm">
+        <div class="flex items-center gap-xl w-1/2">
+            <div class="relative w-full max-w-md">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary">search</span>
+                <input class="w-full pl-10 pr-4 py-2 bg-surface-muted border-none rounded-lg focus:ring-2 focus:ring-primary text-small font-small" placeholder="Search patients, records..." type="text"/>
+            </div>
+        </div>
+        <div class="flex items-center gap-lg">
+            <div class="flex items-center gap-sm px-3 py-1.5 bg-surface-muted rounded-full cursor-pointer hover:bg-surface-container-high transition-all">
+                <span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
+                <span class="font-caption text-caption text-text-primary">Main Branch (Central)</span>
+                <span class="material-symbols-outlined text-text-secondary text-[16px]">expand_more</span>
+            </div>
+            <button class="w-10 h-10 flex items-center justify-center text-text-secondary hover:bg-surface-muted rounded-full transition-all">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <button class="w-10 h-10 flex items-center justify-center text-text-secondary hover:bg-surface-muted rounded-full transition-all">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+            <div class="flex items-center gap-sm ml-2">
+                <img class="w-8 h-8 rounded-full object-cover" data-alt="Professional studio portrait of a female hospital receptionist with a friendly expression, wearing a clean professional medical uniform, against a neutral medical office background, high-end commercial photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOwjOcpgG-ZSSoucNd7b9fpEDcxRSk8zthpHJS9NmbuZhAWBl8SOYSgS0GmKGMW5QQBfORaJrMA9Y25Qfmwiaz0-CZfuF936wcGaxbX9uHxaDy6pVP8J1qOPaS8zkRr8o8QBr3A61oSK7_CfLyWHAvANrk8Ky_QykpQybc0vSBE3mgFtx-stk0hWg_8g2Au55RadALZrym4Rrh5JkvAyi3BtTjHBdQi5n7Cdg59wu6RBaI0A3GRw2YSCkXTAe2Fg_zeRTQzmfAazRx"/>
+                <div class="hidden lg:block text-left">
+                    <p class="font-caption text-caption font-bold text-text-primary">Sarah Jenkins</p>
+                    <p class="text-[10px] text-text-secondary uppercase tracking-wider">Receptionist</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Main Content Area -->
+    <main class="pt-[calc(64px+24px)] pb-xxl ml-[264px] min-h-screen flex flex-col gap-xl px-xl max-w-[1440px]">
+        <!-- Breadcrumbs -->
+        <nav class="flex items-center gap-2">
+            <a class="font-caption text-caption text-text-secondary hover:text-primary" href="#">Home</a>
+            <span class="material-symbols-outlined text-text-secondary text-[16px]">chevron_right</span>
+            <a class="font-caption text-caption text-text-secondary hover:text-primary" href="#">Appointments</a>
+            <span class="material-symbols-outlined text-text-secondary text-[16px]">chevron_right</span>
+            <span class="font-caption text-caption text-primary">Patient Check-In</span>
+        </nav>
+        <!-- Page Header -->
+        <div class="flex justify-between items-end">
+            <div>
+                <h2 class="font-page-title text-page-title text-text-primary">Patient Check-In &amp; Triage</h2>
+                <p class="font-body text-body text-text-secondary mt-1">Finalize arrival details for scheduled cardiology consultation.</p>
+            </div>
+            <div class="flex gap-md">
+                <button class="px-lg h-11 border border-border-base text-text-secondary bg-white rounded-lg font-body text-body hover:bg-surface-muted transition-all active:scale-95">Cancel</button>
+                <button class="px-lg h-11 border border-primary text-primary bg-white rounded-lg font-body text-body hover:bg-primary/5 transition-all active:scale-95 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">print</span>
+                    Print Token
+                </button>
+            </div>
+        </div>
+        <!-- Patient Context Bar -->
+        <section class="bg-white border border-border-base rounded-xl p-lg flex flex-wrap items-center gap-xl shadow-[0px_1px_3px_rgba(15,23,42,0.05)]">
+            <div class="flex items-center gap-lg border-r border-border-base pr-xl">
+                <img class="w-16 h-16 rounded-full border-2 border-primary/10 object-cover" data-alt="A sharp, clear ID portrait of a middle-aged male patient named Michael Chen, with dark hair and a calm expression, wearing a casual light blue shirt. The lighting is bright and clinically clean, maintaining a high-trust professional medical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtXRECuX2sPiEXeX9uXE16OTvTMZCcmagpBXBsKtZXmdoyGmJmzV4Ahqoc6rQ6hLvrgqXIHK64aeQ-iYRr2k-qJfciGEb5arzVydlXyUxnoi-127Lty1CZ37PkPNFELmIQhRN8nafiF_2_tDnvnxyiTjCxtQ1IqKfHr8FfKSoM1D1gu2XpZP95txrCA6Dyfd_TA3pBYsOK8xcWS0R3Ovoacpe1BT08Gq0rRSEAXtg-u3Q8e54Y8jKfuqQbu_9d5l5Lht3n7IV1vQIy"/>
+                <div>
+                    <h3 class="font-card-heading text-card-heading text-text-primary">Michael Chen</h3>
+                    <p class="font-caption text-caption text-text-secondary font-mono">PID-88021</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-12 gap-y-2 flex-1">
+                <div>
+                    <p class="font-caption text-caption text-text-secondary uppercase">Gender</p>
+                    <p class="font-body text-body font-semibold">Male</p>
+                </div>
+                <div>
+                    <p class="font-caption text-caption text-text-secondary uppercase">Age</p>
+                    <p class="font-body text-body font-semibold">39 Years</p>
+                </div>
+                <div>
+                    <p class="font-caption text-caption text-text-secondary uppercase">Blood Group</p>
+                    <p class="font-body text-body font-semibold">O+</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="font-caption text-caption text-text-secondary uppercase">Allergies</p>
+                    <p class="font-body text-body font-semibold text-success">None Reported</p>
+                </div>
+            </div>
+            <div class="px-xl py-2 bg-surface-muted rounded-lg border border-border-base">
+                <p class="font-caption text-caption text-text-secondary uppercase text-center">Status</p>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="w-2.5 h-2.5 rounded-full bg-warning animate-pulse"></div>
+                    <span class="font-caption text-caption font-bold text-text-primary uppercase tracking-wider">Awaiting Check-in</span>
+                </div>
+            </div>
+        </section>
+        <!-- Main Layout Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+            <!-- Appointment Details Column -->
+            <div class="lg:col-span-1 flex flex-col gap-xl">
+                <div class="bg-white border border-border-base rounded-xl overflow-hidden shadow-[0px_1px_3px_rgba(15,23,42,0.05)]">
+                    <div class="bg-surface-muted px-xl py-md border-b border-border-base">
+                        <h4 class="font-card-heading text-card-heading text-text-primary flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">event_note</span>
+                            Appointment Details
+                        </h4>
+                    </div>
+                    <div class="p-xl space-y-lg">
+                        <div class="flex items-start gap-md">
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-primary">medical_services</span>
+                            </div>
+                            <div>
+                                <p class="font-caption text-caption text-text-secondary uppercase">Department</p>
+                                <p class="font-body text-body font-semibold">Cardiology</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-md">
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-primary">stethoscope</span>
+                            </div>
+                            <div>
+                                <p class="font-caption text-caption text-text-secondary uppercase">Primary Consultant</p>
+                                <p class="font-body text-body font-semibold">Dr. Aris Thorne</p>
+                                <p class="font-caption text-caption text-text-secondary">Senior Cardiologist</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-md">
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-primary">schedule</span>
+                            </div>
+                            <div>
+                                <p class="font-caption text-caption text-text-secondary uppercase">Scheduled Slot</p>
+                                <p class="font-body text-body font-semibold">10:00 AM Today</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-md">
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-primary">info</span>
+                            </div>
+                            <div>
+                                <p class="font-caption text-caption text-text-secondary uppercase">Visit Type</p>
+                                <span class="inline-block mt-1 px-3 py-0.5 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-caption font-bold">Consultation</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Queue Assignment -->
+                <div class="bg-primary text-on-primary rounded-xl p-xl relative overflow-hidden group shadow-lg">
+                    <div class="relative z-10">
+                        <p class="font-caption text-caption text-on-primary/70 uppercase font-bold tracking-widest">Queue Token Assignment</p>
+                        <div class="flex items-end justify-between mt-sm">
+                            <h2 class="text-[48px] font-bold leading-none tracking-tight">#OP-444</h2>
+                            <span class="material-symbols-outlined text-[40px] opacity-40 group-hover:rotate-12 transition-transform duration-500">confirmation_number</span>
+                        </div>
+                        <p class="font-body text-body mt-lg opacity-90 border-t border-white/10 pt-md">Current Wait Time: <span class="font-bold text-secondary-fixed">~12 Mins</span></p>
+                    </div>
+                    <!-- Subtle background decoration -->
+                    <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                </div>
+            </div>
+            <!-- Triage & Check-In Actions -->
+            <div class="lg:col-span-2 flex flex-col gap-xl">
+                <div class="bg-white border border-border-base rounded-xl shadow-[0px_1px_3px_rgba(15,23,42,0.05)]">
+                    <div class="bg-surface-muted px-xl py-md border-b border-border-base flex justify-between items-center">
+                        <h4 class="font-card-heading text-card-heading text-text-primary flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">vital_signs</span>
+                            Vital Signs Triage
+                        </h4>
+                        <span class="text-caption text-text-secondary italic">Last measured: N/A</span>
+                    </div>
+                    <div class="p-xl">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                            <!-- Temp -->
+                            <div class="space-y-sm">
+                                <label class="font-caption text-caption text-text-secondary font-bold uppercase">Temperature (°C)</label>
+                                <div class="relative">
+                                    <input class="w-full px-lg py-3 border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-body outline-none" placeholder="36.5" type="text"/>
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-text-secondary/50">device_thermostat</span>
+                                </div>
+                            </div>
+                            <!-- BP -->
+                            <div class="space-y-sm">
+                                <label class="font-caption text-caption text-text-secondary font-bold uppercase">Blood Pressure (mmHg)</label>
+                                <div class="relative">
+                                    <input class="w-full px-lg py-3 border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-body outline-none" placeholder="120/80" type="text"/>
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-text-secondary/50">blood_pressure</span>
+                                </div>
+                            </div>
+                            <!-- Pulse -->
+                            <div class="space-y-sm">
+                                <label class="font-caption text-caption text-text-secondary font-bold uppercase">Pulse Rate (BPM)</label>
+                                <div class="relative">
+                                    <input class="w-full px-lg py-3 border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-body outline-none" placeholder="72" type="text"/>
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-text-secondary/50">favorite</span>
+                                </div>
+                            </div>
+                            <!-- SpO2 -->
+                            <div class="space-y-sm">
+                                <label class="font-caption text-caption text-text-secondary font-bold uppercase">Oxygen Saturation (SpO2 %)</label>
+                                <div class="relative">
+                                    <input class="w-full px-lg py-3 border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-body outline-none" placeholder="98" type="text"/>
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-text-secondary/50">air</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-xxl pt-xl border-t border-border-base">
+                            <div class="flex items-center justify-between p-lg bg-surface-muted rounded-xl border border-border-base">
+                                <div class="flex items-center gap-md">
+                                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-primary shadow-sm">
+                                        <span class="material-symbols-outlined text-[28px]">person_check</span>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-body text-body font-bold text-text-primary">Patient Attendance Status</h5>
+                                        <p class="font-caption text-caption text-text-secondary">Mark patient as physically present at the reception.</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input checked="" class="sr-only peer" type="checkbox"/>
+                                    <div class="w-14 h-8 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-success"></div>
+                                    <span class="ms-3 font-body text-body font-bold text-success uppercase">Arrived</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mt-xl flex justify-end">
+                            <button class="px-xxl h-14 bg-primary-container text-on-primary-container rounded-lg font-card-heading text-card-heading hover:opacity-90 transition-all active:scale-95 shadow-md flex items-center gap-3">
+                                Complete Check-In
+                                <span class="material-symbols-outlined">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Guidance/Note card -->
+                <div class="bg-surface-muted border border-border-base border-l-4 border-l-primary rounded-lg p-lg">
+                    <div class="flex gap-md">
+                        <span class="material-symbols-outlined text-primary">lightbulb</span>
+                        <div class="font-body text-body text-text-secondary">
+                            <span class="font-bold text-text-primary">Receptionist Tip:</span> Ensure Michael Chen has signed the standard consent form for the cardiology diagnostic procedures before finalizing check-in.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Footer Component -->
+    <footer class="w-[calc(100%-264px)] ml-[264px] py-lg border-t border-border-base mt-auto bg-transparent">
+        <div class="flex justify-between items-center px-xl max-w-[1440px] mx-auto">
+            <p class="font-caption text-caption text-text-secondary">© 2024 Tel Health Clinical Systems. All rights reserved.</p>
+            <div class="flex gap-xl">
+                <a class="font-caption text-caption uppercase tracking-wider text-text-secondary hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Privacy Policy</a>
+                <a class="font-caption text-caption uppercase tracking-wider text-text-secondary hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Terms of Service</a>
+                <a class="font-caption text-caption uppercase tracking-wider text-text-secondary hover:text-primary transition-colors underline-offset-4 hover:underline" href="#">Support</a>
+            </div>
+        </div>
+    </footer>
+    <!-- Micro-interaction for input highlighting -->
+    <script>
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.parentElement.querySelector('label').classList.add('text-primary');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.parentElement.querySelector('label').classList.remove('text-primary');
+            });
+        });
+    </script>
+</div>
+
+</body>
+</html>

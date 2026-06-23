@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <header class="fixed top-0 w-full h-header-height bg-surface-container-lowest border-b border-border-base shadow-sm z-50 flex justify-between items-center px-layout-margin">
+        <div class="flex items-center gap-xl">
+            <div class="md:hidden flex items-center gap-md">
+                <span class="font-display text-primary text-[20px] font-bold">Tel Health</span>
+            </div>
+            <div class="hidden md:flex gap-lg items-center">
+                <a class="text-text-secondary hover:text-primary transition-colors font-body text-body" href="#">Features</a>
+                <a class="text-text-secondary hover:text-primary transition-colors font-body text-body" href="#">Solutions</a>
+                <a class="text-text-secondary hover:text-primary transition-colors font-body text-body" href="#">Pricing</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-lg">
+            <button class="material-symbols-outlined text-text-secondary hover:bg-surface-container p-sm rounded-full transition-all" data-icon="notifications">notifications</button>
+            <button class="material-symbols-outlined text-text-secondary hover:bg-surface-container p-sm rounded-full transition-all" data-icon="help">help</button>
+            <div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-white font-bold text-small">JD</div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="md:ml-sidebar-width pt-[88px] px-layout-margin pb-xxl flex-1">
+        <div class="max-w-[1440px] mx-auto">
+            <!-- Integrated Branch Header from Shell -->
+            <div class="mb-lg flex items-center justify-between">
+                <nav class="flex items-center gap-sm text-text-secondary">
+                    <a class="font-caption text-caption hover:text-primary transition-colors flex items-center gap-xs" href="#">
+                        <span class="material-symbols-outlined text-[16px]">home</span> Home
+                    </a>
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                    <span class="font-caption text-caption text-primary font-bold">Queue Monitoring</span>
+                </nav>
+                <div class="flex items-center gap-md">
+                    <div class="bg-surface border border-border-base rounded-lg px-md py-sm flex items-center gap-sm shadow-sm cursor-pointer hover:bg-surface-container transition-colors">
+                        <span class="material-symbols-outlined text-primary" data-icon="hospital">festival</span>
+                        <div class="flex flex-col">
+                            <span class="text-[11px] font-bold text-text-primary leading-none">CITY GENERAL</span>
+                            <span class="text-[9px] text-text-secondary font-medium">Main Branch</span>
+                        </div>
+                        <span class="material-symbols-outlined text-[16px] text-text-secondary">expand_more</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-lg mb-xxl">
+                <div>
+                    <h1 class="font-page-title text-page-title text-text-primary tracking-tight">Live Queue Status</h1>
+                    <p class="font-body text-text-secondary mt-xs">Real-time management for clinic-wide patient flow.</p>
+                </div>
+                <div class="flex items-center gap-md">
+                    <div class="bg-surface border border-border-base rounded-lg px-md py-sm flex items-center gap-sm shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                        <span class="font-small text-small text-text-primary font-medium">Live Feed Active</span>
+                    </div>
+                    <button class="bg-surface-container-lowest border border-primary text-primary font-bold px-lg py-md rounded-lg flex items-center gap-sm hover:bg-primary hover:text-white transition-all active:scale-95">
+                        <span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+                        <span class="font-small text-small">Refresh View</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Dashboard Grid (Wait Times) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-xl mb-xxl">
+                <!-- OPD Card -->
+                <div class="glass-card p-xl rounded-xl shadow-sm border-l-4 border-l-primary flex flex-col gap-md">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-caption text-text-secondary uppercase tracking-wider font-bold">OPD Wait Time</p>
+                            <h2 class="font-display text-primary mt-sm">10<span class="text-xl font-normal ml-xs">min</span></h2>
+                        </div>
+                        <div class="bg-primary-fixed w-12 h-12 rounded-lg flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined text-[28px]" data-icon="stethoscope">stethoscope</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-sm">
+                        <span class="font-caption text-success font-bold flex items-center">-4 min</span>
+                        <span class="font-caption text-text-secondary">vs. last hour</span>
+                    </div>
+                    <div class="w-full bg-surface-container-high h-1.5 rounded-full mt-sm">
+                        <div class="bg-primary h-full rounded-full" style="width: 65%;"></div>
+                    </div>
+                </div>
+                <!-- Laboratory Card -->
+                <div class="glass-card p-xl rounded-xl shadow-sm border-l-4 border-l-warning flex flex-col gap-md">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-caption text-text-secondary uppercase tracking-wider font-bold">Laboratory</p>
+                            <h2 class="font-display text-warning mt-sm">35<span class="text-xl font-normal ml-xs">min</span></h2>
+                        </div>
+                        <div class="bg-tertiary-fixed w-12 h-12 rounded-lg flex items-center justify-center text-warning">
+                            <span class="material-symbols-outlined text-[28px]" data-icon="biotech">biotech</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-sm">
+                        <span class="font-caption text-danger font-bold flex items-center">+12 min</span>
+                        <span class="font-caption text-text-secondary">vs. last hour</span>
+                    </div>
+                    <div class="w-full bg-surface-container-high h-1.5 rounded-full mt-sm">
+                        <div class="bg-warning h-full rounded-full" style="width: 85%;"></div>
+                    </div>
+                </div>
+                <!-- Pharmacy Card -->
+                <div class="glass-card p-xl rounded-xl shadow-sm border-l-4 border-l-success flex flex-col gap-md">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-caption text-text-secondary uppercase tracking-wider font-bold">Pharmacy</p>
+                            <h2 class="font-display text-success mt-sm">08<span class="text-xl font-normal ml-xs">min</span></h2>
+                        </div>
+                        <div class="bg-secondary-fixed w-12 h-12 rounded-lg flex items-center justify-center text-success">
+                            <span class="material-symbols-outlined text-[28px]" data-icon="medication">medication</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-sm">
+                        <span class="font-caption text-success font-bold flex items-center">-2 min</span>
+                        <span class="font-caption text-text-secondary">Steady flow</span>
+                    </div>
+                    <div class="w-full bg-surface-container-high h-1.5 rounded-full mt-sm">
+                        <div class="bg-success h-full rounded-full" style="width: 25%;"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Main Interactive Table Section -->
+            <div class="glass-card rounded-xl shadow-sm overflow-hidden border border-border-base">
+                <div class="p-xl border-b border-border-base flex flex-col md:flex-row justify-between items-start md:items-center gap-lg bg-surface-container-lowest">
+                    <h3 class="font-card-heading text-card-heading">Active Queue (12 Patients)</h3>
+                    <div class="flex items-center gap-md w-full md:w-auto">
+                        <div class="relative flex-1 md:w-64">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" data-icon="search">search</span>
+                            <input class="w-full pl-10 pr-4 py-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-small text-small" placeholder="Search Token or Name..." type="text">
+                        </div>
+                        <button class="bg-surface-container p-md rounded-lg flex items-center gap-sm hover:bg-surface-container-high transition-colors">
+                            <span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                        <tr class="bg-surface-muted border-b border-border-base">
+                            <th class="px-xl py-lg font-bold text-caption text-text-secondary uppercase tracking-wider">Token</th>
+                            <th class="px-xl py-lg font-bold text-caption text-text-secondary uppercase tracking-wider">Patient Name</th>
+                            <th class="px-xl py-lg font-bold text-caption text-text-secondary uppercase tracking-wider">Department</th>
+                            <th class="px-xl py-lg font-bold text-caption text-text-secondary uppercase tracking-wider">Assigned Doctor</th>
+                            <th class="px-xl py-lg font-bold text-caption text-text-secondary uppercase tracking-wider text-center">Wait Time</th>
+                            <th class="px-xl py-lg font-bold text-caption text-text-secondary uppercase tracking-wider">Priority</th>
+                            <th class="px-xl py-lg font-bold text-caption text-text-secondary uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-base bg-white">
+                        <tr class="hover:bg-surface-bright transition-colors group">
+                            <td class="px-xl py-lg">
+                                <span class="font-bold text-primary font-body">#OP-442</span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <div class="flex items-center gap-md">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 overflow-hidden">
+                                        <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv3cHOlu7o2RQPKVO3z2GzLkLC718c3Wp0BXSTRVFRUee61AW4VuQV_75c_6NfdES20f3fI9v5pmsaOXUr8gOvshGy5n-a2TTxoqxG4j0KZZFoZvhR3OsX11oGVqiAdDUNt-lKRj1CQmZlDa4kIJ1PnvRq2L7nHo3l87jfqE4R7teRNOpGg0Qmo9kEMoc4krzC4BVDY76LL714b-CWrQzQxn7ceKJtU5LmRDRyzVfOxjsXP1eL38T4pgLWE_xoJyOQhel_Ub__qC_K">
+                                    </div>
+                                    <div>
+                                        <p class="font-body font-bold text-text-primary">Marcus Thorne</p>
+                                        <p class="font-caption text-text-secondary">ID: TH-9982</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <span class="bg-primary-fixed text-primary px-sm py-xs rounded text-caption font-bold">OPD</span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <p class="font-small text-small text-text-primary">Dr. Sarah Jenkins</p>
+                                <p class="font-caption text-text-secondary">Cardiology</p>
+                            </td>
+                            <td class="px-xl py-lg text-center">
+                                <span class="font-small text-danger font-bold">24m</span>
+                            </td>
+                            <td class="px-xl py-lg">
+<span class="inline-flex items-center gap-xs px-md py-xs rounded-full bg-error-container text-danger font-bold text-caption">
+<span class="material-symbols-outlined text-[14px]" data-icon="priority_high" data-weight="fill">priority_high</span>
+                                Urgent
+                            </span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button class="p-sm text-primary hover:bg-primary-fixed rounded-lg transition-colors" title="Call Patient"><span class="material-symbols-outlined" data-icon="campaign">campaign</span></button>
+                                    <button class="p-sm text-text-secondary hover:bg-surface-container rounded-lg transition-colors" title="Transfer"><span class="material-symbols-outlined" data-icon="move_up">move_up</span></button>
+                                    <button class="bg-primary text-white px-md py-xs rounded-lg font-bold text-small active:scale-95 transition-transform">Next</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-surface-bright transition-colors group">
+                            <td class="px-xl py-lg">
+                                <span class="font-bold text-primary font-body">#LB-109</span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <div class="flex items-center gap-md">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 overflow-hidden">
+                                        <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZRSL7pGAWktIJ_KyvF5uq1sLx8vf1sdhbV45AO-ygEyMrmyYuskcfpr1wU29WMrGnxBLIqw_uk7DObYz1J4U9XBV5JnyDkn7DwutUqZxwuLC3zo2lP8aH384MMszUgZzsA7z2p_L1pILyxGU5Jme1n2vazBeJDhS-EQtX1X3mVPI1GfBApnGh6tyAcOiqhHmRsltCcaBR2wgH81SJ9ULEkMBaU2AhalAo4O0oKDuLTxct7aoZOy9G6YmgJlI9xp8Rm2QWX8dh0nDq">
+                                    </div>
+                                    <div>
+                                        <p class="font-body font-bold text-text-primary">Elena Rodriguez</p>
+                                        <p class="font-caption text-text-secondary">ID: TH-1244</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <span class="bg-tertiary-fixed text-tertiary px-sm py-xs rounded text-caption font-bold">LABORATORY</span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <p class="font-small text-small text-text-primary">Lab Tech Alpha</p>
+                                <p class="font-caption text-text-secondary">Blood Work</p>
+                            </td>
+                            <td class="px-xl py-lg text-center">
+                                <span class="font-small text-text-secondary">12m</span>
+                            </td>
+                            <td class="px-xl py-lg">
+<span class="inline-flex items-center gap-xs px-md py-xs rounded-full bg-surface-container text-text-secondary font-medium text-caption">
+                                Normal
+                            </span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button class="p-sm text-primary hover:bg-primary-fixed rounded-lg transition-colors" title="Call Patient"><span class="material-symbols-outlined" data-icon="campaign">campaign</span></button>
+                                    <button class="p-sm text-text-secondary hover:bg-surface-container rounded-lg transition-colors" title="Transfer"><span class="material-symbols-outlined" data-icon="move_up">move_up</span></button>
+                                    <button class="bg-primary text-white px-md py-xs rounded-lg font-bold text-small active:scale-95 transition-transform">Next</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-surface-bright transition-colors group">
+                            <td class="px-xl py-lg">
+                                <span class="font-bold text-primary font-body">#OP-443</span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <div class="flex items-center gap-md">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 overflow-hidden">
+                                        <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaYfHDPckarP9e88B4CwZ2tH3pRS_SvssxT3HtVDXW7Q9SJpzN0w-yl8jg0jQOR-d5-X6SNai90LQyDqUPJHrYqFZ6usMg13npigjR7wJ23MSQ_eUTCqgHgxh-MfTKbB30W5cah8AVDruavJE-JmYuXwwldbow1_AW9p35iy6c4w-Si_h_Ey7pOkLsNOqhWzXcmbgeIduuOagchCfJdoAcZzson4qLGikgDmGD0So4_DQgVQJ54yDEh0m2IwwhFwmoMJt1HbeTiIaT">
+                                    </div>
+                                    <div>
+                                        <p class="font-body font-bold text-text-primary">William Chen</p>
+                                        <p class="font-caption text-text-secondary">ID: TH-3301</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <span class="bg-primary-fixed text-primary px-sm py-xs rounded text-caption font-bold">OPD</span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <p class="font-small text-small text-text-primary">Dr. Sarah Jenkins</p>
+                                <p class="font-caption text-text-secondary">Cardiology</p>
+                            </td>
+                            <td class="px-xl py-lg text-center">
+                                <span class="font-small text-text-secondary">05m</span>
+                            </td>
+                            <td class="px-xl py-lg">
+<span class="inline-flex items-center gap-xs px-md py-xs rounded-full bg-surface-container text-text-secondary font-medium text-caption">
+                                Normal
+                            </span>
+                            </td>
+                            <td class="px-xl py-lg">
+                                <div class="flex justify-end gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button class="p-sm text-primary hover:bg-primary-fixed rounded-lg transition-colors" title="Call Patient"><span class="material-symbols-outlined" data-icon="campaign">campaign</span></button>
+                                    <button class="p-sm text-text-secondary hover:bg-surface-container rounded-lg transition-colors" title="Transfer"><span class="material-symbols-outlined" data-icon="move_up">move_up</span></button>
+                                    <button class="bg-primary text-white px-md py-xs rounded-lg font-bold text-small active:scale-95 transition-transform">Next</button>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-lg bg-surface-container-low border-t border-border-base flex items-center justify-between">
+                    <span class="font-caption text-text-secondary">Showing 1-3 of 12 active entries</span>
+                    <div class="flex gap-sm">
+                        <button class="p-sm rounded-lg border border-border-base bg-white hover:bg-surface-container transition-colors disabled:opacity-50" disabled="">
+                            <span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+                        </button>
+                        <button class="p-sm rounded-lg border border-border-base bg-white hover:bg-surface-container transition-colors">
+                            <span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Quick Actions -->
+            <div class="mt-xl grid grid-cols-1 md:grid-cols-4 gap-lg">
+                <button class="flex flex-col items-center justify-center p-xl bg-primary text-white rounded-xl shadow-lg hover:bg-primary/90 transition-all active:scale-95 group">
+                    <span class="material-symbols-outlined text-[32px] mb-sm group-hover:scale-110 transition-transform" data-icon="person_play">person_play</span>
+                    <span class="font-bold text-body">Call Next Patient</span>
+                    <span class="font-caption opacity-80 mt-xs">Global Queue</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-xl bg-white border border-border-base rounded-xl shadow-sm hover:border-primary hover:text-primary transition-all active:scale-95 group">
+                    <span class="material-symbols-outlined text-[32px] mb-sm text-text-secondary group-hover:text-primary transition-colors" data-icon="swap_horiz">swap_horiz</span>
+                    <span class="font-bold text-body">Transfer Bulk</span>
+                    <span class="font-caption text-text-secondary mt-xs">Between Depts</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-xl bg-white border border-border-base rounded-xl shadow-sm hover:border-primary hover:text-primary transition-all active:scale-95 group">
+                    <span class="material-symbols-outlined text-[32px] mb-sm text-text-secondary group-hover:text-primary transition-colors" data-icon="emergency">emergency</span>
+                    <span class="font-bold text-body">Emergency Intake</span>
+                    <span class="font-caption text-text-secondary mt-xs">Bypass Queue</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-xl bg-white border border-border-base rounded-xl shadow-sm hover:border-primary hover:text-primary transition-all active:scale-95 group">
+                    <span class="material-symbols-outlined text-[32px] mb-sm text-text-secondary group-hover:text-primary transition-colors" data-icon="print">print</span>
+                    <span class="font-bold text-body">Print Tokens</span>
+                    <span class="font-caption text-text-secondary mt-xs">Batch Operations</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (Updated to match SCREEN_2) -->
+    <footer class="md:ml-sidebar-width bg-surface-container-low border-t border-border-base flex-shrink-0 z-40 pt-lg">
+        <div class="px-layout-margin py-md max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
+            <div class="flex flex-wrap items-center gap-xl">
+                <span class="font-caption text-caption text-text-secondary">© 2024 Tel Health Enterprise. Clinical Precision Redefined.</span>
+                <div class="flex items-center gap-md">
+                    <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Privacy Policy</a>
+                    <span class="w-1 h-1 bg-border-base rounded-full"></span>
+                    <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Terms of Service</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-md">
+                <div class="flex items-center gap-xs px-sm py-1 bg-white rounded border border-border-base shadow-sm">
+                    <span class="material-symbols-outlined text-success text-[16px]">verified_user</span>
+                    <span class="font-caption text-[10px] font-bold text-text-secondary uppercase tracking-tight">HIPAA Compliant Environment</span>
+                </div>
+                <a class="font-caption text-[11px] font-bold text-text-secondary hover:text-primary transition-all flex items-center gap-1" href="#">
+                    <span class="material-symbols-outlined text-[14px]">security</span> Contact Security
+                </a>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        // Micro-interaction: Update wait times every few seconds for "live" feel
+        setInterval(() => {
+            const minDisplays = document.querySelectorAll('h2.font-display span.text-xl');
+            minDisplays.forEach(span => {
+                const parent = span.closest('h2');
+                const currentVal = parseInt(parent.innerText);
+                if(Math.random() > 0.8) {
+                    const diff = Math.random() > 0.5 ? 1 : -1;
+                    const newVal = Math.max(1, currentVal + diff);
+                    parent.innerHTML = `${newVal < 10 ? '0'+newVal : newVal}<span class="text-xl font-normal ml-xs">min</span>`;
+                }
+            });
+        }, 5000);
+
+        // Simulated "Next Patient" call interaction
+        document.querySelectorAll('button').forEach(btn => {
+            if(btn.innerText.includes('Next')) {
+                btn.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    row.style.transition = 'all 0.5s ease-out';
+                    row.style.transform = 'translateX(20px)';
+                    row.style.opacity = '0.5';
+                    row.style.backgroundColor = '#ecfdf5';
+
+                    setTimeout(() => {
+                        row.style.transform = 'translateX(0)';
+                        row.style.opacity = '1';
+                        row.style.backgroundColor = 'transparent';
+                    }, 2000);
+                });
+            }
+        });
+    </script>
+</div>
+</body>
+</html>
