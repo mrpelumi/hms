@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Profile | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-lg py-xl md:px-xl">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-xl">
+      <nav class="flex items-center gap-xs font-caption text-caption text-text-secondary">
+        <a class="hover:text-primary" th:href="@{/reception/home}">Home</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <a class="hover:text-primary" th:href="@{/reception/patients}">Patients</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span class="text-text-primary font-bold" th:text="${patient.patientId}">PID-2026-0001</span>
+      </nav>
+
+      <div th:if="${param.updated}" class="rounded-lg border border-success/30 bg-white p-lg text-success font-card-heading">
+        Patient record updated successfully.
+      </div>
+
+      <section class="bg-surface-container-lowest border border-border-base rounded-xl p-xl shadow-sm">
+        <div class="flex flex-col gap-lg md:flex-row md:items-center md:justify-between">
+          <div class="flex items-center gap-lg">
+            <div class="w-16 h-16 rounded-xl bg-primary-fixed text-primary flex items-center justify-center font-display text-[28px]"
+                 th:text="${patient.fullName != null && !#strings.isEmpty(patient.fullName) ? #strings.substring(patient.fullName,0,1) : '?'}">P</div>
+            <div>
+              <h1 class="font-section-heading text-section-heading text-text-primary" th:text="${patient.fullName ?: 'Unnamed Patient'}">Patient Name</h1>
+              <p class="font-caption text-caption text-text-secondary">
+                <span th:text="${patient.patientId}">PID-2026-0001</span>
+                <span class="mx-sm text-border-base">|</span>
+                <span th:text="${patient.gender ?: 'Gender not set'}">Gender</span>
+                <span class="mx-sm text-border-base">|</span>
+                <span th:text="${patient.dateOfBirth != null ? T(java.time.Period).between(patient.dateOfBirth, T(java.time.LocalDate).now()).years + ' Years' : 'Age not set'}">Age</span>
+              </p>
+            </div>
+          </div>
+          <a th:href="@{/reception/patients/{patientId}/edit(patientId=${patient.patientId})}" class="flex items-center justify-center gap-sm bg-primary text-on-primary px-xl py-md rounded-lg font-card-heading text-card-heading hover:bg-primary/90 transition-all shadow-md">
+            <span class="material-symbols-outlined">edit</span>
+            Update Patient Details
+          </a>
+        </div>
+      </section>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+        <section class="bg-surface-container-lowest border border-border-base rounded-xl p-xl shadow-sm">
+          <h2 class="font-card-heading text-card-heading text-text-primary mb-xl">Personal Information</h2>
+          <div class="space-y-lg">
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Full Name</p>
+              <p class="font-body text-body font-medium" th:text="${patient.fullName ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Date of Birth</p>
+              <p class="font-body text-body font-medium" th:text="${patient.dateOfBirth ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Gender</p>
+              <p class="font-body text-body font-medium" th:text="${patient.gender ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Blood Group</p>
+              <p class="font-body text-body font-medium" th:text="${patient.bloodGroup ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Allergies</p>
+              <p class="font-body text-body font-medium whitespace-pre-line" th:text="${patient.allergies ?: 'None reported'}">None reported</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-surface-container-lowest border border-border-base rounded-xl p-xl shadow-sm">
+          <h2 class="font-card-heading text-card-heading text-text-primary mb-xl">Contact Details</h2>
+          <div class="space-y-lg">
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Phone Number</p>
+              <p class="font-body text-body font-medium" th:text="${patient.phoneNumber ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Email Address</p>
+              <p class="font-body text-body font-medium" th:text="${patient.emailAddress ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Residential Address</p>
+              <p class="font-body text-body font-medium whitespace-pre-line" th:text="${patient.residentialAddress ?: '-'}">-</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-surface-container-lowest border border-border-base rounded-xl p-xl shadow-sm">
+          <h2 class="font-card-heading text-card-heading text-text-primary mb-xl">Emergency Contact</h2>
+          <div class="space-y-lg">
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Contact Name</p>
+              <p class="font-body text-body font-medium" th:text="${patient.emergencyContactName ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Relationship</p>
+              <p class="font-body text-body font-medium" th:text="${patient.emergencyContactRelationship ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Contact Phone</p>
+              <p class="font-body text-body font-medium" th:text="${patient.emergencyContactPhone ?: '-'}">-</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+        <section class="bg-surface-container-lowest border border-border-base rounded-xl p-xl shadow-sm lg:col-span-1">
+          <h2 class="font-card-heading text-card-heading text-text-primary mb-xl">Insurance Details</h2>
+          <div class="space-y-lg">
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Provider</p>
+              <p class="font-body text-body font-medium" th:text="${patient.insuranceProvider ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Policy Number</p>
+              <p class="font-body text-body font-medium" th:text="${patient.policyNumber ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Group ID</p>
+              <p class="font-body text-body font-medium" th:text="${patient.groupId ?: '-'}">-</p>
+            </div>
+            <div>
+              <p class="font-caption text-caption text-text-secondary">Expiration Date</p>
+              <p class="font-body text-body font-medium" th:text="${patient.insuranceExpirationDate ?: '-'}">-</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-surface-container-lowest border border-border-base rounded-xl shadow-sm overflow-hidden lg:col-span-2">
+          <div class="border-b border-border-base px-xl py-lg">
+            <h2 class="font-card-heading text-card-heading text-text-primary">Appointments</h2>
+          </div>
+          <div class="p-xl">
+            <div class="rounded-lg border border-dashed border-border-base bg-surface-muted/40 px-xl py-xxl text-center">
+              <p class="font-body text-body text-text-secondary">No appointment data is connected yet.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="w-full bg-surface-container-low border-t border-border-base flex-shrink-0 py-md px-lg md:px-layout-margin">
+    <div class="max-w-[1180px] mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
+      <p class="font-caption text-caption text-text-secondary">© 2024 Tel Health Clinical Systems. All rights reserved.</p>
+      <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" th:href="@{/reception/patients}">Back to Directory</a>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

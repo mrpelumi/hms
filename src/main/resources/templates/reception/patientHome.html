@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Directory | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-lg py-xl md:px-xl">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-xl">
+      <header class="flex flex-col gap-lg md:flex-row md:items-end md:justify-between">
+        <div class="space-y-sm">
+          <nav class="flex items-center gap-xs font-caption text-caption text-text-secondary">
+            <a class="hover:text-primary" th:href="@{/reception/home}">Home</a>
+            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span class="text-text-primary font-bold">Patients</span>
+          </nav>
+          <h1 class="font-page-title text-page-title text-text-primary">Patient Directory</h1>
+          <p class="text-text-secondary font-body text-body">Search, review, and update registered patient records.</p>
+        </div>
+        <a th:href="@{/reception/registration}" class="bg-primary hover:bg-primary/90 text-white px-lg py-3 rounded-lg font-card-heading flex items-center gap-sm transition-all shadow-md">
+          <span class="material-symbols-outlined">person_add</span>
+          Register New Patient
+        </a>
+      </header>
+
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+        <div class="bg-primary-container p-xl rounded-xl text-white shadow-lg flex flex-col justify-between h-36">
+          <span class="material-symbols-outlined text-[32px] opacity-80" style="font-variation-settings: 'FILL' 1;">group</span>
+          <div>
+            <h2 class="font-caption text-caption uppercase tracking-wider opacity-75">Total Patients</h2>
+            <p class="font-display text-[32px] leading-tight" th:text="${totalPatients}">0</p>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest p-xl rounded-xl border border-border-base shadow-sm flex flex-col justify-between h-36">
+          <span class="material-symbols-outlined text-success text-[32px]">person_add</span>
+          <div>
+            <h2 class="font-caption text-caption text-text-secondary uppercase tracking-wider">New This Year</h2>
+            <p class="font-display text-[32px] leading-tight text-text-primary" th:text="${newPatientsThisYear}">0</p>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest p-xl rounded-xl border border-border-base shadow-sm flex flex-col justify-between h-36">
+          <span class="material-symbols-outlined text-warning text-[32px]">pending_actions</span>
+          <div>
+            <h2 class="font-caption text-caption text-text-secondary uppercase tracking-wider">Unprocessed Forms</h2>
+            <p class="font-display text-[32px] leading-tight text-text-primary" th:text="${unprocessedForms}">0</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-surface-container-lowest rounded-xl border border-border-base p-lg shadow-sm">
+        <div class="relative w-full max-w-xl group">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary">search</span>
+          <input id="patient-search" class="w-full bg-surface-muted border-none rounded-lg pl-10 pr-4 py-2 font-small text-small focus:ring-2 focus:ring-primary/20 transition-all outline-none" placeholder="Search patients by PID, name, phone, or email..." type="text"/>
+        </div>
+      </section>
+
+      <section class="bg-surface-container-lowest rounded-xl border border-border-base shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[860px] text-left border-collapse">
+            <thead>
+            <tr class="bg-surface-muted border-b border-border-base">
+              <th class="px-lg py-md font-caption text-caption text-text-secondary uppercase tracking-wider">Patient ID</th>
+              <th class="px-lg py-md font-caption text-caption text-text-secondary uppercase tracking-wider">Full Name</th>
+              <th class="px-lg py-md font-caption text-caption text-text-secondary uppercase tracking-wider">Gender</th>
+              <th class="px-lg py-md font-caption text-caption text-text-secondary uppercase tracking-wider">Age</th>
+              <th class="px-lg py-md font-caption text-caption text-text-secondary uppercase tracking-wider">Phone Number</th>
+              <th class="px-lg py-md font-caption text-caption text-text-secondary uppercase tracking-wider">Email</th>
+              <th class="px-lg py-md font-caption text-caption text-text-secondary uppercase tracking-wider text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="patient-table-body" class="divide-y divide-border-base">
+            <tr th:if="${#lists.isEmpty(patients)}">
+              <td colspan="7" class="px-lg py-xxl text-center text-text-secondary font-body">No patients have been registered yet.</td>
+            </tr>
+            <tr th:each="patient : ${patients}" class="patient-row hover:bg-background transition-colors group"
+                th:attr="data-search=${#strings.toLowerCase((patient.patientId ?: '') + ' ' + (patient.fullName ?: '') + ' ' + (patient.phoneNumber ?: '') + ' ' + (patient.emailAddress ?: ''))}">
+              <td class="px-lg py-lg">
+                <a th:href="@{/reception/patients/{patientId}(patientId=${patient.patientId})}" class="font-small text-small text-primary font-bold hover:underline" th:text="${patient.patientId}">PID-2026-0001</a>
+              </td>
+              <td class="px-lg py-lg">
+                <div class="flex items-center gap-md">
+                  <div class="w-8 h-8 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-[12px]"
+                       th:text="${patient.fullName != null && !#strings.isEmpty(patient.fullName) ? #strings.substring(patient.fullName,0,1) : '?'}">P</div>
+                  <span class="font-body text-body text-text-primary font-medium" th:text="${patient.fullName ?: 'Unnamed Patient'}">Patient Name</span>
+                </div>
+              </td>
+              <td class="px-lg py-lg font-small text-small" th:text="${patient.gender ?: '-'}">-</td>
+              <td class="px-lg py-lg font-small text-small" th:text="${patient.dateOfBirth != null ? T(java.time.Period).between(patient.dateOfBirth, T(java.time.LocalDate).now()).years : '-'}">-</td>
+              <td class="px-lg py-lg font-small text-small text-text-secondary" th:text="${patient.phoneNumber ?: '-'}">-</td>
+              <td class="px-lg py-lg font-small text-small text-text-secondary" th:text="${patient.emailAddress ?: '-'}">-</td>
+              <td class="px-lg py-lg text-right">
+                <div class="flex items-center justify-end gap-sm">
+                  <a th:href="@{/reception/patients/{patientId}(patientId=${patient.patientId})}" class="p-2 text-primary hover:bg-primary-fixed rounded transition-all" title="View Profile" aria-label="View Profile">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </a>
+                  <a th:href="@{/reception/patients/{patientId}/edit(patientId=${patient.patientId})}" class="p-2 text-text-secondary hover:bg-surface-muted rounded transition-all" title="Edit Patient" aria-label="Edit Patient">
+                    <span class="material-symbols-outlined">edit</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="px-lg py-md border-t border-border-base bg-surface-container-lowest flex flex-col gap-sm md:flex-row md:items-center md:justify-between">
+          <p class="font-caption text-caption text-text-secondary">
+            Showing <span id="visible-count" class="font-bold text-text-primary" th:text="${totalPatients}">0</span>
+            of <span class="font-bold text-text-primary" th:text="${totalPatients}">0</span> entries
+          </p>
+          <p class="font-caption text-caption text-text-secondary">Pagination will be added when the directory grows.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="w-full bg-surface-container-low border-t border-border-base flex-shrink-0 py-md px-lg md:px-layout-margin">
+    <div class="max-w-[1180px] mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
+      <p class="font-caption text-caption text-text-secondary">© 2024 Tel Health Clinical Systems. All rights reserved.</p>
+      <div class="flex items-center gap-md">
+        <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Privacy Policy</a>
+        <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Support</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const searchInput = document.getElementById('patient-search');
+    const rows = Array.from(document.querySelectorAll('.patient-row'));
+    const visibleCount = document.getElementById('visible-count');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.trim().toLowerCase();
+            let shown = 0;
+
+            rows.forEach(row => {
+                const matches = row.dataset.search.includes(query);
+                row.classList.toggle('hidden', !matches);
+                if (matches) {
+                    shown += 1;
+                }
+            });
+
+            if (visibleCount) {
+                visibleCount.textContent = shown.toString();
+            }
+        });
+    }
+  </script>
+</div>
+</body>
+</html>
