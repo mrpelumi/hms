@@ -18,8 +18,22 @@ public class QueueEntry {
 
     private Long appointmentId;
     private Long patientId;
-    private String status; // WAITING, CALLED, SERVED
+    private String token;
+    private String status; // WAITING_FOR_NURSE, READY_FOR_DOCTOR, CALLED, SERVED
+    private String temperature;
+    private String bloodPressure;
+    private String pulseRate;
+    private String respiratoryRate;
+    private String oxygenSaturation;
+    private String painScore;
+    private String weight;
+    private String height;
+    private String bmi;
+    private String chiefComplaint;
+    @Column(length = 2000)
+    private String nurseNotes;
     private OffsetDateTime queuedAt;
+    private OffsetDateTime vitalsCapturedAt;
     private OffsetDateTime servedAt;
 }
 

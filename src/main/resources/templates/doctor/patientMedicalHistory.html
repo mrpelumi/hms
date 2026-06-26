@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Patient History | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Patient Summary and History</h1>
+          <p class="text-small text-text-secondary">Review clinical context before starting or continuing consultation.</p>
+        </div>
+        <div class="flex flex-wrap gap-sm" th:if="${patient != null}">
+          <a th:href="@{/doctor/patients/{id}/prescriptions(id=${patient.id})}"
+             class="rounded-md border border-primary px-md py-sm font-semibold text-primary">Prescriptions</a>
+          <a th:if="${queueEntry != null}" th:href="@{/doctor/consultation/{id}(id=${queueEntry.id})}"
+             class="rounded-md bg-primary px-md py-sm font-semibold text-white">Start Consultation</a>
+        </div>
+      </header>
+
+      <div th:if="${patient == null}" class="rounded-lg border border-border-base bg-white p-md text-text-secondary shadow-sm">No patient record is available yet.</div>
+
+      <div th:if="${patient != null}" class="grid grid-cols-1 gap-md xl:grid-cols-12">
+        <section class="xl:col-span-8 space-y-md">
+          <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <div class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+              <div>
+                <p class="text-[11px] font-bold uppercase text-text-secondary">Patient Record</p>
+                <h2 class="text-xl font-semibold text-text-primary" th:text="${patient.fullName ?: 'Unnamed Patient'}">Patient</h2>
+                <p class="mt-xs text-caption text-text-secondary">
+                  <span th:text="${patient.patientId ?: '-'}">PID</span>
+                  <span class="mx-xs">|</span>
+                  <span th:text="${patient.gender ?: '-'}">Gender</span>
+                  <span class="mx-xs">|</span>
+                  <span th:text="${patient.bloodGroup ?: 'Blood group not set'}">Blood</span>
+                  <span class="mx-xs">|</span>
+                  <span th:text="${patient.phoneNumber ?: 'No phone'}">Phone</span>
+                </p>
+              </div>
+              <div class="rounded-md border border-danger/20 bg-error-container/20 p-sm md:min-w-48">
+                <p class="text-[11px] font-bold uppercase text-danger">Allergies</p>
+                <p class="font-semibold text-text-primary" th:text="${patient.allergies ?: 'None reported'}">None</p>
+              </div>
+            </div>
+          </div>
+
+          <div th:if="${queueEntry != null}" class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <div class="flex items-center justify-between gap-sm">
+              <div>
+                <h2 class="text-base font-semibold text-text-primary">Current Nurse Intake</h2>
+                <p class="text-caption text-text-secondary" th:text="${queueEntry.vitalsCapturedAt != null ? 'Captured ' + #temporals.format(queueEntry.vitalsCapturedAt, 'hh:mm a') : 'Vitals pending timestamp'}">Captured</p>
+              </div>
+              <span class="rounded-full bg-primary/10 px-sm py-1 text-[11px] font-bold text-primary" th:text="${queueEntry.status}">READY</span>
+            </div>
+            <div class="mt-sm grid grid-cols-2 gap-xs md:grid-cols-4">
+              <div class="rounded-md border border-border-base p-sm"><p class="text-[11px] uppercase text-text-secondary">BP</p><p class="font-semibold" th:text="${queueEntry.bloodPressure ?: '-'}">-</p></div>
+              <div class="rounded-md border border-border-base p-sm"><p class="text-[11px] uppercase text-text-secondary">Pulse</p><p class="font-semibold" th:text="${queueEntry.pulseRate ?: '-'}">-</p></div>
+              <div class="rounded-md border border-border-base p-sm"><p class="text-[11px] uppercase text-text-secondary">SpO2</p><p class="font-semibold" th:text="${queueEntry.oxygenSaturation ?: '-'}">-</p></div>
+              <div class="rounded-md border border-border-base p-sm"><p class="text-[11px] uppercase text-text-secondary">Pain</p><p class="font-semibold" th:text="${queueEntry.painScore ?: '-'}">-</p></div>
+            </div>
+            <div class="mt-sm grid grid-cols-1 gap-sm md:grid-cols-2">
+              <div>
+                <p class="text-[11px] font-bold uppercase text-text-secondary">Chief Complaint</p>
+                <p class="whitespace-pre-line text-text-primary" th:text="${queueEntry.chiefComplaint ?: 'No chief complaint recorded.'}">Complaint</p>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold uppercase text-text-secondary">Nurse Notes</p>
+                <p class="whitespace-pre-line text-text-primary" th:text="${queueEntry.nurseNotes ?: 'No nurse notes recorded.'}">Notes</p>
+              </div>
+            </div>
+          </div>
+
+          <section class="rounded-lg border border-border-base bg-white shadow-sm">
+            <div class="border-b border-border-base px-md py-sm">
+              <h2 class="text-base font-semibold text-text-primary">Consultation Timeline</h2>
+            </div>
+            <div class="max-h-[calc(100vh-455px)] min-h-48 overflow-auto p-md">
+              <div th:if="${#lists.isEmpty(consultations)}" class="text-text-secondary">No prior consultations recorded.</div>
+              <div class="space-y-sm">
+                <article th:each="consultation : ${consultations}" class="rounded-md border border-border-base p-sm">
+                  <div class="flex flex-col gap-xs md:flex-row md:items-center md:justify-between">
+                    <p class="text-caption font-bold text-primary" th:text="${consultation.consultationAt != null ? #temporals.format(consultation.consultationAt, 'MMM dd, yyyy hh:mm a') : 'Unscheduled'}">Date</p>
+                    <span class="rounded-full bg-surface-container-high px-sm py-1 text-[11px] font-bold text-text-secondary" th:text="${consultation.status ?: 'IN_PROGRESS'}">Status</span>
+                  </div>
+                  <h3 class="mt-xs font-semibold text-text-primary" th:text="${consultation.diagnosis ?: 'Consultation'}">Diagnosis</h3>
+                  <p class="mt-xs line-clamp-3 whitespace-pre-line text-text-secondary"
+                     th:text="${consultation.doctorNotes ?: consultation.treatmentPlan ?: consultation.assessment ?: 'No notes recorded.'}">Notes</p>
+                </article>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <aside class="xl:col-span-4 space-y-md">
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Active Prescriptions</h2>
+            <div class="mt-sm max-h-56 space-y-xs overflow-auto">
+              <div th:if="${#lists.isEmpty(prescriptions)}" class="text-caption text-text-secondary">No prescriptions recorded.</div>
+              <div th:each="prescription : ${prescriptions}" class="rounded-md border border-border-base p-sm">
+                <p class="font-semibold text-text-primary" th:text="${prescription.medicationName}">Medication</p>
+                <p class="text-caption text-text-secondary" th:text="${(prescription.dosage ?: '') + ' ' + (prescription.frequency ?: '') + ' ' + (prescription.duration ?: '')}">Dose</p>
+                <p class="text-caption text-text-secondary" th:text="${prescription.instructions ?: ''}">Instructions</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Investigations</h2>
+            <div class="mt-sm max-h-56 space-y-xs overflow-auto">
+              <div th:if="${#lists.isEmpty(investigations)}" class="text-caption text-text-secondary">No lab or radiology requests.</div>
+              <div th:each="investigation : ${investigations}" class="rounded-md border border-border-base p-sm">
+                <div class="flex items-center justify-between gap-sm">
+                  <p class="font-semibold text-text-primary" th:text="${investigation.testName}">Test</p>
+                  <span class="text-[11px] font-bold uppercase text-text-secondary" th:text="${investigation.priority ?: 'Routine'}">Routine</span>
+                </div>
+                <p class="text-caption text-text-secondary" th:text="${investigation.requestType + ' | ' + (investigation.status ?: 'Requested')}">Status</p>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Doctor Dashboard | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Doctor Dashboard</h1>
+          <p class="text-small text-text-secondary">Today's appointments, nurse-ready patients, and active consultations.</p>
+        </div>
+        <div class="flex flex-wrap gap-sm">
+          <a th:href="@{/doctor/schedule}" class="inline-flex items-center gap-xs rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">
+            <span class="material-symbols-outlined text-[18px]">event</span>
+            Schedule
+          </a>
+          <a th:href="@{/doctor/queue}" class="inline-flex items-center gap-xs rounded-md bg-primary px-md py-sm font-semibold text-white shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">groups</span>
+            Patient Queue
+          </a>
+        </div>
+      </header>
+
+      <section class="grid grid-cols-2 gap-sm lg:grid-cols-4">
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Ready for Doctor</p>
+          <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${waitingCount}">0</p>
+        </div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Called</p>
+          <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${calledCount}">0</p>
+        </div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Completed Today</p>
+          <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${completedToday}">0</p>
+        </div>
+        <div class="rounded-lg border border-danger/30 bg-white p-md shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-danger">Emergency Priority</p>
+          <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${criticalCount}">0</p>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 gap-md lg:grid-cols-3">
+        <div class="lg:col-span-2 rounded-lg border border-border-base bg-white shadow-sm">
+          <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-text-primary">Today's Clinical Queue</h2>
+              <p class="text-caption text-text-secondary">Patients appear here after nurse vitals are captured.</p>
+            </div>
+            <input id="queue-search" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs"
+                   placeholder="Search patient, status, reason" type="text">
+          </div>
+          <div class="max-h-[calc(100vh-310px)] overflow-auto">
+            <table class="w-full text-left text-small">
+              <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+              <tr>
+                <th class="px-md py-sm">Patient</th>
+                <th class="px-md py-sm">Ready</th>
+                <th class="px-md py-sm">Reason</th>
+                <th class="px-md py-sm">Status</th>
+                <th class="px-md py-sm text-right">Action</th>
+              </tr>
+              </thead>
+              <tbody class="divide-y divide-border-base">
+              <tr th:if="${#lists.isEmpty(queueEntries)}">
+                <td colspan="5" class="px-md py-lg text-center text-text-secondary">No nurse-ready patients for your queue.</td>
+              </tr>
+              <tr th:each="entry : ${queueEntries}" class="queue-row hover:bg-surface-bright"
+                  th:with="patient=${patientsById[entry.patientId]}, appointment=${appointmentsById[entry.appointmentId]}"
+                  th:attr="data-search=${#strings.toLowerCase((patient != null ? patient.fullName : '') + ' ' + (appointment != null ? appointment.reason : '') + ' ' + (entry.status ?: ''))}">
+                <td class="px-md py-sm">
+                  <p class="font-semibold text-text-primary" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                  <p class="text-caption text-text-secondary" th:text="${patient != null ? patient.patientId : '-'}">PID</p>
+                </td>
+                <td class="px-md py-sm" th:text="${entry.vitalsCapturedAt != null ? #temporals.format(entry.vitalsCapturedAt, 'hh:mm a') : (entry.queuedAt != null ? #temporals.format(entry.queuedAt, 'hh:mm a') : '-')}">-</td>
+                <td class="px-md py-sm">
+                  <span class="line-clamp-2 text-text-secondary" th:text="${appointment != null && appointment.reason != null ? appointment.reason : (entry.chiefComplaint ?: '-')}">Reason</span>
+                </td>
+                <td class="px-md py-sm">
+                  <span class="rounded-full bg-warning/10 px-sm py-1 text-[11px] font-bold text-warning"
+                        th:classappend="${entry.status == 'CALLED'} ? ' bg-primary/10 text-primary' : ''"
+                        th:text="${entry.status}">READY</span>
+                </td>
+                <td class="px-md py-sm text-right">
+                  <div class="inline-flex gap-xs">
+                    <a th:href="@{/doctor/patients/{id}/history(id=${entry.patientId}, queueEntryId=${entry.id})}"
+                       class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">History</a>
+                    <a th:href="@{/doctor/consultation/{id}(id=${entry.id})}"
+                       class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">Start</a>
+                  </div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <aside class="space-y-md">
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Workflow</h2>
+            <ol class="mt-sm space-y-sm text-small text-text-secondary">
+              <li class="flex gap-sm"><span class="font-bold text-primary">1</span><span>Review nurse-ready patient queue.</span></li>
+              <li class="flex gap-sm"><span class="font-bold text-primary">2</span><span>Open history and nurse vitals.</span></li>
+              <li class="flex gap-sm"><span class="font-bold text-primary">3</span><span>Record SOAP notes, diagnosis, plan, prescriptions, and requests.</span></li>
+              <li class="flex gap-sm"><span class="font-bold text-primary">4</span><span>Complete the consultation to close the visit.</span></li>
+            </ol>
+          </section>
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Clinical Alerts</h2>
+            <p class="mt-sm text-small text-text-secondary">
+              <span th:text="${criticalCount}">0</span>
+              emergency-priority patient(s) need attention in your active queue.
+            </p>
+          </section>
+        </aside>
+      </section>
+    </div>
+  </main>
+  <script>
+    const searchInput = document.getElementById('queue-search');
+    const rows = Array.from(document.querySelectorAll('.queue-row'));
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        rows.forEach(row => row.classList.toggle('hidden', query && !row.dataset.search.includes(query)));
+      });
+    }
+  </script>
+</div>
+</body>
+</html>

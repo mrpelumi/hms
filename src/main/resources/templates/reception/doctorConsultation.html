@@ -3,301 +3,240 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Patient Registration | Tel Health</title>
+  <meta charset="utf-8">
+  <title>Doctor Consultation | Tel Health</title>
 </head>
 <body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1220px] flex-col gap-md text-small">
+      <nav class="flex items-center gap-xs text-caption text-text-secondary">
+        <a class="hover:text-primary" th:href="@{/doctor/dashboard}">Dashboard</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <a class="hover:text-primary" th:href="@{/doctor/queue}">Queue</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span class="font-semibold text-primary">Consultation</span>
+      </nav>
 
-<!-- Page Content -->
-<div layout:fragment="content">
-    <!-- TOP NAVBAR -->
-    <header class="h-header-height fixed top-0 right-0 z-40 bg-surface-container-lowest border-b border-border-base shadow-sm flex items-center justify-between px-xl w-[calc(100%-264px)] ml-[264px]">
-        <div class="flex items-center gap-xl w-1/2">
-            <div class="relative w-full max-w-md group">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary">search</span>
-                <input class="w-full bg-surface-muted border-none rounded-lg py-2 pl-10 pr-4 text-small focus:ring-2 focus:ring-primary focus:bg-white transition-all" placeholder="Global search patients, records..." type="text"/>
-            </div>
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <div class="flex flex-col gap-md lg:flex-row lg:items-center lg:justify-between">
+          <div class="min-w-0">
+            <p class="text-[11px] font-bold uppercase text-text-secondary">Active Consultation</p>
+            <h1 class="truncate text-[22px] font-semibold leading-7 text-text-primary" th:text="${patient.fullName ?: 'Unnamed Patient'}">Patient</h1>
+            <p class="mt-xs text-caption text-text-secondary">
+              <span th:text="${patient.patientId ?: 'No PID'}">PID</span>
+              <span class="mx-xs">|</span>
+              <span th:text="${patient.gender ?: '-'}">Gender</span>
+              <span class="mx-xs">|</span>
+              <span th:text="${patient.bloodGroup ?: 'Blood group not set'}">Blood</span>
+              <span class="mx-xs">|</span>
+              <span th:text="${appointment.visitType ?: 'Consultation'}">Consultation</span>
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-sm">
+            <a th:href="@{/doctor/patients/{id}/history(id=${patient.id}, queueEntryId=${queueEntry.id})}"
+               class="inline-flex items-center gap-xs rounded-md border border-primary px-md py-sm font-semibold text-primary">
+              <span class="material-symbols-outlined text-[18px]">history</span>
+              History
+            </a>
+            <form method="post" th:action="@{/doctor/consultation/{id}/complete(id=${queueEntry.id})}">
+              <button class="inline-flex items-center gap-xs rounded-md bg-success px-md py-sm font-semibold text-white" type="submit">
+                <span class="material-symbols-outlined text-[18px]">task_alt</span>
+                Complete
+              </button>
+            </form>
+          </div>
         </div>
-        <div class="flex items-center gap-lg">
-            <button class="flex items-center gap-sm px-4 py-2 text-text-secondary font-medium hover:bg-surface-muted rounded-lg transition-all">
-                <span>Branch: North Wing</span>
-                <span class="material-symbols-outlined">expand_more</span>
-            </button>
-            <div class="h-6 w-px bg-border-base"></div>
-            <button class="p-2 text-text-secondary hover:bg-surface-muted rounded-full transition-all relative">
-                <span class="material-symbols-outlined">notifications</span>
-                <span class="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full border-2 border-white"></span>
-            </button>
-            <button class="p-2 text-text-secondary hover:bg-surface-muted rounded-full transition-all">
-                <span class="material-symbols-outlined">settings</span>
-            </button>
+      </section>
+
+      <div th:if="${param.saved}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm text-small font-semibold text-success">Consultation notes saved.</div>
+      <div th:if="${param.prescriptionAdded}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm text-small font-semibold text-success">Prescription added.</div>
+      <div th:if="${param.investigationAdded}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm text-small font-semibold text-success">Investigation request added.</div>
+
+      <section class="grid grid-cols-2 gap-sm md:grid-cols-4">
+        <div class="rounded-lg border border-border-base bg-white p-sm shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Blood Pressure</p>
+          <p class="font-semibold text-text-primary" th:text="${queueEntry.bloodPressure ?: '-'}">-</p>
         </div>
-    </header>
-    <!-- MAIN CONTENT AREA -->
-    <main class="pt-header-height ml-[264px] min-h-screen flex flex-col bg-background">
-        <!-- PATIENT CONTEXT BAR (Persistent) -->
-        <section class="bg-white border-b border-border-base px-xl py-4 flex items-center justify-between sticky top-[64px] z-30">
-            <div class="flex items-center gap-xl">
-                <div class="flex items-center gap-md">
-                    <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">MC</div>
-                    <div>
-                        <h2 class="font-section-heading text-text-primary text-card-heading">Michael Chen</h2>
-                        <div class="flex items-center gap-md text-caption text-text-secondary">
-                            <span class="font-bold text-primary">PID-88021</span>
-                            <span>•</span>
-                            <span>39M</span>
-                            <span>•</span>
-                            <span>Blood: <b class="text-text-primary">O+</b></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-10 w-px bg-border-base hidden md:block"></div>
-                <div class="hidden md:flex flex-col">
-                    <span class="text-caption font-bold text-text-secondary uppercase">Allergies</span>
-                    <span class="text-success font-semibold flex items-center gap-xs">
-<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                        No Known Allergies
-                    </span>
-                </div>
+        <div class="rounded-lg border border-border-base bg-white p-sm shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Pulse / SpO2</p>
+          <p class="font-semibold text-text-primary">
+            <span th:text="${queueEntry.pulseRate ?: '-'}">-</span>
+            <span class="text-text-secondary">/</span>
+            <span th:text="${queueEntry.oxygenSaturation ?: '-'}">-</span>
+          </p>
+        </div>
+        <div class="rounded-lg border border-border-base bg-white p-sm shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Temp / Resp</p>
+          <p class="font-semibold text-text-primary">
+            <span th:text="${queueEntry.temperature ?: '-'}">-</span>
+            <span class="text-text-secondary">/</span>
+            <span th:text="${queueEntry.respiratoryRate ?: '-'}">-</span>
+          </p>
+        </div>
+        <div class="rounded-lg border border-border-base bg-white p-sm shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Pain / BMI</p>
+          <p class="font-semibold text-text-primary">
+            <span th:text="${queueEntry.painScore ?: '-'}">-</span>
+            <span class="text-text-secondary">/</span>
+            <span th:text="${queueEntry.bmi ?: '-'}">-</span>
+          </p>
+        </div>
+      </section>
+
+      <div class="grid grid-cols-1 gap-md xl:grid-cols-12">
+        <section class="xl:col-span-8 rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <form id="consultation-form" class="space-y-md" method="post" th:action="@{/doctor/consultation/{id}/save(id=${queueEntry.id})}">
+            <div class="flex items-center justify-between gap-sm">
+              <div>
+                <h2 class="text-base font-semibold text-text-primary">SOAP Notes and Diagnosis</h2>
+                <p class="text-caption text-text-secondary">Symptoms, clinical findings, assessment, treatment and follow-up.</p>
+              </div>
+              <span id="draft-status" class="text-caption text-text-secondary italic">Ready</span>
             </div>
-            <div class="flex items-center gap-md">
-                <div class="text-right">
-                    <span class="block text-caption text-text-secondary">Visit Reason:</span>
-                    <span class="text-small font-semibold">Post-OP Follow-up (Cardiac)</span>
+
+            <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
+              <div class="md:col-span-2 space-y-xs">
+                <label class="block text-caption font-bold uppercase text-text-secondary" for="symptoms">Symptoms / Presenting Complaint</label>
+                <textarea id="symptoms" name="symptoms" rows="2" class="w-full rounded-md border border-border-base p-sm text-small focus:border-primary focus:ring-primary"
+                          th:text="${consultation.symptoms}" placeholder="Patient reported symptoms"></textarea>
+              </div>
+              <div class="space-y-xs">
+                <label class="block text-caption font-bold uppercase text-text-secondary" for="subjectiveNotes">Subjective</label>
+                <textarea id="subjectiveNotes" name="subjectiveNotes" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                          th:text="${consultation.subjectiveNotes}"></textarea>
+              </div>
+              <div class="space-y-xs">
+                <label class="block text-caption font-bold uppercase text-text-secondary" for="objectiveNotes">Objective</label>
+                <textarea id="objectiveNotes" name="objectiveNotes" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                          th:text="${consultation.objectiveNotes}"></textarea>
+              </div>
+              <div class="space-y-xs">
+                <label class="block text-caption font-bold uppercase text-text-secondary" for="assessment">Assessment</label>
+                <textarea id="assessment" name="assessment" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                          th:text="${consultation.assessment}"></textarea>
+              </div>
+              <div class="space-y-xs">
+                <label class="block text-caption font-bold uppercase text-text-secondary" for="diagnosis">Diagnosis / ICD-10</label>
+                <textarea id="diagnosis" name="diagnosis" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                          th:text="${consultation.diagnosis}" placeholder="Working or final diagnosis"></textarea>
+              </div>
+              <div class="space-y-xs">
+                <label class="block text-caption font-bold uppercase text-text-secondary" for="treatmentPlan">Treatment Plan</label>
+                <textarea id="treatmentPlan" name="treatmentPlan" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                          th:text="${consultation.treatmentPlan}"></textarea>
+              </div>
+              <div class="grid grid-cols-1 gap-sm">
+                <div class="space-y-xs">
+                  <label class="block text-caption font-bold uppercase text-text-secondary" for="followUpDate">Follow-up Date</label>
+                  <input id="followUpDate" name="followUpDate" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                         type="date" th:value="${consultation.followUpDate}">
                 </div>
-                <button class="p-2 rounded-lg border border-border-base hover:bg-surface-muted text-text-secondary">
-                    <span class="material-symbols-outlined">history</span>
-                </button>
+                <div class="space-y-xs">
+                  <label class="block text-caption font-bold uppercase text-text-secondary" for="doctorNotes">Doctor Notes</label>
+                  <textarea id="doctorNotes" name="doctorNotes" rows="2" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                            th:text="${consultation.doctorNotes}"></textarea>
+                </div>
+              </div>
             </div>
+
+            <div class="flex justify-end border-t border-border-base pt-sm">
+              <button id="save-consultation" class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Clinical Notes</button>
+            </div>
+          </form>
         </section>
-        <!-- CLINICAL WORKSPACE -->
-        <div class="flex-1 flex overflow-hidden">
-            <!-- LEFT COLUMN: OBSERVATIONS & DIAGNOSIS -->
-            <div class="flex-1 overflow-y-auto p-xl custom-scrollbar">
-                <div class="max-w-[1000px] mx-auto space-y-xl">
-                    <!-- SOAP NOTES SECTION -->
-                    <div class="clinical-card p-xl">
-                        <div class="flex items-center justify-between mb-lg">
-                            <h3 class="font-section-heading text-text-primary text-card-heading flex items-center gap-md">
-                                <span class="material-symbols-outlined text-primary">edit_note</span>
-                                Clinical Observations (SOAP)
-                            </h3>
-                            <span class="text-caption text-text-secondary italic">Auto-saving...</span>
-                        </div>
-                        <div class="grid grid-cols-1 gap-xl">
-                            <!-- Subjective -->
-                            <div class="group">
-                                <label class="block text-small font-semibold text-text-primary mb-sm">Subjective (S)</label>
-                                <textarea class="w-full border-border-base rounded-lg text-small focus:ring-primary focus:border-primary transition-all p-md bg-surface-muted/30 hover:bg-white" placeholder="Patient reports mild chest tightness after exertion..." rows="2"></textarea>
-                            </div>
-                            <!-- Objective -->
-                            <div class="group">
-                                <label class="block text-small font-semibold text-text-primary mb-sm">Objective (O)</label>
-                                <textarea class="w-full border-border-base rounded-lg text-small focus:ring-primary focus:border-primary transition-all p-md bg-surface-muted/30 hover:bg-white" placeholder="Surgical site healing well, no redness. Heart sounds regular..." rows="2"></textarea>
-                            </div>
-                            <div class="grid grid-cols-2 gap-lg">
-                                <!-- Assessment -->
-                                <div class="group">
-                                    <label class="block text-small font-semibold text-text-primary mb-sm">Assessment (A)</label>
-                                    <textarea class="w-full border-border-base rounded-lg text-small focus:ring-primary focus:border-primary transition-all p-md bg-surface-muted/30 hover:bg-white" placeholder="Progressing normally post-valve replacement..." rows="3"></textarea>
-                                </div>
-                                <!-- Plan -->
-                                <div class="group">
-                                    <label class="block text-small font-semibold text-text-primary mb-sm">Plan (P)</label>
-                                    <textarea class="w-full border-border-base rounded-lg text-small focus:ring-primary focus:border-primary transition-all p-md bg-surface-muted/30 hover:bg-white" placeholder="Continue current meds. Scheduled echo in 4 weeks..." rows="3"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- DIAGNOSIS SECTION -->
-                    <div class="clinical-card p-xl">
-                        <h3 class="font-section-heading text-text-primary text-card-heading flex items-center gap-md mb-lg">
-                            <span class="material-symbols-outlined text-primary">medical_information</span>
-                            Diagnosis (ICD-10)
-                        </h3>
-                        <div class="relative mb-lg">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary">search</span>
-                            <input class="w-full border-border-base rounded-lg pl-10 pr-4 py-2 text-small focus:ring-primary focus:border-primary" placeholder="Search ICD-10 codes or disease names..." type="text"/>
-                        </div>
-                        <div class="space-y-sm">
-                            <!-- Selected Diagnoses -->
-                            <div class="flex items-center justify-between p-md bg-primary/5 border border-primary/20 rounded-lg">
-                                <div class="flex items-center gap-md">
-                                    <span class="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded uppercase">Primary</span>
-                                    <div>
-                                        <p class="text-small font-semibold">I35.0 Nonrheumatic aortic (valve) stenosis</p>
-                                        <p class="text-caption text-text-secondary">Chronic condition, ongoing management</p>
-                                    </div>
-                                </div>
-                                <button class="text-text-secondary hover:text-danger p-1"><span class="material-symbols-outlined">close</span></button>
-                            </div>
-                            <div class="flex items-center justify-between p-md border border-border-base rounded-lg hover:bg-surface-muted transition-colors cursor-pointer group">
-                                <div class="flex items-center gap-md">
-                                    <span class="bg-surface-container-high text-text-secondary text-[10px] font-bold px-2 py-0.5 rounded uppercase">Secondary</span>
-                                    <div>
-                                        <p class="text-small font-semibold">I10 Essential (primary) hypertension</p>
-                                    </div>
-                                </div>
-                                <button class="text-text-secondary hover:text-danger p-1"><span class="material-symbols-outlined">close</span></button>
-                            </div>
-                        </div>
-                        <button class="mt-lg w-full py-2 border-2 border-dashed border-border-base text-text-secondary hover:border-primary hover:text-primary transition-all rounded-lg text-small font-medium flex items-center justify-center gap-sm">
-                            <span class="material-symbols-outlined">add</span>
-                            Add Diagnosis
-                        </button>
-                    </div>
-                </div>
+
+        <aside class="xl:col-span-4 space-y-md">
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Nurse Intake</h2>
+            <div class="mt-sm space-y-sm">
+              <div>
+                <p class="text-[11px] font-bold uppercase text-text-secondary">Chief Complaint</p>
+                <p class="whitespace-pre-line text-small text-text-primary" th:text="${queueEntry.chiefComplaint ?: 'No chief complaint recorded.'}">No chief complaint recorded.</p>
+              </div>
+              <div>
+                <p class="text-[11px] font-bold uppercase text-text-secondary">Nurse Notes</p>
+                <p class="whitespace-pre-line text-small text-text-primary" th:text="${queueEntry.nurseNotes ?: 'No nurse notes recorded.'}">No nurse notes recorded.</p>
+              </div>
+              <div class="rounded-md border border-danger/20 bg-error-container/20 p-sm">
+                <p class="text-[11px] font-bold uppercase text-danger">Allergies</p>
+                <p class="font-semibold text-text-primary" th:text="${patient.allergies ?: 'None reported'}">None</p>
+              </div>
             </div>
-            <!-- RIGHT COLUMN: VITALS, HISTORY, PRESCRIPTION -->
-            <aside class="w-[380px] border-l border-border-base bg-surface-container-low overflow-y-auto custom-scrollbar p-xl space-y-xl">
-                <!-- VITALS SUMMARY -->
-                <div class="space-y-md">
-                    <div class="flex items-center justify-between">
-                        <h4 class="text-caption font-bold text-text-secondary uppercase tracking-wider">Vitals Summary</h4>
-                        <span class="text-caption text-success font-medium">Synced 10m ago</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-sm">
-                        <div class="clinical-card p-md">
-                            <span class="text-caption text-text-secondary">BP (mmHg)</span>
-                            <div class="flex items-baseline gap-xs">
-                                <p class="text-card-heading font-bold">128/84</p>
-                                <span class="material-symbols-outlined text-warning text-small" style="font-variation-settings: 'FILL' 1;">arrow_drop_up</span>
-                            </div>
-                        </div>
-                        <div class="clinical-card p-md">
-                            <span class="text-caption text-text-secondary">Heart Rate</span>
-                            <div class="flex items-baseline gap-xs">
-                                <p class="text-card-heading font-bold">72 <span class="text-caption font-normal">bpm</span></p>
-                            </div>
-                        </div>
-                        <div class="clinical-card p-md">
-                            <span class="text-caption text-text-secondary">SpO2</span>
-                            <p class="text-card-heading font-bold">98 <span class="text-caption font-normal">%</span></p>
-                        </div>
-                        <div class="clinical-card p-md">
-                            <span class="text-caption text-text-secondary">Temp</span>
-                            <p class="text-card-heading font-bold">98.6 <span class="text-caption font-normal">°F</span></p>
-                        </div>
-                    </div>
-                </div>
-                <!-- PREVIOUS VISITS -->
-                <div class="space-y-md">
-                    <h4 class="text-caption font-bold text-text-secondary uppercase tracking-wider">Visit History</h4>
-                    <div class="space-y-sm">
-                        <div class="p-md border border-border-base rounded-lg hover:bg-white transition-all cursor-pointer group">
-                            <div class="flex justify-between items-start mb-1">
-                                <span class="text-small font-bold">Oct 24, 2023</span>
-                                <span class="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors">open_in_new</span>
-                            </div>
-                            <p class="text-caption text-text-secondary truncate">Aortic Valve Replacement Follow-up</p>
-                            <p class="text-caption font-medium mt-2 text-primary">Dr. Sarah Smith</p>
-                        </div>
-                        <div class="p-md border border-border-base rounded-lg hover:bg-white transition-all cursor-pointer group">
-                            <div class="flex justify-between items-start mb-1">
-                                <span class="text-small font-bold">Sep 12, 2023</span>
-                                <span class="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors">open_in_new</span>
-                            </div>
-                            <p class="text-caption text-text-secondary truncate">Pre-surgical consultation</p>
-                            <p class="text-caption font-medium mt-2 text-primary">Dr. Robert Vance</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- PRESCRIPTION QUICK ADD -->
-                <div class="space-y-md">
-                    <h4 class="text-caption font-bold text-text-secondary uppercase tracking-wider">Current Prescriptions</h4>
-                    <div class="clinical-card p-xl space-y-lg">
-                        <div class="space-y-sm">
-                            <div class="flex items-center justify-between border-b border-border-base pb-sm">
-                                <div>
-                                    <p class="text-small font-bold">Lisinopril 10mg</p>
-                                    <p class="text-caption text-text-secondary">1 tablet daily</p>
-                                </div>
-                                <button class="text-text-secondary hover:text-danger"><span class="material-symbols-outlined">delete</span></button>
-                            </div>
-                            <div class="flex items-center justify-between border-b border-border-base pb-sm">
-                                <div>
-                                    <p class="text-small font-bold">Atorvastatin 20mg</p>
-                                    <p class="text-caption text-text-secondary">1 tablet at bedtime</p>
-                                </div>
-                                <button class="text-text-secondary hover:text-danger"><span class="material-symbols-outlined">delete</span></button>
-                            </div>
-                        </div>
-                        <div class="space-y-sm">
-                            <label class="block text-caption font-bold text-text-secondary">New Prescription</label>
-                            <input class="w-full text-small border-border-base rounded-lg py-2 focus:ring-primary" placeholder="Search medicine..." type="text"/>
-                            <div class="grid grid-cols-2 gap-sm">
-                                <input class="text-small border-border-base rounded-lg py-2 focus:ring-primary" placeholder="Dosage" type="text"/>
-                                <input class="text-small border-border-base rounded-lg py-2 focus:ring-primary" placeholder="Frequency" type="text"/>
-                            </div>
-                            <button class="w-full bg-primary text-on-primary py-2 rounded-lg text-small font-bold flex items-center justify-center gap-sm active:scale-95 transition-all">
-                                <span class="material-symbols-outlined text-[18px]">add</span>
-                                Add to Prescription
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-        </div>
-        <!-- FOOTER (Action Bar) -->
-        <footer class="h-20 bg-white border-t border-border-base flex items-center justify-between px-xl shrink-0 z-40">
-            <div class="flex items-center gap-md">
-                <button class="flex items-center gap-sm text-text-secondary hover:text-primary font-medium transition-colors">
-                    <span class="material-symbols-outlined">print</span>
-                    Print Summary
-                </button>
-                <div class="h-6 w-px bg-border-base"></div>
-                <p class="text-caption text-text-secondary">© 2024 Tel Health Clinical Systems. All rights reserved.</p>
+          </section>
+
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Prescription</h2>
+            <form class="mt-sm space-y-sm" method="post" th:action="@{/doctor/consultation/{id}/prescriptions(id=${queueEntry.id})}">
+              <input name="medicationName" class="w-full rounded-md border border-border-base p-sm text-small" placeholder="Medication" required>
+              <div class="grid grid-cols-2 gap-xs">
+                <input name="dosage" class="rounded-md border border-border-base p-sm text-small" placeholder="Dosage">
+                <input name="frequency" class="rounded-md border border-border-base p-sm text-small" placeholder="Frequency">
+                <input name="duration" class="rounded-md border border-border-base p-sm text-small" placeholder="Duration">
+                <input name="route" class="rounded-md border border-border-base p-sm text-small" placeholder="Route">
+              </div>
+              <textarea name="instructions" class="w-full rounded-md border border-border-base p-sm text-small" rows="2" placeholder="Instructions"></textarea>
+              <button class="w-full rounded-md bg-primary py-sm font-semibold text-white" type="submit">Add Prescription</button>
+            </form>
+            <div class="mt-sm max-h-36 space-y-xs overflow-auto">
+              <div th:if="${#lists.isEmpty(prescriptions)}" class="text-caption text-text-secondary">No prescriptions added.</div>
+              <div th:each="prescription : ${prescriptions}" class="rounded-md border border-border-base p-sm">
+                <p class="font-semibold text-text-primary" th:text="${prescription.medicationName}">Medication</p>
+                <p class="text-caption text-text-secondary" th:text="${(prescription.dosage ?: '') + ' ' + (prescription.frequency ?: '') + ' ' + (prescription.duration ?: '')}">Dose</p>
+              </div>
             </div>
-            <div class="flex items-center gap-md">
-                <button class="px-xl py-3 border border-primary text-primary rounded-lg font-bold hover:bg-primary/5 transition-all active:scale-95 flex items-center gap-sm">
-                    <span class="material-symbols-outlined">share</span>
-                    Refer to Specialist
-                </button>
-                <button class="px-xxl py-3 bg-primary text-on-primary rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-fixed-variant transition-all active:scale-95 flex items-center gap-sm">
-                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">task_alt</span>
-                    Complete Consultation
-                </button>
+          </section>
+
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Lab / Radiology</h2>
+            <form class="mt-sm space-y-sm" method="post" th:action="@{/doctor/consultation/{id}/investigations(id=${queueEntry.id})}">
+              <select name="requestType" class="w-full rounded-md border border-border-base p-sm text-small">
+                <option>Laboratory</option>
+                <option>Radiology</option>
+              </select>
+              <input name="testName" class="w-full rounded-md border border-border-base p-sm text-small" placeholder="Test name" required>
+              <select name="priority" class="w-full rounded-md border border-border-base p-sm text-small">
+                <option>Routine</option>
+                <option>Urgent</option>
+                <option>Emergency</option>
+              </select>
+              <textarea name="notes" class="w-full rounded-md border border-border-base p-sm text-small" rows="2" placeholder="Reason / notes"></textarea>
+              <button class="w-full rounded-md bg-secondary py-sm font-semibold text-white" type="submit">Request Test</button>
+            </form>
+            <div class="mt-sm max-h-32 space-y-xs overflow-auto">
+              <div th:if="${#lists.isEmpty(investigations)}" class="text-caption text-text-secondary">No requests added.</div>
+              <div th:each="investigation : ${investigations}" class="rounded-md border border-border-base p-sm">
+                <p class="font-semibold text-text-primary" th:text="${investigation.testName}">Test</p>
+                <p class="text-caption text-text-secondary" th:text="${investigation.requestType + ' | ' + investigation.priority}">Type</p>
+              </div>
             </div>
-        </footer>
-    </main>
-    <!-- FLOATING ACTION BUTTON (Suppressed per instructions for detail screens) -->
-    <script>
-        // Micro-interactions for input fields
-        const textareas = document.querySelectorAll('textarea');
-        textareas.forEach(ta => {
-            ta.addEventListener('focus', () => {
-                ta.parentElement.querySelector('label').classList.add('text-primary');
-            });
-            ta.addEventListener('blur', () => {
-                ta.parentElement.querySelector('label').classList.remove('text-primary');
-            });
-        });
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <script>
+    const form = document.getElementById('consultation-form');
+    const saveButton = document.getElementById('save-consultation');
+    const draftStatus = document.getElementById('draft-status');
 
-        // Simple feedback for "Complete Consultation"
-        document.querySelector('button.bg-primary').addEventListener('click', () => {
-            const btn = document.querySelector('button.bg-primary');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Saving...';
-            btn.classList.add('opacity-80');
-            btn.disabled = true;
+    document.querySelectorAll('#consultation-form textarea, #consultation-form input').forEach(field => {
+      field.addEventListener('input', () => {
+        if (draftStatus) {
+          draftStatus.textContent = 'Unsaved changes';
+          draftStatus.classList.remove('text-text-secondary');
+          draftStatus.classList.add('text-warning');
+        }
+      });
+    });
 
-            setTimeout(() => {
-                btn.innerHTML = '<span class="material-symbols-outlined">done_all</span> Record Saved';
-                btn.classList.remove('bg-primary');
-                btn.classList.add('bg-success');
-
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.classList.remove('bg-success', 'opacity-80');
-                    btn.classList.add('bg-primary');
-                    btn.disabled = false;
-                }, 2000);
-            }, 1200);
-        });
-    </script>
-
-
+    if (form && saveButton) {
+      form.addEventListener('submit', () => {
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving...';
+      });
+    }
+  </script>
 </div>
 </body>
 </html>

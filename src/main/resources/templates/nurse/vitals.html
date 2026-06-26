@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Capture Vitals | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden">
+        <form id="vitals-form" class="min-h-full flex flex-col" method="post"
+              th:action="@{/nurse/vitals/{id}(id=${queueEntry.id})}">
+            <section class="bg-white px-md py-sm md:px-lg border-b border-border-base sticky top-0 z-20">
+                <div class="mx-auto max-w-[1280px] flex flex-col gap-md xl:flex-row xl:items-center xl:justify-between">
+                    <div class="flex flex-col gap-md md:flex-row md:items-center min-w-0">
+                        <div class="flex items-center gap-sm min-w-0">
+                            <div class="w-10 h-10 rounded-lg bg-primary-fixed text-primary flex shrink-0 items-center justify-center text-[18px] font-bold"
+                                 th:text="${patient.fullName != null && !#strings.isEmpty(patient.fullName) ? #strings.substring(patient.fullName,0,1) : '?'}">P</div>
+                            <div class="min-w-0">
+                                <p class="font-caption text-caption uppercase tracking-wide text-primary font-bold">Clinical Intake</p>
+                                <h1 class="text-[20px] leading-6 font-semibold text-text-primary truncate" th:text="${patient.fullName ?: 'Unnamed Patient'}">Patient</h1>
+                                <p class="font-caption text-caption text-text-secondary">
+                                    <span th:text="${patient.patientId ?: '-'}">PID</span>
+                                    <span class="mx-xs">|</span>
+                                    <span th:text="${queueEntry.token ?: '-'}">Token</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="hidden md:block h-10 w-px bg-border-base"></div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-lg gap-y-sm text-small">
+                            <div>
+                                <p class="font-caption text-caption text-text-secondary uppercase">Gender</p>
+                                <p class="font-semibold text-text-primary" th:text="${patient.gender ?: '-'}">-</p>
+                            </div>
+                            <div>
+                                <p class="font-caption text-caption text-text-secondary uppercase">Blood Group</p>
+                                <p class="font-semibold text-danger" th:text="${patient.bloodGroup ?: '-'}">-</p>
+                            </div>
+                            <div>
+                                <p class="font-caption text-caption text-text-secondary uppercase">Doctor</p>
+                                <p class="font-semibold text-text-primary truncate" th:text="${appointment.provider ?: '-'}">-</p>
+                            </div>
+                            <div>
+                                <p class="font-caption text-caption text-text-secondary uppercase">Priority</p>
+                                <p class="font-semibold text-text-primary" th:text="${appointment.priority ?: 'Routine'}">Routine</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-sm">
+                        <a th:href="@{/nurse/queue}" class="h-10 px-lg border border-border-base text-text-secondary bg-white rounded-lg font-bold text-small hover:bg-surface-muted transition-all inline-flex items-center">Cancel</a>
+                        <button id="send-button" class="h-10 px-lg bg-primary text-white rounded-lg font-bold text-small hover:opacity-90 transition-all inline-flex items-center gap-sm" type="submit">
+                            <span class="material-symbols-outlined text-[18px]">send</span>
+                            Send to Doctor
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <div class="px-md py-md md:px-lg flex-1">
+                <div class="mx-auto max-w-[1280px] space-y-md">
+                    <header class="flex flex-col gap-sm md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <nav class="flex items-center gap-xs font-caption text-caption text-text-secondary mb-xs">
+                                <a class="hover:text-primary" th:href="@{/nurse/dashboard}">Dashboard</a>
+                                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                                <a class="hover:text-primary" th:href="@{/nurse/queue}">Nurse Queue</a>
+                                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                                <span class="text-primary font-bold">Vitals</span>
+                            </nav>
+                            <h2 class="text-[22px] leading-7 font-semibold text-text-primary">Capture Vitals</h2>
+                            <p class="text-small text-text-secondary">Record assessment details before moving this patient to the doctor queue.</p>
+                        </div>
+                        <div class="text-small md:text-right">
+                            <p class="font-caption text-caption text-text-secondary uppercase">Current Shift</p>
+                            <p class="font-semibold text-text-primary">Clinical Intake Station</p>
+                        </div>
+                    </header>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-md">
+                        <section class="lg:col-span-8 space-y-md min-w-0">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+                                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                    <label class="font-caption text-caption text-text-secondary block mb-xs uppercase" for="temperature">Temperature (C)</label>
+                                    <input id="temperature" name="temperature" class="vital-input w-full border-none p-0 text-[20px] leading-6 font-bold focus:ring-0 text-text-primary" placeholder="36.5" type="number" step="0.1" th:value="${queueEntry.temperature}">
+                                    <div class="h-1 rounded-full bg-success mt-sm vital-bar"></div>
+                                </div>
+                                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm md:col-span-2">
+                                    <label class="font-caption text-caption text-text-secondary block mb-xs uppercase">Blood Pressure (Sys/Dia)</label>
+                                    <div class="flex items-center gap-md">
+                                        <input id="systolic" name="systolic" class="vital-input w-20 border-none p-0 text-[20px] leading-6 font-bold focus:ring-0 text-text-primary" placeholder="120" type="number">
+                                        <span class="text-[20px] leading-6 font-bold text-border-base">/</span>
+                                        <input id="diastolic" name="diastolic" class="vital-input w-20 border-none p-0 text-[20px] leading-6 font-bold focus:ring-0 text-text-primary" placeholder="80" type="number">
+                                        <span class="text-small text-text-secondary ml-auto">mmHg</span>
+                                    </div>
+                                    <div class="h-1 rounded-full bg-success mt-sm vital-bar"></div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-md">
+                                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                    <label class="font-caption text-caption text-text-secondary block mb-xs uppercase" for="pulseRate">Pulse</label>
+                                    <input id="pulseRate" name="pulseRate" class="vital-input w-full border-none p-0 text-[20px] leading-6 font-bold focus:ring-0 text-text-primary" placeholder="72" type="number" th:value="${queueEntry.pulseRate}">
+                                    <p class="font-caption text-caption text-text-secondary mt-xs">bpm</p>
+                                </div>
+                                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                    <label class="font-caption text-caption text-text-secondary block mb-xs uppercase" for="respiratoryRate">Resp. Rate</label>
+                                    <input id="respiratoryRate" name="respiratoryRate" class="vital-input w-full border-none p-0 text-[20px] leading-6 font-bold focus:ring-0 text-text-primary" placeholder="16" type="number" th:value="${queueEntry.respiratoryRate}">
+                                    <p class="font-caption text-caption text-text-secondary mt-xs">breaths/min</p>
+                                </div>
+                                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm border-l-4 border-l-primary">
+                                    <label class="font-caption text-caption text-text-secondary block mb-xs uppercase" for="oxygenSaturation">SpO2</label>
+                                    <input id="oxygenSaturation" name="oxygenSaturation" class="vital-input w-full border-none p-0 text-[20px] leading-6 font-bold focus:ring-0 text-primary" placeholder="98" type="number" th:value="${queueEntry.oxygenSaturation}">
+                                    <p class="font-caption text-caption text-text-secondary mt-xs">percent</p>
+                                </div>
+                                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                    <label class="font-caption text-caption text-text-secondary block mb-xs uppercase" for="painScore">Pain</label>
+                                    <div class="flex items-center gap-sm">
+                                        <input id="painScore" name="painScore" class="vital-input w-full border-none p-0 text-[20px] leading-6 font-bold focus:ring-0 text-warning" placeholder="0" type="number" min="0" max="10" th:value="${queueEntry.painScore}">
+                                        <span class="material-symbols-outlined text-warning">sentiment_dissatisfied</span>
+                                    </div>
+                                    <p class="font-caption text-caption text-text-secondary mt-xs">0-10 scale</p>
+                                </div>
+                            </div>
+
+                            <section class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                <div class="flex flex-col gap-sm md:flex-row md:items-center md:justify-between mb-md">
+                                    <h3 class="font-card-heading text-card-heading text-text-primary">Body Measurements</h3>
+                                    <span class="bg-primary/10 px-md py-sm rounded-lg font-caption text-caption text-primary uppercase font-bold">Auto-calculated BMI</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-md items-end">
+                                    <div>
+                                        <label class="font-caption text-caption text-text-secondary block mb-xs" for="weight">Weight (kg)</label>
+                                        <input id="weight" name="weight" class="w-full border border-border-base rounded-lg px-md py-sm focus:ring-primary focus:border-primary text-small" type="number" step="0.1" th:value="${queueEntry.weight}">
+                                    </div>
+                                    <div>
+                                        <label class="font-caption text-caption text-text-secondary block mb-xs" for="height">Height (cm)</label>
+                                        <input id="height" name="height" class="w-full border border-border-base rounded-lg px-md py-sm focus:ring-primary focus:border-primary text-small" type="number" step="0.1" th:value="${queueEntry.height}">
+                                    </div>
+                                    <div class="text-center p-md bg-surface-container rounded-lg border-2 border-dashed border-border-base">
+                                        <p class="font-caption text-caption text-text-secondary mb-xs">BMI Result</p>
+                                        <p class="text-[22px] leading-7 font-bold text-primary" id="bmi-display" th:text="${queueEntry.bmi ?: '-'}">-</p>
+                                        <p class="font-caption text-caption text-text-secondary font-bold" id="bmi-label">Awaiting measurements</p>
+                                        <input id="bmi" name="bmi" type="hidden" th:value="${queueEntry.bmi}">
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                    <label class="font-card-heading text-card-heading text-text-primary block mb-md" for="chiefComplaint">Chief Complaint</label>
+                                    <textarea id="chiefComplaint" name="chiefComplaint" class="w-full border border-border-base rounded-lg px-md py-sm focus:ring-primary focus:border-primary text-small resize-y" placeholder="Enter patient's primary reason for visit..." rows="4" th:text="${queueEntry.chiefComplaint}"></textarea>
+                                </div>
+                                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                    <label class="font-card-heading text-card-heading text-text-primary block mb-md" for="nurseNotes">Nursing Notes &amp; Observations</label>
+                                    <textarea id="nurseNotes" name="nurseNotes" class="w-full border border-border-base rounded-lg px-md py-sm focus:ring-primary focus:border-primary text-small resize-y" placeholder="General appearance, orientation, mobility concerns, triage concerns..." rows="4" th:text="${queueEntry.nurseNotes}"></textarea>
+                                </div>
+                            </section>
+                        </section>
+
+                        <aside class="lg:col-span-4 space-y-md min-w-0">
+                            <section class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                <div class="flex items-start gap-sm mb-md">
+                                    <span class="material-symbols-outlined text-error" th:if="${patient.allergies != null && !#strings.isEmpty(patient.allergies)}">warning</span>
+                                    <div class="min-w-0">
+                                        <h3 class="font-card-heading text-card-heading text-text-primary">Allergy &amp; Risk Check</h3>
+                                        <p class="text-caption text-text-secondary">Confirm safety items before sending to doctor.</p>
+                                    </div>
+                                </div>
+                                <div class="mb-md">
+                                    <p class="font-caption text-caption text-text-secondary uppercase mb-xs">Confirmed Allergies</p>
+                                    <p th:if="${patient.allergies == null || #strings.isEmpty(patient.allergies)}" class="rounded-lg bg-surface-container-low px-md py-sm text-small text-text-secondary">No allergies recorded.</p>
+                                    <p th:if="${patient.allergies != null && !#strings.isEmpty(patient.allergies)}" class="rounded-lg bg-error-container px-md py-sm text-small font-bold text-on-error-container" th:text="${patient.allergies}">Penicillin</p>
+                                </div>
+                                <div class="border-t border-border-base pt-md space-y-sm">
+                                    <label class="flex items-center gap-md p-sm rounded-lg hover:bg-surface-container cursor-pointer transition-colors">
+                                        <input class="w-4 h-4 text-primary border-border-base rounded focus:ring-primary" type="checkbox" name="idBandVerified">
+                                        <span class="text-small text-text-primary">ID band verified</span>
+                                    </label>
+                                    <label class="flex items-center gap-md p-sm rounded-lg hover:bg-surface-container cursor-pointer transition-colors">
+                                        <input class="w-4 h-4 text-primary border-border-base rounded focus:ring-primary" type="checkbox" name="fallRiskPrecaution">
+                                        <span class="text-small text-text-primary">Fall risk precaution reviewed</span>
+                                    </label>
+                                    <label class="flex items-center gap-md p-sm rounded-lg hover:bg-surface-container cursor-pointer transition-colors">
+                                        <input class="w-4 h-4 text-primary border-border-base rounded focus:ring-primary" type="checkbox" name="infectionControlReviewed">
+                                        <span class="text-small text-text-primary">Isolation/infection control status reviewed</span>
+                                    </label>
+                                </div>
+                            </section>
+
+                            <section class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                                <h3 class="font-card-heading text-card-heading text-text-primary mb-md">Appointment Context</h3>
+                                <dl class="space-y-md text-small">
+                                    <div class="flex justify-between gap-lg">
+                                        <dt class="text-text-secondary">Department</dt>
+                                        <dd class="font-semibold text-text-primary text-right" th:text="${appointment.department ?: '-'}">-</dd>
+                                    </div>
+                                    <div class="flex justify-between gap-lg">
+                                        <dt class="text-text-secondary">Visit Type</dt>
+                                        <dd class="font-semibold text-text-primary text-right" th:text="${appointment.visitType ?: '-'}">-</dd>
+                                    </div>
+                                    <div class="flex justify-between gap-lg">
+                                        <dt class="text-text-secondary">Queued At</dt>
+                                        <dd class="font-semibold text-text-primary text-right" th:text="${queueEntry.queuedAt != null ? #temporals.format(queueEntry.queuedAt, 'hh:mm a') : '-'}">-</dd>
+                                    </div>
+                                    <div class="flex justify-between gap-lg">
+                                        <dt class="text-text-secondary">Phone</dt>
+                                        <dd class="font-semibold text-text-primary text-right" th:text="${patient.phoneNumber ?: '-'}">-</dd>
+                                    </div>
+                                </dl>
+                            </section>
+
+                            <section class="bg-primary-container text-on-primary-container p-md rounded-lg shadow-sm">
+                                <span class="material-symbols-outlined text-[20px] mb-sm">info</span>
+                                <h3 class="font-card-heading text-card-heading mb-sm">Handover Note</h3>
+                                <p class="text-small opacity-90">
+                                    Submitting this form changes the queue status to READY_FOR_DOCTOR and makes the patient visible in the doctor's queue.
+                                </p>
+                            </section>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+    <script>
+        const weightInput = document.getElementById('weight');
+        const heightInput = document.getElementById('height');
+        const bmiDisplay = document.getElementById('bmi-display');
+        const bmiLabel = document.getElementById('bmi-label');
+        const bmiInput = document.getElementById('bmi');
+        const form = document.getElementById('vitals-form');
+        const sendButton = document.getElementById('send-button');
+
+        function setBmiState(bmi) {
+            bmiDisplay.classList.remove('text-warning', 'text-primary', 'text-danger');
+            if (bmi < 18.5) {
+                bmiDisplay.classList.add('text-warning');
+                bmiLabel.textContent = 'Below normal range';
+            } else if (bmi < 25) {
+                bmiDisplay.classList.add('text-primary');
+                bmiLabel.textContent = 'Normal range';
+            } else {
+                bmiDisplay.classList.add('text-danger');
+                bmiLabel.textContent = 'Above normal range';
+            }
+        }
+
+        function updateBMI() {
+            const weight = parseFloat(weightInput?.value);
+            const height = parseFloat(heightInput?.value) / 100;
+            if (weight && height) {
+                const bmi = (weight / (height * height)).toFixed(1);
+                bmiDisplay.textContent = bmi;
+                bmiInput.value = bmi;
+                setBmiState(Number(bmi));
+            } else if (bmiDisplay && bmiInput && bmiLabel) {
+                bmiDisplay.textContent = '-';
+                bmiInput.value = '';
+                bmiLabel.textContent = 'Awaiting measurements';
+                bmiDisplay.classList.remove('text-warning', 'text-danger');
+                bmiDisplay.classList.add('text-primary');
+            }
+        }
+
+        function markEnteredVitals() {
+            document.querySelectorAll('.vital-input').forEach(input => {
+                const card = input.closest('.rounded-xl');
+                if (!card) return;
+                card.classList.toggle('border-primary/40', Boolean(input.value));
+            });
+        }
+
+        if (weightInput && heightInput) {
+            weightInput.addEventListener('input', updateBMI);
+            heightInput.addEventListener('input', updateBMI);
+            updateBMI();
+        }
+
+        document.querySelectorAll('.vital-input').forEach(input => input.addEventListener('input', markEnteredVitals));
+        markEnteredVitals();
+
+        if (form && sendButton) {
+            form.addEventListener('submit', () => {
+                sendButton.disabled = true;
+                sendButton.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span><span>Sending...</span>';
+            });
+        }
+    </script>
+</div>
+</body>
+</html>

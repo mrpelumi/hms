@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Nurse Dashboard | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md">
+            <header class="flex flex-col gap-md md:flex-row md:items-end md:justify-between">
+                <div class="space-y-xs">
+                    <h1 class="text-[20px] leading-6 font-semibold text-text-primary">Nurse Dashboard</h1>
+                    <p class="text-small text-text-secondary">
+                        <span th:text="${shiftLabel}">Morning Shift</span>
+                        <span class="mx-xs">|</span>
+                        <span th:text="${stationName}">Clinical Intake</span>
+                    </p>
+                </div>
+                <div class="flex flex-col gap-sm md:items-end">
+                    <div class="flex items-center gap-sm">
+                        <div class="relative w-full md:w-80">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">search</span>
+                            <input id="queue-search" class="w-full pl-9 pr-3 py-2 bg-white border border-border-base rounded-lg text-small focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" placeholder="Search patient, token, complaint..." type="text">
+                        </div>
+                        <a th:href="@{/nurse/queue}" class="px-md py-2 bg-primary text-white rounded-lg font-bold text-small flex items-center gap-xs shadow-sm">
+                            <span class="material-symbols-outlined text-[18px]">monitor_heart</span>
+                            Queue
+                        </a>
+                    </div>
+                    <div class="text-caption text-text-secondary">
+                        <span id="current-time">--:--</span>
+                        <span class="mx-xs">|</span>
+                        <span id="current-date">Today</span>
+                    </div>
+                </div>
+            </header>
+
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                    <div class="flex justify-between items-start mb-sm">
+                        <span class="p-2 bg-primary-fixed/30 text-primary rounded-lg material-symbols-outlined text-[20px]">group</span>
+                        <span class="text-caption font-bold px-2 py-0.5 rounded bg-surface-container text-text-secondary" th:text="${intakeLoadLabel}">Normal Load</span>
+                    </div>
+                    <p class="text-[22px] leading-7 font-bold text-text-primary" th:text="${waitingForNurseCount}">0</p>
+                    <p class="text-small text-text-secondary font-semibold">Patients Awaiting Vitals</p>
+                </div>
+                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                    <div class="flex justify-between items-start mb-sm">
+                        <span class="p-2 bg-tertiary-fixed/30 text-tertiary rounded-lg material-symbols-outlined text-[20px]">checklist</span>
+                        <span class="text-caption text-success font-bold">Today</span>
+                    </div>
+                    <p class="text-[22px] leading-7 font-bold text-text-primary" th:text="${completedVitalsToday}">0</p>
+                    <p class="text-small text-text-secondary font-semibold">Vitals Completed</p>
+                </div>
+                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm border-l-4 border-l-danger">
+                    <div class="flex justify-between items-start mb-sm">
+                        <span class="p-2 bg-error-container text-danger rounded-lg material-symbols-outlined text-[20px]">warning</span>
+                        <span class="bg-danger text-white px-2 py-0.5 rounded text-caption font-bold">Watch</span>
+                    </div>
+                    <p class="text-[22px] leading-7 font-bold text-danger" th:text="${criticalCount}">0</p>
+                    <p class="text-small text-text-secondary font-semibold">Emergency Priority</p>
+                </div>
+                <div class="bg-white p-md rounded-lg border border-border-base shadow-sm">
+                    <div class="flex justify-between items-start mb-sm">
+                        <span class="p-2 bg-secondary-container/30 text-secondary rounded-lg material-symbols-outlined text-[20px]">schedule</span>
+                        <span class="text-caption text-text-secondary font-bold">Avg</span>
+                    </div>
+                    <p class="text-[22px] leading-7 font-bold text-text-primary"><span th:text="${averageWaitMinutes}">0</span>m</p>
+                    <p class="text-small text-text-secondary font-semibold">Current Wait</p>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-md">
+                <div class="lg:col-span-8 bg-white rounded-lg border border-border-base shadow-sm overflow-hidden">
+                    <div class="px-md py-sm border-b border-border-base flex flex-col gap-sm md:flex-row md:items-center md:justify-between">
+                        <h2 class="text-[18px] leading-6 font-semibold text-text-primary flex items-center gap-sm">
+                            <span class="material-symbols-outlined text-primary text-[20px]">assignment</span>
+                            Active Nurse Queue
+                        </h2>
+                        <div class="flex gap-sm text-caption text-text-secondary">
+                            <span><span th:text="${readyForDoctorCount}">0</span> ready for doctor</span>
+                            <span>|</span>
+                            <span><span th:text="${activeDoctorsCount}">0</span> active doctors</span>
+                        </div>
+                    </div>
+                    <div class="max-h-[54vh] overflow-auto">
+                        <table class="w-full table-fixed text-left">
+                            <thead class="bg-surface-muted">
+                            <tr>
+                                <th class="px-md py-sm text-caption font-bold text-text-secondary uppercase w-[36%]">Patient</th>
+                                <th class="px-md py-sm text-caption font-bold text-text-secondary uppercase w-[32%]">Task</th>
+                                <th class="px-md py-sm text-caption font-bold text-text-secondary uppercase w-[16%]">Priority</th>
+                                <th class="px-md py-sm text-caption font-bold text-text-secondary uppercase text-right w-[16%]">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-base text-small">
+                            <tr th:if="${#lists.isEmpty(queueEntries)}">
+                                <td colspan="4" class="px-md py-lg text-center text-text-secondary">No patients are waiting for nurse intake.</td>
+                            </tr>
+                            <tr th:each="entry : ${queueEntries}" class="queue-row hover:bg-surface-container-low transition-colors"
+                                th:with="patient=${patientsById[entry.patientId]}, appointment=${appointmentsById[entry.appointmentId]}"
+                                th:attr="data-search=${#strings.toLowerCase((entry.token ?: '') + ' ' + (patient != null ? patient.fullName : '') + ' ' + (patient != null ? patient.patientId : '') + ' ' + (appointment != null ? appointment.reason : '') + ' ' + (appointment != null ? appointment.priority : ''))}">
+                                <td class="px-md py-sm">
+                                    <div class="flex items-center gap-sm min-w-0">
+                                        <div class="w-7 h-7 rounded-lg bg-primary-fixed/30 text-primary flex shrink-0 items-center justify-center font-bold text-caption"
+                                             th:text="${patient != null && patient.fullName != null && !#strings.isEmpty(patient.fullName) ? #strings.substring(patient.fullName,0,1) : '?'}">P</div>
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-small text-text-primary truncate" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                                            <p class="text-caption text-text-secondary truncate">
+                                                <span th:text="${patient != null ? patient.patientId : '-'}">PID</span>
+                                                <span> | </span>
+                                                <span th:text="${entry.token ?: '-'}">#OP-001</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <span class="inline-flex items-center gap-xs text-small text-text-primary">
+                                        <span class="material-symbols-outlined text-[18px]">monitor_heart</span>
+                                        Vitals and complaint
+                                    </span>
+                                    <p class="text-caption text-text-secondary truncate" th:text="${appointment != null ? appointment.reason : 'Clinical intake'}">Clinical intake</p>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <span class="px-sm py-1 rounded-full text-caption font-bold"
+                                          th:classappend="${appointment != null && appointment.priority == 'Emergency'} ? ' bg-error-container text-danger' : (${appointment != null && appointment.priority == 'Urgent'} ? ' bg-warning/10 text-warning' : ' bg-surface-container text-text-secondary')"
+                                          th:text="${appointment != null ? appointment.priority : 'Routine'}">Routine</span>
+                                </td>
+                                <td class="px-md py-sm text-right">
+                                    <a th:href="@{/nurse/vitals/{id}(id=${entry.id})}" class="inline-flex items-center gap-xs bg-primary text-white px-sm py-1.5 rounded-lg text-caption font-bold hover:opacity-90">
+                                        <span class="material-symbols-outlined text-[16px]">edit_note</span>
+                                        Capture
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <aside class="lg:col-span-4 flex flex-col gap-md">
+                    <section class="bg-white rounded-lg border border-border-base shadow-sm p-md">
+                        <div class="flex items-center justify-between mb-md">
+                            <h2 class="text-[16px] leading-6 font-semibold text-text-primary flex items-center gap-sm">
+                                <span class="material-symbols-outlined text-danger text-[20px]">error</span>
+                                Priority Watch
+                            </h2>
+                            <span class="text-caption font-bold text-danger bg-error-container px-2 py-0.5 rounded" th:text="${#lists.size(urgentQueueEntries)} + ' active'">0 active</span>
+                        </div>
+                        <div class="space-y-sm">
+                            <div th:if="${#lists.isEmpty(urgentQueueEntries)}" class="text-small text-text-secondary">No urgent nurse intake alerts.</div>
+                            <div th:each="entry : ${urgentQueueEntries}" th:with="patient=${patientsById[entry.patientId]}, appointment=${appointmentsById[entry.appointmentId]}"
+                                 class="p-md rounded-lg border-l-4 border-danger bg-error-container/20">
+                                <div class="flex justify-between gap-md">
+                                    <p class="font-bold text-small text-text-primary" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                                    <span class="text-caption text-text-secondary" th:text="${entry.queuedAt != null ? #temporals.format(entry.queuedAt, 'hh:mm a') : '-'}">-</span>
+                                </div>
+                                <p class="text-caption text-danger font-bold" th:text="${appointment != null ? appointment.priority : 'Urgent'}">Urgent</p>
+                                <a th:href="@{/nurse/vitals/{id}(id=${entry.id})}" class="mt-sm inline-flex text-caption font-bold text-primary hover:underline">Open intake</a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="bg-primary text-white rounded-lg border border-primary-container shadow-sm p-md">
+                        <h2 class="text-[16px] leading-6 font-semibold mb-md flex items-center gap-sm">
+                            <span class="material-symbols-outlined text-[20px]">health_metrics</span>
+                            Shift Summary
+                        </h2>
+                        <div class="space-y-sm text-small">
+                            <div class="flex justify-between">
+                                <span class="opacity-80">Awaiting intake</span>
+                                <span class="font-bold" th:text="${waitingForNurseCount}">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-80">Ready for doctors</span>
+                                <span class="font-bold" th:text="${readyForDoctorCount}">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-80">Active doctors</span>
+                                <span class="font-bold" th:text="${activeDoctorsCount}">0</span>
+                            </div>
+                            <div class="pt-sm">
+                                <div class="h-1.5 w-full bg-white/20 rounded-full overflow-hidden">
+                                    <div class="h-full bg-white rounded-full" th:style="${'width: ' + (waitingForNurseCount > 10 ? 100 : waitingForNurseCount * 10) + '%'}"></div>
+                                </div>
+                                <p class="text-caption mt-sm opacity-80" th:text="${intakeLoadLabel}">Normal Load</p>
+                            </div>
+                        </div>
+                    </section>
+                </aside>
+            </section>
+        </div>
+    </main>
+    <script>
+        const searchInput = document.getElementById('queue-search');
+        const rows = Array.from(document.querySelectorAll('.queue-row'));
+        const timeEl = document.getElementById('current-time');
+        const dateEl = document.getElementById('current-date');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.trim().toLowerCase();
+                rows.forEach(row => row.classList.toggle('hidden', !row.dataset.search.includes(query)));
+            });
+        }
+
+        function updateClock() {
+            const now = new Date();
+            if (timeEl) {
+                timeEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            if (dateEl) {
+                dateEl.textContent = now.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+        }
+        updateClock();
+        setInterval(updateClock, 60000);
+    </script>
+</div>
+</body>
+</html>

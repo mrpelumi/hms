@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Sidebar</title>
+</head>
+<body>
+<!-- Side Navigation (Updated to match SCREEN_2) -->
+<aside class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+       style="height: 100vh; overflow-y: auto;" th:fragment="sidebar" id="main-sidebar">
+  <!-- Logo Section -->
+  <div class="px-lg py-md flex items-center gap-md">
+    <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+      <img alt="Tel Health Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtEMEcsH3dtninr-xWD50Hrtf3oLDLjqHeSogeSdsTlhHH_cgygb3emw2M3bBj-ldvH4YRqqmwNFd--_KffCWtQPK3cJglp1hKxamDpTnqfvhH0tyj7s1eXCv9Hidrezfa0h0Viiic_Z00dogBUciseXuKkZgr0lbYxLypoZEeV3Ff1t36c0DlRlRrvKYnWrX8wgrZLqDDkDVQxQo2SE-r-sa_aGC7-levwdgSn-4ICCrDWCVvvevsZXOOq">
+    </div>
+    <span class="text-[18px] font-bold tracking-tight">Tel Health</span>
+  </div>
+  <!-- Navigation Clusters -->
+  <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-md"><!-- REGISTRATION & OPS -->
+    <div class="space-y-xs">
+      <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Reception</p>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group"
+         th:href="@{/reception/home}">
+        <span class="material-symbols-outlined text-[20px]">dashboard</span>
+        <span class="font-small text-small">Dashboard</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group"
+         th:href="@{/reception/patients}">
+        <span class="material-symbols-outlined text-[20px]">person</span>
+        <span class="font-small text-small">Patients</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group"
+         th:href="@{/reception/registration}">
+        <span class="material-symbols-outlined text-[20px]">person_add</span>
+        <span class="font-small text-small">Registration</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group"
+         th:href="@{/reception/appointment}">
+        <span class="material-symbols-outlined text-[20px]">calendar_today</span>
+        <span class="font-small text-small">Appointments</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group"
+         th:href="@{/reception/queue}">
+        <span class="material-symbols-outlined text-[20px]">group</span>
+        <span class="font-small text-small">Queue</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" href="#">
+        <span class="material-symbols-outlined text-[20px]">payments</span>
+        <span class="font-small text-small">Billing</span>
+      </a>
+    </div>
+    <!-- MANAGEMENT -->
+    <div class="space-y-xs">
+      <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Management</p>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" href="#">
+        <span class="material-symbols-outlined text-[20px]">analytics</span>
+        <span class="font-small text-small">Analytics</span>
+      </a>
+      <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" href="#">
+        <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+        <span class="font-small text-small">Inventory</span>
+      </a>
+    </div></nav>
+  <!-- Sidebar Footer -->
+  <div class="p-lg border-t border-white/10 space-y-xs">
+    <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" href="#">
+      <span class="material-symbols-outlined text-[20px]">settings</span>
+      <span class="font-small text-small">Settings</span>
+    </a>
+    <form method="post" th:action="@{/logout}">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+        <span class="material-symbols-outlined text-[20px]">logout</span>
+        <span class="font-small text-small">Logout</span>
+      </button>
+    </form>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.getElementById('main-sidebar');
+      if (!sidebar) {
+        return;
+      }
+
+      const currentPath = window.location.pathname;
+      const links = Array.from(sidebar.querySelectorAll('nav a[href]'));
+      const matchingLink = links
+        .filter(link => {
+          const href = link.getAttribute('href');
+          return href && href !== '#' && (currentPath === href || currentPath.startsWith(href + '/'));
+        })
+        .sort((a, b) => b.getAttribute('href').length - a.getAttribute('href').length)[0];
+
+      links.forEach(link => link.classList.remove('sidebar-item-active'));
+      if (matchingLink) {
+        matchingLink.classList.add('sidebar-item-active');
+      }
+    });
+  </script>
+</aside>
+
+</body>
+</html>

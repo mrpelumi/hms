@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Nurse Queue | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <div class="mx-auto flex w-full max-w-[1280px] flex-col gap-md">
+            <header class="flex flex-col gap-md xl:flex-row xl:items-end xl:justify-between">
+                <div class="space-y-xs">
+                    <p class="font-caption text-caption uppercase tracking-wide text-primary font-bold" th:text="${stationName ?: 'Clinical Intake'}">Clinical Intake</p>
+                    <h1 class="text-[20px] leading-6 font-semibold text-text-primary">Patient Queue</h1>
+                    <p class="text-small text-text-secondary">
+                        Checked-in patients waiting for vitals, chief complaint, and nurse assessment before doctor consultation.
+                    </p>
+                </div>
+                <div class="flex flex-col gap-sm sm:flex-row sm:items-end">
+                    <label class="flex flex-col gap-xs">
+                        <span class="font-caption text-caption text-text-secondary">Department</span>
+                        <select id="department-filter" class="h-9 w-full sm:w-40 bg-white border border-border-base rounded-lg px-md text-small focus:ring-primary focus:border-primary">
+                            <option value="">All Departments</option>
+                            <option>Emergency</option>
+                            <option>Outpatient Care</option>
+                            <option>Pediatrics</option>
+                            <option>Cardiology</option>
+                        </select>
+                    </label>
+                    <label class="flex flex-col gap-xs">
+                        <span class="font-caption text-caption text-text-secondary">Priority</span>
+                        <select id="priority-filter" class="h-9 w-full sm:w-36 bg-white border border-border-base rounded-lg px-md text-small focus:ring-primary focus:border-primary">
+                            <option value="">All Priorities</option>
+                            <option>Emergency</option>
+                            <option>Urgent</option>
+                            <option>Routine</option>
+                            <option>Normal</option>
+                        </select>
+                    </label>
+                    <a th:href="@{/nurse/dashboard}" class="h-9 px-md border border-border-base bg-white rounded-lg font-bold text-small inline-flex items-center justify-center gap-sm hover:bg-surface-container-low transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">dashboard</span>
+                        Dashboard
+                    </a>
+                </div>
+            </header>
+
+            <div th:if="${param.ready}" class="rounded-lg border border-success/30 bg-white p-md text-success font-card-heading flex items-center gap-sm">
+                <span class="material-symbols-outlined">check_circle</span>
+                Patient marked ready for doctor.
+            </div>
+
+            <section class="grid grid-cols-1 md:grid-cols-4 gap-md">
+                <div class="p-md bg-white border border-border-base rounded-lg shadow-sm">
+                    <p class="text-caption text-text-secondary uppercase tracking-wide">Average Wait</p>
+                    <div class="flex items-baseline gap-sm">
+                        <p class="text-[22px] leading-7 font-bold text-text-primary"><span th:text="${averageWaitMinutes}">0</span>m</p>
+                        <span class="text-caption text-success font-bold" th:text="${intakeLoadLabel ?: 'Normal Load'}">Normal Load</span>
+                    </div>
+                </div>
+                <div class="p-md bg-white border border-border-base rounded-lg shadow-sm">
+                    <p class="text-caption text-text-secondary uppercase tracking-wide">Emergency</p>
+                    <div class="flex items-baseline gap-sm">
+                        <p class="text-[22px] leading-7 font-bold text-danger" th:text="${criticalCount}">0</p>
+                        <span class="text-caption text-text-secondary font-bold">High Alert</span>
+                    </div>
+                </div>
+                <div class="p-md bg-white border border-border-base rounded-lg shadow-sm">
+                    <p class="text-caption text-text-secondary uppercase tracking-wide">Vitals Pending</p>
+                    <div class="flex items-baseline gap-sm">
+                        <p class="text-[22px] leading-7 font-bold text-text-primary" th:text="${waitingForNurseCount}">0</p>
+                        <span class="text-caption text-text-secondary font-bold">Awaiting intake</span>
+                    </div>
+                </div>
+                <div class="p-md bg-white border border-border-base rounded-lg shadow-sm">
+                    <p class="text-caption text-text-secondary uppercase tracking-wide">Ready For Doctor</p>
+                    <div class="flex items-baseline gap-sm">
+                        <p class="text-[22px] leading-7 font-bold text-primary" th:text="${readyForDoctorCount}">0</p>
+                        <span class="text-caption text-text-secondary font-bold">Completed vitals</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-md min-h-0">
+                <div class="bg-white border border-border-base rounded-lg shadow-sm overflow-hidden flex flex-col min-w-0">
+                    <div class="px-md py-sm border-b border-border-base flex flex-col gap-md md:flex-row md:items-center md:justify-between bg-surface-container-low">
+                        <div>
+                            <h2 class="font-card-heading text-card-heading text-text-primary flex items-center gap-sm">
+                                <span class="material-symbols-outlined text-[20px]">monitor_heart</span>
+                                Patients Awaiting Intake
+                            </h2>
+                            <p class="text-caption text-text-secondary" id="visible-count" th:text="${#lists.size(queueEntries)} + ' patients shown'">0 patients shown</p>
+                        </div>
+                        <div class="relative w-full md:max-w-sm">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">search</span>
+                            <input id="queue-filter" class="w-full border border-border-base rounded-lg pl-10 pr-md py-sm text-small focus:ring-primary focus:border-primary"
+                                   placeholder="Search patient, token, doctor..." type="text">
+                        </div>
+                    </div>
+                    <div class="max-h-[60vh] overflow-auto">
+                        <table class="w-full table-fixed text-left border-collapse">
+                            <thead>
+                            <tr class="bg-surface-muted text-text-secondary text-caption uppercase tracking-wider font-bold">
+                                <th class="px-md py-sm w-[12%]">Queue</th>
+                                <th class="px-md py-sm w-[30%]">Patient</th>
+                                <th class="px-md py-sm w-[24%]">Doctor</th>
+                                <th class="px-md py-sm w-[10%]">Wait</th>
+                                <th class="px-md py-sm w-[12%]">Priority</th>
+                                <th class="px-md py-sm text-right w-[12%]">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody class="text-small text-text-primary divide-y divide-border-base">
+                            <tr th:if="${#lists.isEmpty(queueEntries)}">
+                                <td colspan="6" class="px-md py-lg text-center text-text-secondary">No patients are waiting for nurse intake.</td>
+                            </tr>
+                            <tr th:each="entry : ${queueEntries}" class="queue-row hover:bg-surface-container-low transition-colors"
+                                th:with="patient=${patientsById[entry.patientId]}, appointment=${appointmentsById[entry.appointmentId]},
+                                         priority=${appointment != null && appointment.priority != null ? appointment.priority : 'Routine'},
+                                         priorityKey=${#strings.toLowerCase(priority)},
+                                         department=${appointment != null && appointment.department != null ? appointment.department : '-'}"
+                                th:attr="data-search=${#strings.toLowerCase((entry.token ?: '') + ' ' + (patient != null ? patient.fullName : '') + ' ' + (patient != null ? patient.patientId : '') + ' ' + (appointment != null ? appointment.provider : '') + ' ' + department + ' ' + priority)},
+                                         data-department=${#strings.toLowerCase(department)},
+                                         data-priority=${#strings.toLowerCase(priority)},
+                                         data-queued-at=${entry.queuedAt}">
+                                <td class="px-md py-sm">
+                                    <span class="inline-flex max-w-full justify-center rounded px-sm py-xs font-bold text-small truncate"
+                                          th:classappend="${priorityKey == 'emergency'} ? ' bg-critical text-white' : ' bg-surface-container text-primary'"
+                                          th:text="${entry.token ?: 'Q-'}">Q-01</span>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <div class="flex items-center gap-sm min-w-0">
+                                        <div class="w-7 h-7 rounded-full bg-surface-container flex shrink-0 items-center justify-center text-primary font-bold text-caption"
+                                             th:text="${patient != null && patient.fullName != null && !#strings.isEmpty(patient.fullName) ? #strings.substring(patient.fullName,0,1) : '?'}">P</div>
+                                        <div class="min-w-0">
+                                            <p class="font-bold truncate" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                                            <p class="text-caption text-text-secondary truncate">
+                                                <span th:text="${patient != null ? patient.patientId : '-'}">PID</span>
+                                                <span th:if="${patient != null && patient.gender != null}"> | </span>
+                                                <span th:if="${patient != null && patient.gender != null}" th:text="${patient.gender}">Gender</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <p class="truncate" th:text="${appointment != null ? appointment.provider : '-'}">Doctor</p>
+                                    <p class="text-caption text-text-secondary truncate">
+                                        <span th:text="${department}">Department</span>
+                                        <span> | </span>
+                                        <span th:text="${entry.queuedAt != null ? #temporals.format(entry.queuedAt, 'hh:mm a') : '-'}">Arrival</span>
+                                    </p>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <span class="wait-duration font-bold text-text-secondary">-</span>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <span class="inline-flex items-center gap-xs px-md py-1 rounded-full font-bold text-caption uppercase"
+                                          th:classappend="${priorityKey == 'emergency'} ? ' bg-red-100 text-critical' : (${priorityKey == 'urgent'} ? ' bg-amber-100 text-warning' : ' bg-green-100 text-success')">
+                                        <span th:if="${priorityKey == 'emergency'}" class="w-1.5 h-1.5 rounded-full bg-critical animate-pulse"></span>
+                                        <span th:text="${priority}">Routine</span>
+                                    </span>
+                                </td>
+                                <td class="px-md py-sm text-right">
+                                    <a th:href="@{/nurse/vitals/{id}(id=${entry.id})}" class="bg-primary text-white px-sm py-1.5 rounded-lg font-bold text-caption inline-flex items-center gap-xs hover:opacity-90 transition-opacity">
+                                        Start
+                                        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <aside class="space-y-md">
+                    <section class="bg-white border border-border-base rounded-lg p-md shadow-sm">
+                        <div class="flex items-center justify-between mb-md">
+                            <h3 class="font-card-heading text-card-heading text-text-primary">Priority Watch</h3>
+                            <span class="text-caption font-bold text-danger bg-error-container px-2 py-0.5 rounded" th:text="${#lists.size(urgentQueueEntries)} + ' active'">0 active</span>
+                        </div>
+                        <div class="space-y-md">
+                            <p th:if="${#lists.isEmpty(urgentQueueEntries)}" class="text-small text-text-secondary">No emergency or urgent patients are currently waiting for intake.</p>
+                            <a th:each="entry : ${urgentQueueEntries}" th:with="patient=${patientsById[entry.patientId]}, appointment=${appointmentsById[entry.appointmentId]}"
+                               th:href="@{/nurse/vitals/{id}(id=${entry.id})}" class="block rounded-lg border border-border-base p-md hover:border-primary transition-colors">
+                                <div class="flex items-center justify-between gap-md">
+                                    <div class="min-w-0">
+                                        <p class="font-bold truncate" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                                        <p class="text-caption text-text-secondary truncate" th:text="${appointment != null ? appointment.department : '-'}">Department</p>
+                                    </div>
+                                    <span class="text-caption font-bold rounded-full px-sm py-1 bg-error-container text-danger"
+                                          th:text="${appointment != null ? appointment.priority : 'Priority'}">Emergency</span>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
+
+                </aside>
+            </section>
+        </div>
+    </main>
+    <script>
+        const searchInput = document.getElementById('queue-filter');
+        const departmentFilter = document.getElementById('department-filter');
+        const priorityFilter = document.getElementById('priority-filter');
+        const visibleCount = document.getElementById('visible-count');
+        const rows = Array.from(document.querySelectorAll('.queue-row'));
+
+        function minutesSince(value) {
+            if (!value) return null;
+            const queuedAt = new Date(value);
+            if (Number.isNaN(queuedAt.getTime())) return null;
+            return Math.max(0, Math.floor((Date.now() - queuedAt.getTime()) / 60000));
+        }
+
+        function updateDurations() {
+            rows.forEach(row => {
+                const wait = minutesSince(row.dataset.queuedAt);
+                const target = row.querySelector('.wait-duration');
+                if (!target || wait === null) return;
+                target.textContent = `${wait}m`;
+                target.classList.toggle('text-danger', wait >= 45);
+                target.classList.toggle('text-warning', wait >= 20 && wait < 45);
+                target.classList.toggle('text-text-secondary', wait < 20);
+            });
+        }
+
+        function applyFilters() {
+            const query = (searchInput?.value || '').trim().toLowerCase();
+            const department = (departmentFilter?.value || '').trim().toLowerCase();
+            const priority = (priorityFilter?.value || '').trim().toLowerCase();
+            let shown = 0;
+
+            rows.forEach(row => {
+                const matchesSearch = !query || (row.dataset.search || '').includes(query);
+                const matchesDepartment = !department || (row.dataset.department || '').includes(department);
+                const matchesPriority = !priority || (row.dataset.priority || '') === priority;
+                const show = matchesSearch && matchesDepartment && matchesPriority;
+                row.classList.toggle('hidden', !show);
+                if (show) shown += 1;
+            });
+
+            if (visibleCount) {
+                visibleCount.textContent = `${shown} patient${shown === 1 ? '' : 's'} shown`;
+            }
+        }
+
+        [searchInput, departmentFilter, priorityFilter].forEach(control => {
+            if (control) control.addEventListener('input', applyFilters);
+            if (control) control.addEventListener('change', applyFilters);
+        });
+
+        updateDurations();
+        applyFilters();
+        setInterval(updateDurations, 60000);
+    </script>
+</div>
+</body>
+</html>

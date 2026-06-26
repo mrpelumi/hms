@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Prescriptions | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Prescriptions</h1>
+          <p class="text-small text-text-secondary" th:text="${patient != null ? 'Medication records for ' + patient.fullName : 'Recent prescriptions for your booked patients'}">Medication records</p>
+        </div>
+        <div class="flex flex-wrap gap-sm">
+          <a th:href="@{/doctor/dashboard}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Dashboard</a>
+          <a th:if="${patient != null}" th:href="@{/doctor/patients/{id}/history(id=${patient.id})}" class="rounded-md border border-primary px-md py-sm font-semibold text-primary">History</a>
+        </div>
+      </header>
+
+      <section th:if="${patient != null}" class="grid grid-cols-1 gap-sm md:grid-cols-4">
+        <div class="rounded-lg border border-border-base bg-white p-sm shadow-sm md:col-span-2">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Patient</p>
+          <p class="font-semibold text-text-primary" th:text="${patient.fullName ?: 'Unnamed Patient'}">Patient</p>
+          <p class="text-caption text-text-secondary" th:text="${patient.patientId ?: '-'}">PID</p>
+        </div>
+        <div class="rounded-lg border border-border-base bg-white p-sm shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Blood Group</p>
+          <p class="font-semibold text-text-primary" th:text="${patient.bloodGroup ?: '-'}">-</p>
+        </div>
+        <div class="rounded-lg border border-danger/20 bg-white p-sm shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-danger">Allergies</p>
+          <p class="font-semibold text-text-primary" th:text="${patient.allergies ?: 'None reported'}">None</p>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-text-primary">Medication List</h2>
+            <p class="text-caption text-text-secondary">Prescriptions are added from the active consultation page.</p>
+          </div>
+          <input id="prescription-search" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs" placeholder="Search medication" type="text">
+        </div>
+        <div class="max-h-[calc(100vh-270px)] overflow-auto">
+          <table class="w-full text-left text-small">
+            <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+            <tr>
+              <th class="px-md py-sm">Medication</th>
+              <th class="px-md py-sm">Dose</th>
+              <th class="px-md py-sm">Frequency</th>
+              <th class="px-md py-sm">Duration</th>
+              <th class="px-md py-sm">Instructions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr th:if="${#lists.isEmpty(prescriptions)}">
+              <td colspan="5" class="px-md py-lg text-center text-text-secondary">No prescriptions recorded.</td>
+            </tr>
+            <tr th:each="prescription : ${prescriptions}" class="prescription-row hover:bg-surface-bright"
+                th:attr="data-search=${#strings.toLowerCase((prescription.medicationName ?: '') + ' ' + (prescription.dosage ?: '') + ' ' + (prescription.frequency ?: '') + ' ' + (prescription.instructions ?: ''))}">
+              <td class="px-md py-sm font-semibold text-text-primary" th:text="${prescription.medicationName}">Medication</td>
+              <td class="px-md py-sm" th:text="${prescription.dosage ?: '-'}">-</td>
+              <td class="px-md py-sm" th:text="${prescription.frequency ?: '-'}">-</td>
+              <td class="px-md py-sm" th:text="${prescription.duration ?: '-'}">-</td>
+              <td class="px-md py-sm text-text-secondary" th:text="${prescription.instructions ?: '-'}">-</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const search = document.getElementById('prescription-search');
+    const prescriptionRows = Array.from(document.querySelectorAll('.prescription-row'));
+    if (search) {
+      search.addEventListener('input', () => {
+        const query = search.value.trim().toLowerCase();
+        prescriptionRows.forEach(row => row.classList.toggle('hidden', query && !row.dataset.search.includes(query)));
+      });
+    }
+  </script>
+</div>
+</body>
+</html>

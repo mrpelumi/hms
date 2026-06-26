@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Doctor Schedule | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <form class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small" method="post" th:action="@{/doctor/schedule}">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Manage Schedule</h1>
+          <p class="text-small text-text-secondary">Set availability used by reception when booking appointments.</p>
+        </div>
+        <div class="flex flex-wrap gap-sm">
+          <a th:href="@{/doctor/dashboard}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Dashboard</a>
+          <button id="save-schedule" class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Schedule</button>
+        </div>
+      </header>
+
+      <div th:if="${param.saved}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Schedule saved successfully.</div>
+
+      <div class="grid grid-cols-1 gap-md xl:grid-cols-12">
+        <section class="xl:col-span-8 rounded-lg border border-border-base bg-white shadow-sm">
+          <div class="border-b border-border-base px-md py-sm">
+            <h2 class="text-base font-semibold text-text-primary">Weekly Availability</h2>
+            <p class="text-caption text-text-secondary">Unavailable days remain visible but will not be offered to reception.</p>
+          </div>
+          <div class="divide-y divide-border-base">
+            <div th:each="day : ${days}" th:with="schedule=${scheduleByDay[day]}"
+                 class="schedule-row grid grid-cols-1 gap-sm px-md py-sm md:grid-cols-12 md:items-center">
+              <input type="hidden" name="days" th:value="${day}">
+              <label class="flex items-center gap-sm md:col-span-3">
+                <input class="day-toggle h-4 w-4 rounded border-border-base text-primary focus:ring-primary"
+                       name="availableDays" type="checkbox" th:value="${day}"
+                       th:checked="${schedule != null ? schedule.available : day != 'Saturday'}">
+                <span class="font-semibold text-text-primary" th:text="${day}">Monday</span>
+              </label>
+              <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-xs md:col-span-5">
+                <input class="schedule-time rounded-md border-border-base px-sm py-xs text-small focus:border-primary focus:ring-primary"
+                       name="startTimes" type="time"
+                       th:value="${schedule != null && schedule.startTime != null ? schedule.startTime : '09:00'}">
+                <span class="text-caption text-text-secondary">to</span>
+                <input class="schedule-time rounded-md border-border-base px-sm py-xs text-small focus:border-primary focus:ring-primary"
+                       name="endTimes" type="time"
+                       th:value="${schedule != null && schedule.endTime != null ? schedule.endTime : '17:00'}">
+              </div>
+              <div class="md:col-span-4">
+                <span class="availability-label rounded-full bg-success/10 px-sm py-1 text-[11px] font-bold text-success">Available</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="xl:col-span-4 space-y-md">
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Booking Guidance</h2>
+            <div class="mt-sm space-y-sm text-text-secondary">
+              <p>Reception uses this schedule to present doctors and availability on appointment booking.</p>
+              <p>Patients booked to you are the only patients shown in your doctor queue after nurse intake.</p>
+            </div>
+          </section>
+
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Default Break</h2>
+            <div class="mt-sm rounded-md border border-border-base bg-surface-container-low p-sm">
+              <p class="font-semibold text-text-primary">Lunch Break</p>
+              <p class="text-caption text-text-secondary">12:00 PM - 01:00 PM</p>
+            </div>
+          </section>
+
+          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Schedule Status</h2>
+            <p id="schedule-summary" class="mt-sm text-text-secondary">Review your available days, then save.</p>
+          </section>
+        </aside>
+      </div>
+    </form>
+  </main>
+  <script>
+    const rows = Array.from(document.querySelectorAll('.schedule-row'));
+    const summary = document.getElementById('schedule-summary');
+
+    const syncSchedule = () => {
+      const availableCount = rows.filter(row => row.querySelector('.day-toggle')?.checked).length;
+      if (summary) {
+        summary.textContent = `${availableCount} day${availableCount === 1 ? '' : 's'} available for reception booking.`;
+      }
+      rows.forEach(row => {
+        const toggle = row.querySelector('.day-toggle');
+        const label = row.querySelector('.availability-label');
+        const times = row.querySelectorAll('.schedule-time');
+        const available = Boolean(toggle && toggle.checked);
+        row.classList.toggle('opacity-60', !available);
+        times.forEach(input => input.disabled = !available);
+        if (label) {
+          label.textContent = available ? 'Available' : 'Unavailable';
+          label.classList.toggle('bg-success/10', available);
+          label.classList.toggle('text-success', available);
+          label.classList.toggle('bg-surface-container-high', !available);
+          label.classList.toggle('text-text-secondary', !available);
+        }
+      });
+    };
+
+    rows.forEach(row => row.querySelector('.day-toggle')?.addEventListener('change', syncSchedule));
+    syncSchedule();
+
+    const saveButton = document.getElementById('save-schedule');
+    if (saveButton) {
+      saveButton.closest('form').addEventListener('submit', () => {
+        rows.forEach(row => row.querySelectorAll('.schedule-time').forEach(input => input.disabled = false));
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving...';
+      });
+    }
+  </script>
+</div>
+</body>
+</html>

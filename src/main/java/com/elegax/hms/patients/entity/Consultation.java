@@ -19,6 +19,18 @@ public class Consultation {
     private Long appointmentId;
     private Long patientId;
     private OffsetDateTime consultationAt;
+    private String status;
+    @Column(columnDefinition = "text")
+    private String symptoms;
+    @Column(columnDefinition = "text")
+    private String subjectiveNotes;
+    @Column(columnDefinition = "text")
+    private String objectiveNotes;
+    @Column(columnDefinition = "text")
+    private String assessment;
+    @Column(columnDefinition = "text")
+    private String treatmentPlan;
+    private String followUpDate;
     @Column(columnDefinition = "text")
     private String doctorNotes;
     @Column(columnDefinition = "text")

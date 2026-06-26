@@ -13,7 +13,7 @@
 <!-- Page Content -->
 <div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
     <!-- Main Content Area -->
-    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-lg py-xl md:px-xl">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
         <div class="mx-auto flex w-full max-w-[1000px] flex-col">
             <!-- Breadcrumb -->
             <nav class="flex items-center gap-xs mb-lg text-text-secondary font-caption text-caption">
@@ -26,42 +26,43 @@
                 <span class="text-primary font-bold">New Patient</span>
             </nav>
             <!-- Page Header -->
-            <div class="flex flex-col gap-lg md:flex-row md:justify-between md:items-end mb-xxl">
+            <div class="flex flex-col gap-lg md:flex-row md:justify-between md:items-end mb-lg">
                 <div>
-                    <h1 class="font-page-title text-page-title text-text-primary mb-xs">Patient Registration</h1>
-                    <p class="text-text-secondary font-body text-body">Create a new digital clinical record for admissions and outpatient visits.</p>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary mb-xs">Patient Registration</h1>
+                    <p class="text-text-secondary text-small">Create a new digital clinical record for admissions and outpatient visits.</p>
                 </div>
                 <div class="flex flex-wrap gap-md">
-                    <a th:href="@{/reception/home}" class="px-xl py-md rounded-lg border border-primary text-primary font-card-heading hover:bg-primary/5 transition-all">Cancel</a>
-                    <button type="submit" form="patient-registration-form" class="px-xl py-md rounded-lg bg-primary text-white font-card-heading hover:opacity-90 shadow-sm transition-all flex items-center gap-sm">
+                    <a th:href="@{/reception/home}" class="px-lg py-sm rounded-lg border border-primary text-primary font-card-heading hover:bg-primary/5 transition-all">Cancel</a>
+                    <button id="save-patient-button" type="submit" form="patient-registration-form" disabled
+                            class="px-lg py-sm rounded-lg bg-primary text-white font-card-heading hover:opacity-90 shadow-sm transition-all flex items-center gap-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:opacity-45">
                         <span class="material-symbols-outlined text-[20px]">save</span>
                         Save Patient
                     </button>
                 </div>
             </div>
-            <div th:if="${param.created}" class="mb-xl rounded-lg border border-success/30 bg-white p-lg text-success font-card-heading">
+            <div th:if="${param.created}" class="mb-md rounded-lg border border-success/30 bg-white p-lg text-success font-card-heading">
                 Patient record created successfully.
             </div>
             <!-- Guided Multi-Step Navigation -->
-            <div class="bg-surface border border-border-base rounded-xl overflow-hidden shadow-sm mb-xl">
+            <div class="bg-surface border border-border-base rounded-lg overflow-hidden shadow-sm mb-md">
                 <div class="grid grid-cols-2 md:grid-cols-4 border-b border-border-base">
-                    <button type="button" class="flex-1 py-lg text-center font-card-heading text-card-heading transition-all border-r border-border-base step-active bg-primary text-white" id="step-personal" onclick="showSection('personal')">
+                    <button type="button" class="flex-1 py-sm text-center text-small font-semibold transition-all border-r border-border-base step-active bg-primary text-white" id="step-personal" onclick="showSection('personal')">
                         Personal Information
                     </button>
-                    <button type="button" class="flex-1 py-lg text-center font-card-heading text-card-heading text-text-secondary transition-all border-r border-border-base" id="step-contact" onclick="showSection('contact')">
+                    <button type="button" class="flex-1 py-sm text-center text-small font-semibold text-text-secondary transition-all border-r border-border-base" id="step-contact" onclick="showSection('contact')">
                         Contact Details
                     </button>
-                    <button type="button" class="flex-1 py-lg text-center font-card-heading text-card-heading text-text-secondary transition-all border-r border-border-base" id="step-insurance" onclick="showSection('insurance')">
+                    <button type="button" class="flex-1 py-sm text-center text-small font-semibold text-text-secondary transition-all border-r border-border-base" id="step-insurance" onclick="showSection('insurance')">
                         Insurance Info
                     </button>
-                    <button type="button" class="flex-1 py-lg text-center font-card-heading text-card-heading text-text-secondary transition-all" id="step-emergency" onclick="showSection('emergency')">
+                    <button type="button" class="flex-1 py-sm text-center text-small font-semibold text-text-secondary transition-all" id="step-emergency" onclick="showSection('emergency')">
                         Emergency Contact
                     </button>
                 </div>
                 <form id="patient-registration-form" class="p-lg md:p-xxl w-full" th:action="@{/api/patients}" method="post">
                     <!-- Section: Personal Information -->
-                    <div class="form-section space-y-xl animate-in fade-in duration-300 active" id="section-personal">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                    <div class="form-section space-y-md animate-in fade-in duration-300 active" id="section-personal">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                             <div class="space-y-sm">
                                 <label class="font-card-heading text-text-primary">Full Name</label>
                                 <input name="fullName" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="e.g. Johnathan Doe" type="text" required>
@@ -103,8 +104,8 @@
                         </div>
                     </div>
                     <!-- Section: Contact Details -->
-                    <div class="form-section space-y-xl animate-in fade-in duration-300" id="section-contact">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                    <div class="form-section space-y-md animate-in fade-in duration-300" id="section-contact">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                             <div class="space-y-sm">
                                 <label class="font-card-heading text-text-primary">Phone Number</label>
                                 <input name="phoneNumber" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="+1 (555) 000-0000" type="tel">
@@ -120,8 +121,8 @@
                         </div>
                     </div>
                     <!-- Section: Insurance Info -->
-                    <div class="form-section space-y-xl animate-in fade-in duration-300" id="section-insurance">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                    <div class="form-section space-y-md animate-in fade-in duration-300" id="section-insurance">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                             <div class="space-y-sm">
                                 <label class="font-card-heading text-text-primary">Insurance Provider</label>
                                 <input name="insuranceProvider" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="e.g. Blue Cross" type="text">
@@ -141,8 +142,8 @@
                         </div>
                     </div>
                     <!-- Section: Emergency Contact -->
-                    <div class="form-section space-y-xl animate-in fade-in duration-300" id="section-emergency">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                    <div class="form-section space-y-md animate-in fade-in duration-300" id="section-emergency">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                             <div class="space-y-sm">
                                 <label class="font-card-heading text-text-primary">Contact Name</label>
                                 <input name="emergencyContactName" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Full name of emergency contact" type="text">
@@ -160,10 +161,10 @@
                 </form>
             </div>
             <!-- Tertiary Actions -->
-            <div class="flex items-center justify-between bg-surface-container-low p-lg rounded-xl border border-border-base">
+            <div class="flex items-center justify-between bg-surface-container-low p-lg rounded-lg border border-border-base">
                 <div class="flex items-center gap-md">
                     <span class="material-symbols-outlined text-text-secondary">print</span>
-                    <span class="font-body text-body text-text-primary">Need a physical copy of the registration card?</span>
+                    <span class="text-small text-text-primary">Need a physical copy of the registration card?</span>
                 </div>
                 <button class="px-lg py-sm rounded-lg border border-border-base bg-white text-text-primary font-card-heading flex items-center gap-xs hover:bg-surface-muted transition-all">
                     Print ID Card
@@ -174,7 +175,7 @@
     <!-- Footer -->
     <footer class="w-full bg-surface-container-low border-t border-border-base flex-shrink-0 py-md px-lg md:px-layout-margin">
         <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
-            <div class="flex flex-wrap items-center gap-xl">
+            <div class="flex flex-wrap items-center gap-md">
                 <span class="font-caption text-caption text-text-secondary">© 2024 Tel Health Enterprise. Clinical Precision Redefined.</span>
                 <div class="flex items-center gap-md">
                     <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Privacy Policy</a>
@@ -228,6 +229,33 @@
             activeBtn.classList.remove('text-text-secondary');
         }
 
+        const registrationForm = document.getElementById('patient-registration-form');
+        const savePatientButton = document.getElementById('save-patient-button');
+
+        function getRegistrationFields() {
+            if (!registrationForm) {
+                return [];
+            }
+            return Array.from(registrationForm.querySelectorAll('input, select, textarea'))
+                .filter(field => !field.disabled && field.type !== 'hidden');
+        }
+
+        function isFieldFilled(field) {
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                return field.checked;
+            }
+            return field.value.trim().length > 0;
+        }
+
+        function updateSavePatientState() {
+            if (!savePatientButton) {
+                return;
+            }
+            const fields = getRegistrationFields();
+            const allFieldsFilled = fields.length > 0 && fields.every(isFieldFilled);
+            savePatientButton.disabled = !allFieldsFilled;
+        }
+
         // Initialize micro-interactions
         document.querySelectorAll('input, select, textarea').forEach(element => {
             element.addEventListener('focus', () => {
@@ -236,7 +264,20 @@
             element.addEventListener('blur', () => {
                 element.parentElement.querySelector('label')?.classList.remove('text-primary');
             });
+            element.addEventListener('input', updateSavePatientState);
+            element.addEventListener('change', updateSavePatientState);
         });
+
+        if (registrationForm) {
+            registrationForm.addEventListener('submit', event => {
+                updateSavePatientState();
+                if (savePatientButton?.disabled) {
+                    event.preventDefault();
+                }
+            });
+        }
+
+        updateSavePatientState();
 
         // Active Navigation Logic for Sidebar
         document.querySelectorAll('#main-sidebar a').forEach(item => {

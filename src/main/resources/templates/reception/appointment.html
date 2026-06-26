@@ -4,326 +4,248 @@
       layout:decorate="~{layout}">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Appointments | Tel Health</title>
 </head>
 <body>
-<div layout:fragment="content">
-<!-- Main Content Area -->
-<main class="flex-1 flex flex-col h-full bg-background overflow-hidden relative min-h-screen">
-  <!-- Top Bar (Header Layout Maintained) -->
-  <header class="h-header-height bg-surface-container-lowest border-b border-border-base flex items-center justify-between px-layout-margin sticky top-0 z-40 flex-shrink-0">
-    <div class="flex items-center gap-lg">
-      <div class="relative">
-<span class="absolute inset-y-0 left-3 flex items-center text-text-secondary">
-<span class="material-symbols-outlined text-[20px]">search</span>
-</span>
-        <input class="pl-10 pr-4 py-2 bg-surface-container border-none rounded-lg text-small focus:ring-2 focus:ring-primary w-64" placeholder="Search appointments..." type="text">
-      </div>
-    </div>
-    <div class="flex items-center gap-lg">
-      <button class="relative text-text-secondary hover:text-primary transition-colors">
-        <span class="material-symbols-outlined">notifications</span>
-        <span class="absolute top-0 right-0 w-2 h-2 bg-danger rounded-full border-2 border-white"></span>
-      </button>
-      <button class="text-text-secondary hover:text-primary transition-colors">
-        <span class="material-symbols-outlined">help</span>
-      </button>
-      <div class="h-8 w-[1px] bg-border-base"></div>
-      <div class="flex items-center gap-md">
-        <div class="text-right">
-          <p class="font-small text-small font-bold">Dr. Sarah Chen</p>
-          <p class="font-caption text-caption text-text-secondary">Clinical Director</p>
-        </div>
-        <img class="w-10 h-10 rounded-full border border-border-base object-cover" data-alt="A professional headshot of a female doctor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe99DMoUoZeNfXIvFJg5WFNu9Ngto5AEVFJkGwhihxbr1eF_9s-bBh4I7q9pXK_AmycpGR-sRPFDKMGvUMDHmr4L47vvmC6-BHqZ8p2xzKH_LCNlSb7WVdTlmjE4ruwpw0EYTl4pFN56xxqNssF3d6O5JwtsVlO5vXf2vhod3XpJTUeD7IKOBfHvsDACpTD8augATRVgvborCuoOeQ6h6Z-CdPGo7R11_cgp5FZLVHjxSuHkork67hGHZcTxwrxJvTIdSKnN1e5Qdl">
-      </div>
-    </div>
-  </header>
-  <!-- Content Body -->
-  <div class="flex-1 p-xl overflow-y-auto bg-background custom-scrollbar">
-    <!-- Breadcrumbs and Title -->
-    <div class="mb-lg">
-      <nav class="flex text-caption font-caption text-text-secondary mb-xs">
-        <a class="hover:text-primary transition-colors flex items-center" href="#">
-          <span class="material-symbols-outlined text-[16px] mr-1">home</span> Home
-        </a>
-        <span class="mx-2 text-border-base">/</span>
-        <span class="text-primary font-bold">Appointments</span>
-      </nav>
-      <div class="flex justify-between items-end">
-        <div>
-          <h1 class="font-page-title text-page-title text-text-primary">Appointment Scheduling</h1>
-          <p class="text-body font-body text-text-secondary mt-xs">Manage physician schedules and patient bookings.</p>
-        </div>
-        <div class="flex gap-sm">
-          <button class="px-lg py-sm border border-primary text-primary bg-white font-bold rounded-lg hover:bg-primary-fixed transition-colors flex items-center gap-sm">
-            <span class="material-symbols-outlined text-[18px]">file_download</span> Export PDF
-          </button>
-          <button class="px-lg py-sm bg-primary text-white font-bold rounded-lg shadow-sm hover:opacity-90 active:scale-95 transition-all flex items-center gap-sm">
-            <span class="material-symbols-outlined text-[18px]">add</span> New Appointment
-          </button>
-        </div>
-      </div>
-    </div>
-    <!-- Dashboard Bento Grid -->
-    <div class="grid grid-cols-12 gap-xl">
-      <!-- Filters Section -->
-      <div class="col-span-12 lg:col-span-12 bg-white p-lg rounded-xl border border-border-base shadow-sm flex flex-wrap items-center gap-lg">
-        <div class="flex-1 min-w-[200px]">
-          <label class="block font-caption text-caption text-text-secondary mb-1">Department</label>
-          <select class="w-full border-border-base rounded-lg text-small focus:ring-primary focus:border-primary">
-            <option>All Departments</option>
-            <option>Cardiology</option>
-            <option>Neurology</option>
-            <option>Pediatrics</option>
-          </select>
-        </div>
-        <div class="flex-1 min-w-[200px]">
-          <label class="block font-caption text-caption text-text-secondary mb-1">Doctor</label>
-          <select class="w-full border-border-base rounded-lg text-small focus:ring-primary focus:border-primary">
-            <option>Select Physician</option>
-            <option>Dr. Sarah Chen</option>
-            <option>Dr. Michael Ross</option>
-          </select>
-        </div>
-        <div class="flex-1 min-w-[200px]">
-          <label class="block font-caption text-caption text-text-secondary mb-1">Date Range</label>
-          <div class="relative">
-<span class="absolute inset-y-0 left-3 flex items-center text-text-secondary pointer-events-none">
-<span class="material-symbols-outlined text-[18px]">calendar_month</span>
-</span>
-            <input class="w-full pl-10 border-border-base rounded-lg text-small focus:ring-primary focus:border-primary" type="text" value="Oct 24 - Oct 30, 2024">
-          </div>
-        </div>
-        <div class="flex items-end h-full pt-6">
-          <button class="px-lg py-2.5 bg-surface-container-high text-on-surface-variant rounded-lg font-bold hover:bg-surface-container-highest transition-colors">
-            Clear All
-          </button>
-        </div>
-      </div>
-      <!-- Calendar View -->
-      <div class="col-span-12 xl:col-span-8 bg-white rounded-xl border border-border-base shadow-sm overflow-hidden">
-        <div class="p-lg border-b border-border-base flex items-center justify-between">
-          <div class="flex items-center gap-md">
-            <h3 class="font-card-heading text-card-heading">Weekly Schedule</h3>
-            <div class="flex bg-surface-container rounded-lg p-1">
-              <button class="px-md py-1 text-small font-bold bg-white rounded shadow-sm">Week</button>
-              <button class="px-md py-1 text-small font-medium text-text-secondary">Day</button>
-            </div>
-          </div>
-          <div class="flex items-center gap-md">
-            <button class="p-1 hover:bg-surface-container rounded transition-colors"><span class="material-symbols-outlined">chevron_left</span></button>
-            <span class="text-small font-bold">October 24 - 30, 2024</span>
-            <button class="p-1 hover:bg-surface-container rounded transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>
-          </div>
-        </div>
-        <!-- Calendar Grid -->
-        <div class="overflow-x-auto">
-          <div class="min-w-[800px]">
-            <!-- Header Days -->
-            <div class="grid grid-cols-8 border-b border-border-base bg-surface-container-low">
-              <div class="py-sm px-md text-caption font-bold text-text-secondary uppercase text-center border-r border-border-base">Time</div>
-              <div class="py-sm px-md text-caption font-bold text-text-secondary uppercase text-center border-r border-border-base">Mon 24</div>
-              <div class="py-sm px-md text-caption font-bold text-text-secondary uppercase text-center border-r border-border-base bg-white">Tue 25</div>
-              <div class="py-sm px-md text-caption font-bold text-text-secondary uppercase text-center border-r border-border-base">Wed 26</div>
-              <div class="py-sm px-md text-caption font-bold text-text-secondary uppercase text-center border-r border-border-base">Thu 27</div>
-              <div class="py-sm px-md text-caption font-bold text-text-secondary uppercase text-center border-r border-border-base">Fri 28</div>
-              <div class="py-sm px-md text-caption font-bold text-text-secondary uppercase text-center border-r border-border-base">Sat 29</div>
-              <div class="py-sm px-md text-caption font-bold text-text-secondary uppercase text-center">Sun 30</div>
-            </div>
-            <!-- Time Slots -->
-            <div class="max-h-[600px] overflow-y-auto custom-scrollbar">
-              <!-- 08:00 AM -->
-              <div class="grid grid-cols-8 border-b border-border-base h-16 group">
-                <div class="p-2 text-caption text-text-secondary text-right pr-4 font-medium border-r border-border-base">08:00</div>
-                <div class="p-1 border-r border-border-base relative"></div>
-                <div class="p-1 border-r border-border-base relative bg-blue-50/30">
-                  <div class="absolute inset-x-1 top-1 bottom-1 bg-primary text-white p-2 rounded-lg text-caption leading-tight shadow-sm cursor-pointer z-20">
-                    <p class="font-bold">John Doe</p>
-                    <p class="opacity-80 text-[10px]">Follow-up</p>
-                  </div>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <div class="mx-auto flex w-full max-w-[1280px] flex-col gap-lg">
+            <header class="flex flex-col gap-lg xl:flex-row xl:items-end xl:justify-between">
+                <div class="space-y-xs">
+                    <nav class="flex items-center gap-xs font-caption text-caption text-text-secondary">
+                        <a class="hover:text-primary" th:href="@{/reception/home}">Home</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <span class="text-primary font-bold">Appointments</span>
+                    </nav>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Appointment Scheduling</h1>
+                    <p class="text-small text-text-secondary">Manage physician schedules, patient bookings, and check-ins.</p>
                 </div>
-                <div class="p-1 border-r border-border-base"></div>
-                <div class="p-1 border-r border-border-base bg-danger/5">
-                  <div class="absolute inset-x-1 top-2 h-10 border-l-4 border-danger bg-white p-2 rounded-md text-caption leading-tight shadow-sm">
-                    <p class="text-danger font-bold truncate">Emergency</p>
-                  </div>
+                <div class="flex flex-col gap-sm sm:flex-row">
+                    <button id="export-appointments" class="h-10 px-lg border border-primary text-primary bg-white font-bold rounded-lg hover:bg-primary-fixed transition-colors inline-flex items-center justify-center gap-sm text-small" type="button">
+                        <span class="material-symbols-outlined text-[18px]">file_download</span>
+                        Export PDF
+                    </button>
+                    <a th:href="@{/reception/appointment/new}" class="h-10 px-lg bg-primary text-white font-bold rounded-lg shadow-sm hover:opacity-90 transition-all inline-flex items-center justify-center gap-sm text-small">
+                        <span class="material-symbols-outlined text-[18px]">add</span>
+                        New Appointment
+                    </a>
                 </div>
-                <div class="p-1 border-r border-border-base"></div>
-                <div class="p-1 border-r border-border-base bg-surface-muted"></div>
-                <div class="p-1 bg-surface-muted"></div>
-              </div>
-              <!-- 09:00 AM -->
-              <div class="grid grid-cols-8 border-b border-border-base h-16">
-                <div class="p-2 text-caption text-text-secondary text-right pr-4 font-medium border-r border-border-base">09:00</div>
-                <div class="p-1 border-r border-border-base relative">
-                  <div class="absolute inset-x-1 top-4 h-8 bg-success text-white p-1 px-2 rounded-lg text-caption leading-tight shadow-sm">
-                    <p class="font-bold">Ana Smith</p>
-                  </div>
-                </div>
-                <div class="p-1 border-r border-border-base bg-blue-50/30"></div>
-                <div class="p-1 border-r border-border-base">
-                  <div class="absolute inset-x-1 top-2 h-12 bg-primary-fixed-dim text-on-primary-fixed p-1 px-2 rounded-lg text-caption leading-tight border border-primary/20">
-                    <p class="font-bold">Review Lab</p>
-                  </div>
-                </div>
-                <div class="p-1 border-r border-border-base"></div>
-                <div class="p-1 border-r border-border-base"></div>
-                <div class="p-1 border-r border-border-base bg-surface-muted"></div>
-                <div class="p-1 bg-surface-muted"></div>
-              </div>
-              <!-- 10:00 AM -->
-              <div class="grid grid-cols-8 border-b border-border-base h-16">
-                <div class="p-2 text-caption text-text-secondary text-right pr-4 font-medium border-r border-border-base">10:00</div>
-                <div class="p-1 border-r border-border-base"></div>
-                <div class="p-1 border-r border-border-base bg-blue-50/30 relative">
-                  <div class="absolute inset-x-1 top-0 bottom-4 bg-tertiary text-white p-1 px-2 rounded-lg text-caption leading-tight">
-                    <p class="font-bold">Staff Meeting</p>
-                  </div>
-                </div>
-                <div class="p-1 border-r border-border-base"></div>
-                <div class="p-1 border-r border-border-base"></div>
-                <div class="p-1 border-r border-border-base relative">
-                  <div class="absolute inset-x-1 top-1 bottom-1 bg-primary text-white p-2 rounded-lg text-caption leading-tight shadow-sm">
-                    <p class="font-bold">Kevin Heart</p>
-                    <p class="opacity-80 text-[10px]">General Check</p>
-                  </div>
-                </div>
-                <div class="p-1 border-r border-border-base bg-surface-muted"></div>
-                <div class="p-1 bg-surface-muted"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Appointment Sidebar / Action List -->
-      <div class="col-span-12 xl:col-span-4 flex flex-col gap-xl">
-        <!-- Day Summary Card -->
-        <div class="bg-white p-lg rounded-xl border border-border-base shadow-sm">
-          <div class="flex items-center justify-between mb-lg">
-            <h3 class="font-card-heading text-card-heading">Oct 25 (Today)</h3>
-            <span class="px-2 py-1 bg-success/10 text-success rounded text-[10px] font-bold uppercase tracking-wider">4 Pending</span>
-          </div>
-          <div class="space-y-md">
-            <!-- Appointment Item 1 -->
-            <div class="p-md rounded-lg border border-border-base hover:border-primary transition-all group cursor-pointer bg-white">
-              <div class="flex items-start justify-between mb-2">
-                <div class="flex items-center gap-md">
-                  <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center font-bold text-primary">JD</div>
-                  <div>
-                    <h4 class="text-small font-bold">John Doe</h4>
-                    <p class="text-[11px] text-text-secondary">Cardiology • 08:30 AM</p>
-                  </div>
-                </div>
-                <span class="material-symbols-outlined text-text-secondary text-[20px]">more_vert</span>
-              </div>
-              <div class="flex gap-2">
-                <button class="flex-1 py-1 text-caption font-bold bg-success text-white rounded-lg active:scale-95 transition-all">Arrived</button>
-                <button class="flex-1 py-1 text-caption font-bold border border-border-base text-text-primary rounded-lg hover:bg-surface-muted transition-all">Reschedule</button>
-                <button class="px-2 py-1 text-caption text-danger hover:bg-error-container rounded-lg transition-all"><span class="material-symbols-outlined text-[18px]">cancel</span></button>
-              </div>
-            </div>
-            <!-- Appointment Item 2 -->
-            <div class="p-md rounded-lg border-2 border-primary bg-primary-fixed shadow-md relative">
-              <span class="absolute -top-2 -right-1 px-2 py-0.5 bg-primary text-white text-[9px] font-bold rounded-full">IN SESSION</span>
-              <div class="flex items-start justify-between mb-2">
-                <div class="flex items-center gap-md">
-                  <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-primary">AM</div>
-                  <div>
-                    <h4 class="text-small font-bold">Alice Miller</h4>
-                    <p class="text-[11px] text-on-primary-fixed-variant">General Checkup • 10:15 AM</p>
-                  </div>
-                </div>
-              </div>
-              <div class="p-2 mb-2 bg-white/50 rounded-lg">
-                <div class="flex justify-between text-[10px] text-text-secondary mb-1">
-                  <span class="">Status</span>
-                  <span class="text-success font-bold">Patient Arrived 10:05</span>
-                </div>
-                <div class="w-full bg-white/40 h-1 rounded-full overflow-hidden">
-                  <div class="bg-primary h-full w-[45%]"></div>
-                </div>
-              </div>
-              <div class="flex gap-2">
-                <button class="flex-1 py-1 text-caption font-bold bg-primary text-white rounded-lg">Open Chart</button>
-              </div>
-            </div>
-          </div>
-          <button class="w-full mt-lg py-sm text-caption text-primary font-bold hover:underline">View All for Today</button>
-        </div>
-        <!-- Utilization Stats -->
-        <div class="bg-white p-lg rounded-xl border border-border-base shadow-sm">
-          <h3 class="font-card-heading text-card-heading mb-md">Daily Availability</h3>
-          <div class="space-y-sm">
-            <div class="flex justify-between items-center text-small">
-              <span class="text-text-secondary">Total Slots</span>
-              <span class="font-bold">16</span>
-            </div>
-            <div class="flex justify-between items-center text-small">
-              <span class="text-text-secondary">Booked</span>
-              <span class="font-bold text-primary">12</span>
-            </div>
-            <div class="flex justify-between items-center text-small">
-              <span class="text-text-secondary">Efficiency</span>
-              <span class="font-bold text-success">75%</span>
-            </div>
-            <div class="w-full bg-surface-container h-2 rounded-full mt-md">
-              <div class="bg-success h-full rounded-full" style="width: 75%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- FOOTER (Updated from SCREEN_2) -->
-  <footer class="bg-surface-container-low border-t border-border-base flex-shrink-0 mt-auto pt-6">
-    <div class="px-layout-margin py-md max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
-      <div class="flex flex-wrap items-center gap-xl">
-        <span class="font-caption text-caption text-text-secondary">© 2024 Tel Health Enterprise. Clinical Precision Redefined.</span>
-        <div class="flex items-center gap-md">
-          <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Privacy Policy</a>
-          <span class="w-1 h-1 bg-border-base rounded-full"></span>
-          <a class="font-caption text-caption text-text-secondary hover:text-primary transition-colors" href="#">Terms of Service</a>
-        </div>
-      </div>
-      <div class="flex items-center gap-md">
-        <div class="flex items-center gap-xs px-sm py-1 bg-white rounded border border-border-base shadow-sm">
-          <span class="material-symbols-outlined text-success text-[16px]">verified_user</span>
-          <span class="font-caption text-[10px] font-bold text-text-secondary uppercase tracking-tight">HIPAA Compliant Environment</span>
-        </div>
-        <a class="font-caption text-[11px] font-bold text-text-secondary hover:text-primary transition-all flex items-center gap-1" href="#">
-          <span class="material-symbols-outlined text-[14px]">security</span> Contact Security
-        </a>
-      </div>
-    </div>
-  </footer>
+            </header>
 
-  <script>
-    // Search simulation
-    document.querySelector('input[type="text"]').addEventListener('input', function(e) {
-        console.log('Searching for:', e.target.value);
-    });
+            <div th:if="${param.created}" class="rounded-lg border border-success/30 bg-white p-md text-success font-bold text-small flex items-center gap-sm">
+                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                Appointment booked successfully.
+            </div>
 
-    // Hover animation for calendar slots
-    const slots = document.querySelectorAll('.grid.grid-cols-8.h-16');
-    slots.forEach(slot => {
-        slot.addEventListener('mouseenter', () => {
-            slot.classList.add('bg-surface-container-low/50');
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+                <div class="bg-primary-container p-lg rounded-lg text-white shadow-sm">
+                    <p class="font-caption text-caption uppercase opacity-80">Booked</p>
+                    <p class="text-[26px] leading-8 font-bold" th:text="${bookedCount}">0</p>
+                </div>
+                <div class="bg-white p-lg rounded-lg border border-border-base shadow-sm">
+                    <p class="font-caption text-caption text-text-secondary uppercase">Checked In</p>
+                    <p class="text-[26px] leading-8 font-bold text-text-primary" th:text="${checkedInCount}">0</p>
+                </div>
+                <div class="bg-white p-lg rounded-lg border border-border-base shadow-sm">
+                    <p class="font-caption text-caption text-text-secondary uppercase">Completed</p>
+                    <p class="text-[26px] leading-8 font-bold text-text-primary" th:text="${completedCount}">0</p>
+                </div>
+            </section>
+
+            <section class="bg-white p-md rounded-lg border border-border-base shadow-sm grid grid-cols-1 lg:grid-cols-4 gap-md">
+                <label class="flex flex-col gap-xs">
+                    <span class="font-caption text-caption text-text-secondary">Search</span>
+                    <span class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-[18px]">search</span>
+                        <input id="appointment-search" class="w-full pl-10 pr-md py-sm bg-surface-container-low border border-border-base rounded-lg text-small focus:ring-primary focus:border-primary"
+                               placeholder="Patient, doctor, status..." type="text">
+                    </span>
+                </label>
+                <label class="flex flex-col gap-xs">
+                    <span class="font-caption text-caption text-text-secondary">Department</span>
+                    <select id="department-filter" class="w-full py-sm border border-border-base rounded-lg text-small focus:ring-primary focus:border-primary bg-white">
+                        <option value="">All Departments</option>
+                        <option>General Medicine</option>
+                        <option>Cardiology</option>
+                        <option>Neurology</option>
+                        <option>Pediatrics</option>
+                        <option>Laboratory</option>
+                    </select>
+                </label>
+                <label class="flex flex-col gap-xs">
+                    <span class="font-caption text-caption text-text-secondary">Status</span>
+                    <select id="status-filter" class="w-full py-sm border border-border-base rounded-lg text-small focus:ring-primary focus:border-primary bg-white">
+                        <option value="">All Statuses</option>
+                        <option>BOOKED</option>
+                        <option>CHECKED_IN</option>
+                        <option>COMPLETED</option>
+                    </select>
+                </label>
+                <div class="flex items-end">
+                    <button id="clear-filters" class="h-10 w-full px-lg bg-surface-container-high text-on-surface-variant rounded-lg font-bold text-small hover:bg-surface-container-highest transition-colors" type="button">
+                        Clear All
+                    </button>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-lg">
+                <div class="bg-white rounded-lg border border-border-base shadow-sm overflow-hidden min-w-0">
+                    <div class="p-md border-b border-border-base flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+                        <div class="flex items-center gap-md">
+                            <h2 class="font-card-heading text-card-heading">Appointment Schedule</h2>
+                            <div class="flex bg-surface-container rounded-lg p-1">
+                                <button class="px-md py-1 text-caption font-bold bg-white rounded shadow-sm" type="button">List</button>
+                                <button class="px-md py-1 text-caption font-medium text-text-secondary" type="button">Week</button>
+                            </div>
+                        </div>
+                        <p id="visible-appointments" class="text-caption text-text-secondary" th:text="${#lists.size(appointments)} + ' appointment(s)'">0 appointment(s)</p>
+                    </div>
+                    <div class="max-h-[58vh] overflow-auto">
+                        <table class="w-full table-fixed text-left border-collapse">
+                            <thead>
+                            <tr class="bg-surface-muted border-b border-border-base">
+                                <th class="px-md py-sm font-caption text-caption text-text-secondary uppercase w-[22%]">Patient</th>
+                                <th class="px-md py-sm font-caption text-caption text-text-secondary uppercase w-[16%]">Schedule</th>
+                                <th class="px-md py-sm font-caption text-caption text-text-secondary uppercase w-[14%]">Department</th>
+                                <th class="px-md py-sm font-caption text-caption text-text-secondary uppercase w-[16%]">Doctor</th>
+                                <th class="px-md py-sm font-caption text-caption text-text-secondary uppercase w-[10%]">Priority</th>
+                                <th class="px-md py-sm font-caption text-caption text-text-secondary uppercase w-[10%]">Status</th>
+                                <th class="px-md py-sm font-caption text-caption text-text-secondary uppercase text-right w-[12%]">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-base text-small">
+                            <tr th:if="${#lists.isEmpty(appointments)}">
+                                <td colspan="7" class="px-md py-lg text-center text-text-secondary">No appointments have been booked yet.</td>
+                            </tr>
+                            <tr th:each="appointment : ${appointments}" class="appointment-row hover:bg-surface-container-low transition-colors"
+                                th:with="patient=${patientsById[appointment.patientId]},
+                                         priority=${appointment.priority != null ? appointment.priority : 'Routine'},
+                                         priorityKey=${#strings.toLowerCase(priority)},
+                                         status=${appointment.status != null ? appointment.status : 'BOOKED'},
+                                         department=${appointment.department != null ? appointment.department : '-'}"
+                                th:attr="data-search=${#strings.toLowerCase((patient != null ? patient.fullName : '') + ' ' + (patient != null ? patient.patientId : '') + ' ' + (appointment.provider ?: '') + ' ' + department + ' ' + status + ' ' + priority)},
+                                         data-department=${#strings.toLowerCase(department)},
+                                         data-status=${#strings.toLowerCase(status)}">
+                                <td class="px-md py-sm">
+                                    <div class="flex items-center gap-sm min-w-0">
+                                        <div class="w-7 h-7 rounded-full bg-primary-fixed text-primary flex shrink-0 items-center justify-center font-bold text-[11px]"
+                                             th:text="${patient != null && patient.fullName != null && !#strings.isEmpty(patient.fullName) ? #strings.substring(patient.fullName,0,1) : '?'}">P</div>
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-text-primary truncate" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient Name</p>
+                                            <p class="font-caption text-caption text-text-secondary truncate" th:text="${patient != null ? patient.patientId : '-'}">PID</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <p class="text-small text-text-primary" th:text="${appointment.scheduledAt != null ? #temporals.format(appointment.scheduledAt, 'MMM dd, yyyy') : '-'}">Date</p>
+                                    <p class="font-caption text-caption text-text-secondary" th:text="${appointment.scheduledAt != null ? #temporals.format(appointment.scheduledAt, 'hh:mm a') : '-'}">Time</p>
+                                </td>
+                                <td class="px-md py-sm truncate" th:text="${department}">Department</td>
+                                <td class="px-md py-sm text-text-secondary truncate" th:text="${appointment.provider ?: '-'}">Doctor</td>
+                                <td class="px-md py-sm">
+                                    <span class="inline-flex px-sm py-1 rounded-full font-bold text-caption uppercase"
+                                          th:classappend="${priorityKey == 'emergency'} ? ' bg-error-container text-danger' : (${priorityKey == 'urgent'} ? ' bg-warning/10 text-warning' : ' bg-success/10 text-success')"
+                                          th:text="${priority}">Routine</span>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <span class="inline-flex px-md py-1 rounded-full bg-primary-fixed text-primary font-caption text-caption font-bold" th:text="${status}">BOOKED</span>
+                                </td>
+                                <td class="px-md py-sm">
+                                    <div class="flex items-center justify-end gap-xs">
+                                        <a th:if="${status == 'BOOKED'}" th:href="@{/reception/appointment/{id}/check-in(id=${appointment.id})}" class="px-sm py-1.5 rounded-lg bg-success text-white font-bold text-caption hover:opacity-90">Check In</a>
+                                        <a th:href="@{/reception/queue}" class="p-1.5 text-primary hover:bg-primary-fixed rounded transition-all" title="Queue">
+                                            <span class="material-symbols-outlined text-[18px]">queue</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <aside class="space-y-lg">
+                    <section class="bg-white p-lg rounded-lg border border-border-base shadow-sm">
+                        <div class="flex items-center justify-between mb-md">
+                            <h3 class="font-card-heading text-card-heading">Check-in Worklist</h3>
+                            <span class="px-2 py-1 bg-success/10 text-success rounded text-[10px] font-bold uppercase" th:text="${bookedCount} + ' pending'">0 pending</span>
+                        </div>
+                        <div class="space-y-md max-h-[420px] overflow-y-auto pr-xs">
+                            <p th:if="${#lists.isEmpty(appointments)}" class="text-small text-text-secondary">No booked appointments to show.</p>
+                            <div th:each="appointment : ${appointments}" th:if="${appointment.status == 'BOOKED'}"
+                                 th:with="patient=${patientsById[appointment.patientId]}"
+                                 class="p-md rounded-lg border border-border-base hover:border-primary transition-all bg-white">
+                                <div class="flex items-start justify-between gap-md mb-sm">
+                                    <div class="min-w-0">
+                                        <p class="text-small font-bold truncate" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                                        <p class="text-caption text-text-secondary truncate">
+                                            <span th:text="${appointment.department ?: '-'}">Department</span>
+                                            <span> | </span>
+                                            <span th:text="${appointment.scheduledAt != null ? #temporals.format(appointment.scheduledAt, 'hh:mm a') : '-'}">Time</span>
+                                        </p>
+                                    </div>
+                                    <span class="material-symbols-outlined text-text-secondary text-[20px]">more_vert</span>
+                                </div>
+                                <a th:href="@{/reception/appointment/{id}/check-in(id=${appointment.id})}" class="w-full py-1.5 text-caption font-bold bg-success text-white rounded-lg inline-flex items-center justify-center gap-xs">
+                                    Arrived
+                                    <span class="material-symbols-outlined text-[16px]">how_to_reg</span>
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+
+                </aside>
+            </section>
+        </div>
+    </main>
+    <script>
+        const searchInput = document.getElementById('appointment-search');
+        const departmentFilter = document.getElementById('department-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const clearFilters = document.getElementById('clear-filters');
+        const visibleAppointments = document.getElementById('visible-appointments');
+        const exportButton = document.getElementById('export-appointments');
+        const rows = Array.from(document.querySelectorAll('.appointment-row'));
+
+        function applyFilters() {
+            const query = (searchInput?.value || '').trim().toLowerCase();
+            const department = (departmentFilter?.value || '').trim().toLowerCase();
+            const status = (statusFilter?.value || '').trim().toLowerCase();
+            let shown = 0;
+
+            rows.forEach(row => {
+                const show = (!query || (row.dataset.search || '').includes(query))
+                    && (!department || (row.dataset.department || '').includes(department))
+                    && (!status || (row.dataset.status || '') === status);
+                row.classList.toggle('hidden', !show);
+                if (show) shown += 1;
+            });
+
+            if (visibleAppointments) {
+                visibleAppointments.textContent = `${shown} appointment${shown === 1 ? '' : 's'}`;
+            }
+        }
+
+        [searchInput, departmentFilter, statusFilter].forEach(control => {
+            if (control) control.addEventListener('input', applyFilters);
+            if (control) control.addEventListener('change', applyFilters);
         });
-        slot.addEventListener('mouseleave', () => {
-            slot.classList.remove('bg-surface-container-low/50');
-        });
-    });
 
-    // Sidebar active logic
-    document.querySelectorAll('#main-sidebar nav a').forEach(item => {
-        item.addEventListener('click', function(e) {
-            document.querySelectorAll('#main-sidebar a').forEach(nav => nav.classList.remove('sidebar-item-active'));
-            this.classList.add('sidebar-item-active');
-        });
-    });
-  </script>
+        if (clearFilters) {
+            clearFilters.addEventListener('click', () => {
+                if (searchInput) searchInput.value = '';
+                if (departmentFilter) departmentFilter.value = '';
+                if (statusFilter) statusFilter.value = '';
+                applyFilters();
+            });
+        }
 
-</main>
+        if (exportButton) {
+            exportButton.addEventListener('click', () => window.print());
+        }
+
+        applyFilters();
+    </script>
 </div>
 </body>
 </html>

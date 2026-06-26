@@ -6,27 +6,25 @@ import lombok.*;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "appointments")
+@Table(name = "prescriptions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Appointment {
+public class Prescription {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long consultationId;
     private Long patientId;
-    private OffsetDateTime scheduledAt;
-    private String provider; // doctor or clinic
-    private String providerUsername;
-    private String department;
-    private String visitType;
-    private String priority;
-    private String reason;
-    private String status; // BOOKED, CANCELLED, COMPLETED
-    private OffsetDateTime checkedInAt;
-
+    private String medicationName;
+    private String dosage;
+    private String frequency;
+    private String duration;
+    private String route;
+    @Column(columnDefinition = "text")
+    private String instructions;
     private OffsetDateTime createdAt;
 
     @PrePersist
@@ -34,4 +32,3 @@ public class Appointment {
         createdAt = OffsetDateTime.now();
     }
 }
-

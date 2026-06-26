@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Patient Queue | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">My Patient Queue</h1>
+          <p class="text-small text-text-secondary">Patients appear here after nurse vitals are completed.</p>
+        </div>
+        <a th:href="@{/doctor/dashboard}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Dashboard</a>
+      </header>
+
+      <section class="grid grid-cols-3 gap-sm">
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Ready</p>
+          <p class="text-[22px] font-semibold leading-7" th:text="${waitingCount}">0</p>
+        </div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Called</p>
+          <p class="text-[22px] font-semibold leading-7" th:text="${calledCount}">0</p>
+        </div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Emergency</p>
+          <p class="text-[22px] font-semibold leading-7" th:text="${criticalCount}">0</p>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-text-primary">Active Patient Queue</h2>
+            <p class="text-caption text-text-secondary">Select a patient, review history, then start consultation.</p>
+          </div>
+          <input id="queue-filter" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs" placeholder="Search queue" type="text">
+        </div>
+        <div class="max-h-[calc(100vh-300px)] overflow-auto">
+          <table class="w-full text-left text-small">
+            <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+            <tr>
+              <th class="px-md py-sm">Patient</th>
+              <th class="px-md py-sm">Ready</th>
+              <th class="px-md py-sm">Priority</th>
+              <th class="px-md py-sm">Status</th>
+              <th class="px-md py-sm text-right">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr th:if="${#lists.isEmpty(queueEntries)}">
+              <td colspan="5" class="px-md py-lg text-center text-text-secondary">No patients are ready for doctor consultation.</td>
+            </tr>
+            <tr th:each="entry : ${queueEntries}" class="queue-row hover:bg-surface-container-low"
+                th:with="patient=${patientsById[entry.patientId]}, appointment=${appointmentsById[entry.appointmentId]}"
+                th:attr="data-search=${#strings.toLowerCase((patient != null ? patient.fullName : '') + ' ' + (appointment != null ? appointment.provider : '') + ' ' + (appointment != null ? appointment.priority : '') + ' ' + (entry.status ?: ''))}">
+              <td class="px-md py-sm">
+                <p class="font-semibold text-text-primary" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                <p class="text-caption text-text-secondary" th:text="${patient != null ? patient.patientId : '-'}">PID</p>
+              </td>
+              <td class="px-md py-sm" th:text="${entry.vitalsCapturedAt != null ? #temporals.format(entry.vitalsCapturedAt, 'hh:mm a') : (entry.queuedAt != null ? #temporals.format(entry.queuedAt, 'hh:mm a') : '-')}">-</td>
+              <td class="px-md py-sm">
+                <span class="rounded-full bg-surface-container-high px-sm py-1 text-[11px] font-bold text-text-secondary" th:text="${appointment != null ? appointment.priority : 'Routine'}">Routine</span>
+              </td>
+              <td class="px-md py-sm">
+                <span class="rounded-full bg-warning/10 px-sm py-1 text-[11px] font-bold text-warning"
+                      th:classappend="${entry.status == 'CALLED'} ? ' bg-primary/10 text-primary' : ''"
+                      th:text="${entry.status}">READY</span>
+              </td>
+              <td class="px-md py-sm text-right">
+                <form class="inline" method="post" th:action="@{/doctor/queue/{id}/call(id=${entry.id})}">
+                  <button class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary" type="submit">Select</button>
+                </form>
+                <a th:href="@{/doctor/consultation/{id}(id=${entry.id})}" class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">Start</a>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const filter = document.getElementById('queue-filter');
+    const rows = Array.from(document.querySelectorAll('.queue-row'));
+    if (filter) {
+      filter.addEventListener('input', () => {
+        const query = filter.value.trim().toLowerCase();
+        rows.forEach(row => row.classList.toggle('hidden', query && !row.dataset.search.includes(query)));
+      });
+    }
+  </script>
+</div>
+</body>
+</html>

@@ -3,253 +3,287 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Patient Registration | Tel Health</title>
+    <meta charset="utf-8">
+    <title>Schedule Appointment | Tel Health</title>
 </head>
 <body>
-
-<!-- Page Content -->
-<div layout:fragment="content">
-    <main class="ml-[264px] flex-1 flex flex-col min-h-screen">
-        <!-- Header -->
-        <header class="h-[64px] bg-white border-b border-border-base flex items-center justify-between px-layout-margin sticky top-0 z-40">
-            <div class="flex items-center bg-surface-container-low px-md py-xs rounded-full w-[400px]">
-                <span class="material-symbols-outlined text-text-secondary mr-sm">search</span>
-                <input class="bg-transparent border-none focus:ring-0 text-sm w-full" placeholder="Search patients, doctors, or records..." type="text"/>
-            </div>
-            <div class="flex items-center gap-lg">
-                <div class="flex items-center gap-sm bg-surface-muted px-md py-xs rounded-lg border border-border-base">
-                    <span class="material-symbols-outlined text-primary text-lg">location_on</span>
-                    <span class="text-caption text-text-primary">Main Branch - OP Wing</span>
-                    <span class="material-symbols-outlined text-text-secondary text-sm">expand_more</span>
-                </div>
-                <div class="relative">
-                    <span class="material-symbols-outlined text-text-secondary cursor-pointer hover:text-primary transition-colors">notifications</span>
-                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-danger rounded-full border border-white"></span>
-                </div>
-                <div class="h-8 w-px bg-border-base"></div>
-                <div class="flex items-center gap-sm">
-                    <div class="text-right">
-                        <p class="text-caption font-bold">Sarah Jenkins</p>
-                        <p class="text-[10px] text-text-secondary">Reception Supervisor</p>
-                    </div>
-                    <img class="w-10 h-10 rounded-full border border-border-base object-cover" data-alt="A professional studio portrait of a woman in her late 30s wearing a clean medical uniform with a friendly smile, high-end commercial photography style with soft rim lighting and a blurred clinical office background. The colors are crisp and modern, fitting a high-fidelity healthcare SaaS application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9FX7amVIvuBs2UFo7TOEwGP9dseU4NRmFivQ3WUkGwha_QOmqMbA3GxAYxN81b6e0wIToAJrtrJLND_OhBbaJpKMNkViGVjwI5WJocwzFovQcSQQyNpkS0ZRXDg5TqigTPmMrNsSFeSpF1J0rSsSDKhRJSv8GTzfpz6oys1HnIRpvwi-t09Jc7G0DRryqVLlJVbBYzxsp_GZGa1d5Dpy3Bt8oDaykz_Zca3KHnPq1G6bf4R8NjCIhuHVlhKeQVTmAy_rX48UAWnom"/>
-                </div>
-            </div>
-        </header>
-        <!-- Content Area -->
-        <div class="p-layout-margin flex-1 max-w-[1200px] mx-auto w-full">
-            <!-- Breadcrumb & Title Area -->
-            <div class="flex justify-between items-end mb-xxl">
-                <div>
-                    <nav class="flex items-center gap-xs text-text-secondary text-caption mb-xs">
-                        <a class="hover:text-primary" href="#">Home</a>
-                        <span class="material-symbols-outlined text-sm">chevron_right</span>
-                        <a class="hover:text-primary" href="#">Appointments</a>
-                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <form id="appointment-form" class="mx-auto flex w-full max-w-[1280px] flex-col gap-lg" method="post" th:action="@{/reception/appointment}">
+            <header class="flex flex-col gap-lg xl:flex-row xl:items-end xl:justify-between">
+                <div class="space-y-xs">
+                    <nav class="flex items-center gap-xs font-caption text-caption text-text-secondary">
+                        <a class="hover:text-primary" th:href="@{/reception/home}">Home</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <a class="hover:text-primary" th:href="@{/reception/appointment}">Appointments</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                         <span class="text-primary font-bold">New Appointment</span>
                     </nav>
-                    <h2 class="font-page-title text-page-title">Schedule New Appointment</h2>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Schedule New Appointment</h1>
+                    <p class="text-small text-text-secondary">Select a registered patient, match a doctor schedule, then book a visit slot.</p>
                 </div>
-                <div class="flex gap-md">
-                    <button class="px-xl py-md text-text-secondary font-semibold hover:text-primary transition-colors">Cancel</button>
-                    <button class="px-xl py-md bg-primary-container text-white font-bold rounded-lg shadow-md active:scale-[0.98] transition-all">Confirm Booking</button>
+                <div class="flex flex-wrap gap-sm">
+                    <a th:href="@{/reception/appointment}" class="h-10 px-lg rounded-lg border border-border-base bg-white text-text-secondary font-bold text-small hover:bg-surface-muted transition-all inline-flex items-center">Cancel</a>
+                    <button id="confirm-button" type="submit" class="h-10 px-lg bg-primary text-white font-bold rounded-lg shadow-sm active:scale-[0.98] transition-all inline-flex items-center gap-sm text-small">
+                        <span class="material-symbols-outlined text-[18px]">event_available</span>
+                        Confirm Booking
+                    </button>
                 </div>
-            </div>
-            <!-- Booking Grid -->
-            <div class="grid grid-cols-12 gap-xl">
-                <!-- Left Column: Patient & Primary Info -->
-                <div class="col-span-12 lg:col-span-8 space-y-xl">
-                    <!-- Patient Search Card -->
-                    <div class="bg-white rounded-xl border border-border-base p-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-center mb-lg">
-                            <h3 class="font-card-heading text-card-heading flex items-center gap-sm">
-                                <span class="material-symbols-outlined text-primary">person_search</span>
+            </header>
+
+            <div class="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-lg">
+                <section class="space-y-lg min-w-0">
+                    <div class="bg-white rounded-lg border border-border-base p-lg shadow-sm">
+                        <div class="flex flex-col gap-sm md:flex-row md:items-center md:justify-between mb-md">
+                            <h2 class="font-card-heading text-card-heading flex items-center gap-sm">
+                                <span class="material-symbols-outlined text-primary text-[20px]">person_search</span>
                                 Patient Identification
-                            </h3>
-                            <button class="text-primary text-caption font-bold flex items-center gap-xs hover:underline">
-                                <span class="material-symbols-outlined text-sm">add</span>
+                            </h2>
+                            <a th:href="@{/reception/registration}" class="text-primary text-caption font-bold inline-flex items-center gap-xs hover:underline">
+                                <span class="material-symbols-outlined text-[16px]">add</span>
                                 Register New Patient
+                            </a>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-md">
+                            <label class="flex flex-col gap-xs">
+                                <span class="text-caption font-bold text-text-secondary">Patient</span>
+                                <select id="patientId" name="patientId" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none bg-white text-small" required>
+                                    <option value="">Select registered patient</option>
+                                    <option th:each="patient : ${patients}" th:value="${patient.id}"
+                                            th:attr="data-name=${patient.fullName ?: 'Unnamed Patient'}, data-pid=${patient.patientId ?: 'PID pending'}, data-phone=${patient.phoneNumber ?: '-'}, data-gender=${patient.gender ?: '-'}"
+                                            th:text="${(patient.patientId ?: 'PID pending') + ' - ' + (patient.fullName ?: 'Unnamed Patient')}">PID - Patient</option>
+                                </select>
+                            </label>
+                            <div id="patient-preview" class="rounded-lg bg-surface-container-low border border-dashed border-border-base p-md flex items-center gap-md">
+                                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-border-base">
+                                    <span class="material-symbols-outlined text-text-secondary">account_circle</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p id="patient-preview-name" class="text-small font-bold text-text-primary truncate">No patient selected</p>
+                                    <p id="patient-preview-meta" class="text-caption text-text-secondary truncate">Choose a registered patient</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg border border-border-base p-lg shadow-sm">
+                        <h2 class="font-card-heading text-card-heading mb-md flex items-center gap-sm">
+                            <span class="material-symbols-outlined text-primary text-[20px]">stethoscope</span>
+                            Clinical Details
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold text-text-secondary">Department</span>
+                                <select id="department" name="department" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none bg-white text-small" required>
+                                    <option value="General Medicine">General Medicine</option>
+                                    <option value="Cardiology">Cardiology</option>
+                                    <option value="Neurology">Neurology</option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                    <option value="Laboratory">Laboratory</option>
+                                </select>
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold text-text-secondary">Doctor Selection</span>
+                                <select id="providerUsername" name="providerUsername" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none bg-white text-small" required>
+                                    <option value="">Select available doctor</option>
+                                    <option th:each="doctor : ${doctors}"
+                                            th:value="${doctor.doctorUsername}"
+                                            th:attr="data-name=${doctor.doctorName}"
+                                            th:text="${doctor.doctorName}">Doctor</option>
+                                </select>
+                                <p th:if="${#lists.isEmpty(doctors)}" class="text-caption text-danger">No doctor has submitted an available schedule yet.</p>
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold text-text-secondary">Appointment Type</span>
+                                <select id="visitType" name="visitType" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none bg-white text-small" required>
+                                    <option value="Consultation">Consultation</option>
+                                    <option value="Follow-up">Follow-up</option>
+                                    <option value="Review">Review</option>
+                                    <option value="Emergency">Emergency</option>
+                                </select>
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold text-text-secondary">Priority Level</span>
+                                <select id="priority" name="priority" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none bg-white text-small" required>
+                                    <option value="Routine">Routine</option>
+                                    <option value="Urgent">Urgent</option>
+                                    <option value="Emergency">Emergency</option>
+                                </select>
+                            </label>
+                            <label class="space-y-xs md:col-span-2">
+                                <span class="text-caption font-bold text-text-secondary">Reason for Visit</span>
+                                <textarea id="reason" name="reason" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none resize-y text-small" placeholder="Briefly describe symptoms or purpose of visit..." rows="3"></textarea>
+                            </label>
+                        </div>
+                    </div>
+
+                    <section class="bg-white rounded-lg border border-border-base p-lg shadow-sm">
+                        <div class="flex flex-col gap-sm md:flex-row md:items-center md:justify-between mb-md">
+                            <h2 class="font-card-heading text-card-heading flex items-center gap-sm">
+                                <span class="material-symbols-outlined text-primary text-[20px]">medical_services</span>
+                                Submitted Doctor Schedules
+                            </h2>
+                            <span class="text-caption text-text-secondary" th:text="${#lists.size(doctorSchedules)} + ' available slots'">0 available slots</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                            <p th:if="${#lists.isEmpty(doctorSchedules)}" class="md:col-span-2 rounded-lg bg-surface-container-low p-md text-small text-text-secondary">Doctors will appear here after saving their schedules.</p>
+                            <button th:each="schedule : ${doctorSchedules}" type="button"
+                                    class="doctor-schedule-row text-left rounded-lg border border-border-base p-md hover:border-primary hover:bg-primary/5 transition-all"
+                                    th:attr="data-doctor=${schedule.doctorUsername}, data-start=${schedule.startTime}, data-end=${schedule.endTime}, data-day=${schedule.dayOfWeek}">
+                                <div class="flex items-center justify-between gap-md">
+                                    <p class="font-bold text-small text-text-primary truncate" th:text="${schedule.doctorName}">Doctor</p>
+                                    <span class="text-caption font-bold rounded-full bg-success/10 text-success px-sm py-1">Available</span>
+                                </div>
+                                <p class="text-caption text-text-secondary mt-xs">
+                                    <span th:text="${schedule.dayOfWeek}">Monday</span>
+                                    <span> | </span>
+                                    <span th:text="${schedule.startTime}">09:00</span>
+                                    <span> - </span>
+                                    <span th:text="${schedule.endTime}">17:00</span>
+                                </p>
                             </button>
                         </div>
-                        <div class="relative group">
-                            <input class="w-full p-md pl-xl border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Search by Name, PID, or Mobile Number..." type="text"/>
-                            <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary">search</span>
-                        </div>
-                        <!-- Result Preview (Static Example) -->
-                        <div class="mt-md p-md bg-surface-container-low rounded-lg border border-dashed border-border-base flex items-center gap-md">
-                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-border-base">
-                                <span class="material-symbols-outlined text-text-secondary">account_circle</span>
-                            </div>
-                            <div>
-                                <p class="text-sm font-bold text-text-primary">Selected: Michael Chen (PID-88021)</p>
-                                <p class="text-caption text-text-secondary">DOB: 12 May 1985 • Male • +1 555-0123</p>
-                            </div>
-                            <button class="ml-auto text-text-secondary hover:text-danger"><span class="material-symbols-outlined">close</span></button>
-                        </div>
-                    </div>
-                    <!-- Appointment Configuration -->
-                    <div class="bg-white rounded-xl border border-border-base p-xl shadow-sm">
-                        <h3 class="font-card-heading text-card-heading mb-lg flex items-center gap-sm">
-                            <span class="material-symbols-outlined text-primary">stethoscope</span>
-                            Clinical Details
-                        </h3>
-                        <div class="grid grid-cols-2 gap-lg">
-                            <div class="space-y-xs">
-                                <label class="text-caption font-bold text-text-secondary">Department</label>
-                                <select class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none">
-                                    <option>Select Department</option>
-                                    <option selected="">Cardiology</option>
-                                    <option>Neurology</option>
-                                    <option>General Medicine</option>
-                                    <option>Pediatrics</option>
-                                </select>
-                            </div>
-                            <div class="space-y-xs">
-                                <label class="text-caption font-bold text-text-secondary">Doctor Selection</label>
-                                <select class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none">
-                                    <option>Select Doctor</option>
-                                    <option selected="">Dr. Aris Thorne (Cardiovascular Specialist)</option>
-                                    <option>Dr. Elena Velez</option>
-                                </select>
-                            </div>
-                            <div class="space-y-xs">
-                                <label class="text-caption font-bold text-text-secondary">Appointment Type</label>
-                                <div class="grid grid-cols-2 gap-sm">
-                                    <label class="flex items-center gap-md p-md border border-border-base rounded-lg cursor-pointer hover:bg-surface-muted transition-colors">
-                                        <input checked="" class="text-primary focus:ring-primary" name="apt_type" type="radio"/>
-                                        <span class="text-sm">Consultation</span>
-                                    </label>
-                                    <label class="flex items-center gap-md p-md border border-border-base rounded-lg cursor-pointer hover:bg-surface-muted transition-colors">
-                                        <input class="text-primary focus:ring-primary" name="apt_type" type="radio"/>
-                                        <span class="text-sm">Follow-up</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="space-y-xs">
-                                <label class="text-caption font-bold text-text-secondary">Priority Level</label>
-                                <div class="flex gap-sm">
-                                    <button class="flex-1 py-md px-sm border border-border-base rounded-lg text-sm bg-success/10 text-success font-bold border-success/30">Routine</button>
-                                    <button class="flex-1 py-md px-sm border border-border-base rounded-lg text-sm text-text-secondary font-semibold hover:bg-warning/10 transition-colors">Urgent</button>
-                                    <button class="flex-1 py-md px-sm border border-border-base rounded-lg text-sm text-text-secondary font-semibold hover:bg-danger/10 transition-colors">Emergency</button>
-                                </div>
-                            </div>
-                            <div class="col-span-2 space-y-xs">
-                                <label class="text-caption font-bold text-text-secondary">Reason for Visit</label>
-                                <textarea class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none resize-none" placeholder="Briefly describe symptoms or purpose of visit..." rows="3"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Right Column: Scheduling -->
-                <div class="col-span-12 lg:col-span-4 space-y-xl">
-                    <!-- Date Picker (Simulated) -->
-                    <div class="bg-white rounded-xl border border-border-base p-xl shadow-sm">
-                        <h3 class="font-card-heading text-card-heading mb-lg flex items-center gap-sm">
-                            <span class="material-symbols-outlined text-primary">event_available</span>
+                    </section>
+                </section>
+
+                <aside class="space-y-lg">
+                    <section class="bg-white rounded-lg border border-border-base p-lg shadow-sm">
+                        <h2 class="font-card-heading text-card-heading mb-md flex items-center gap-sm">
+                            <span class="material-symbols-outlined text-primary text-[20px]">event_available</span>
                             Schedule Date
-                        </h3>
-                        <div class="border border-border-base rounded-xl overflow-hidden">
-                            <div class="bg-surface-muted p-md flex justify-between items-center border-b border-border-base">
-                                <button class="material-symbols-outlined text-text-secondary">chevron_left</button>
-                                <span class="text-sm font-bold">November 2024</span>
-                                <button class="material-symbols-outlined text-text-secondary">chevron_right</button>
-                            </div>
-                            <div class="p-md grid grid-cols-7 text-center gap-y-sm">
-                                <div class="text-[10px] font-bold text-text-secondary uppercase">Su</div>
-                                <div class="text-[10px] font-bold text-text-secondary uppercase">Mo</div>
-                                <div class="text-[10px] font-bold text-text-secondary uppercase">Tu</div>
-                                <div class="text-[10px] font-bold text-text-secondary uppercase">We</div>
-                                <div class="text-[10px] font-bold text-text-secondary uppercase">Th</div>
-                                <div class="text-[10px] font-bold text-text-secondary uppercase">Fr</div>
-                                <div class="text-[10px] font-bold text-text-secondary uppercase">Sa</div>
-                                <div class="p-sm text-sm text-text-secondary/40">27</div>
-                                <div class="p-sm text-sm text-text-secondary/40">28</div>
-                                <div class="p-sm text-sm text-text-secondary/40">29</div>
-                                <div class="p-sm text-sm text-text-secondary/40">30</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">1</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">2</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">3</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">4</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">5</div>
-                                <div class="p-sm text-sm font-semibold bg-primary text-white rounded-lg shadow-md">6</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">7</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">8</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">9</div>
-                                <div class="p-sm text-sm font-semibold hover:bg-primary/10 rounded-lg cursor-pointer">10</div>
-                            </div>
+                        </h2>
+                        <div class="space-y-md">
+                            <label class="space-y-xs block">
+                                <span class="text-caption font-bold text-text-secondary">Date</span>
+                                <input id="appointmentDate" name="appointmentDate" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none text-small" type="date" required>
+                            </label>
+                            <label class="space-y-xs block">
+                                <span class="text-caption font-bold text-text-secondary">Time</span>
+                                <input id="appointmentTime" name="appointmentTime" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none text-small" type="time" required>
+                            </label>
                         </div>
-                    </div>
-                    <!-- Time Slots -->
-                    <div class="bg-white rounded-xl border border-border-base p-xl shadow-sm">
-                        <div class="mb-lg">
-                            <h3 class="font-card-heading text-card-heading flex items-center gap-sm">
-                                <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">schedule</span>
-                                Available Slots
-                            </h3>
+                    </section>
+
+                    <section class="bg-white rounded-lg border border-border-base p-lg shadow-sm">
+                        <div class="mb-md">
+                            <h2 class="font-card-heading text-card-heading flex items-center gap-sm">
+                                <span class="material-symbols-outlined text-primary text-[20px]">schedule</span>
+                                Quick Time Slots
+                            </h2>
+                            <p class="text-caption text-text-secondary">Tap a slot to fill the appointment time.</p>
                         </div>
-                        <div class="space-y-xl">
+                        <div class="space-y-lg">
                             <div>
-                                <p class="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-md flex items-center gap-xs">
-                                    <span class="material-symbols-outlined text-xs">light_mode</span>
+                                <p class="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-sm flex items-center gap-xs">
+                                    <span class="material-symbols-outlined text-[14px]">light_mode</span>
                                     Morning Session
                                 </p>
                                 <div class="grid grid-cols-2 gap-sm">
-                                    <button class="py-md border border-border-base rounded-lg text-sm font-semibold hover:border-primary hover:text-primary transition-all">09:00 AM</button>
-                                    <button class="py-md border border-border-base rounded-lg text-sm font-semibold hover:border-primary hover:text-primary transition-all">09:30 AM</button>
-                                    <button class="py-md bg-primary-container/10 border border-primary text-primary font-bold rounded-lg text-sm">10:00 AM</button>
-                                    <button class="py-md border border-border-base rounded-lg text-sm font-semibold hover:border-primary hover:text-primary transition-all">10:30 AM</button>
+                                    <button class="slot-button py-sm border border-border-base rounded-lg text-small font-semibold hover:border-primary hover:text-primary transition-all" data-time="09:00" type="button">09:00 AM</button>
+                                    <button class="slot-button py-sm border border-border-base rounded-lg text-small font-semibold hover:border-primary hover:text-primary transition-all" data-time="09:30" type="button">09:30 AM</button>
+                                    <button class="slot-button py-sm border border-border-base rounded-lg text-small font-semibold hover:border-primary hover:text-primary transition-all" data-time="10:00" type="button">10:00 AM</button>
+                                    <button class="slot-button py-sm border border-border-base rounded-lg text-small font-semibold hover:border-primary hover:text-primary transition-all" data-time="10:30" type="button">10:30 AM</button>
                                 </div>
                             </div>
                             <div>
-                                <p class="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-md flex items-center gap-xs">
-                                    <span class="material-symbols-outlined text-xs">dark_mode</span>
+                                <p class="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-sm flex items-center gap-xs">
+                                    <span class="material-symbols-outlined text-[14px]">dark_mode</span>
                                     Afternoon Session
                                 </p>
                                 <div class="grid grid-cols-2 gap-sm">
-                                    <button class="py-md border border-border-base rounded-lg text-sm font-semibold hover:border-primary hover:text-primary transition-all">02:00 PM</button>
-                                    <button class="py-md bg-surface-container-high text-text-secondary/50 rounded-lg text-sm cursor-not-allowed line-through" disabled="">02:30 PM</button>
-                                    <button class="py-md border border-border-base rounded-lg text-sm font-semibold hover:border-primary hover:text-primary transition-all">03:00 PM</button>
-                                    <button class="py-md border border-border-base rounded-lg text-sm font-semibold hover:border-primary hover:text-primary transition-all">03:30 PM</button>
+                                    <button class="slot-button py-sm border border-border-base rounded-lg text-small font-semibold hover:border-primary hover:text-primary transition-all" data-time="14:00" type="button">02:00 PM</button>
+                                    <button class="slot-button py-sm border border-border-base rounded-lg text-small font-semibold hover:border-primary hover:text-primary transition-all" data-time="15:00" type="button">03:00 PM</button>
+                                    <button class="slot-button py-sm border border-border-base rounded-lg text-small font-semibold hover:border-primary hover:text-primary transition-all" data-time="15:30" type="button">03:30 PM</button>
+                                    <button class="slot-button py-sm border border-border-base rounded-lg text-small font-semibold hover:border-primary hover:text-primary transition-all" data-time="16:00" type="button">04:00 PM</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </section>
+
+                </aside>
             </div>
-        </div>
-        <!-- Sticky Footer for HIPAA & Compliance -->
-        <footer class="mt-auto bg-surface-container-highest border-t border-border-base py-lg px-layout-margin flex flex-col md:flex-row justify-between items-center gap-md">
-            <div class="flex items-center gap-xl">
-                <div class="flex items-center gap-sm bg-white px-md py-xs rounded border border-border-base shadow-sm">
-                    <span class="material-symbols-outlined text-success text-xl" style="font-variation-settings: 'FILL' 1;">verified_user</span>
-                    <span class="text-[11px] font-bold text-text-primary uppercase tracking-tight">HIPAA Compliant Environment</span>
-                </div>
-                <p class="text-caption text-text-secondary">© 2024 Tel Health Enterprise. Clinical Precision Redefined.</p>
-            </div>
-            <div class="flex gap-xl text-caption font-semibold text-text-secondary">
-                <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
-                <a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
-                <a class="hover:text-primary transition-colors" href="#">HIPAA Compliance</a>
-                <a class="hover:text-primary transition-colors" href="#">Contact Security</a>
-            </div>
-        </footer>
+        </form>
     </main>
     <script>
-        // Micro-interactions for form elements
-        document.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                if(!this.disabled) {
-                    const ripple = document.createElement('div');
-                    ripple.className = 'ripple';
-                    this.appendChild(ripple);
-                    setTimeout(() => ripple.remove(), 1000);
+        const dateInput = document.getElementById('appointmentDate');
+        const timeInput = document.getElementById('appointmentTime');
+        const form = document.getElementById('appointment-form');
+        const confirmButton = document.getElementById('confirm-button');
+        const doctorSelect = document.getElementById('providerUsername');
+        const patientSelect = document.getElementById('patientId');
+        const patientPreviewName = document.getElementById('patient-preview-name');
+        const patientPreviewMeta = document.getElementById('patient-preview-meta');
+        const scheduleRows = Array.from(document.querySelectorAll('.doctor-schedule-row'));
+        const slotButtons = Array.from(document.querySelectorAll('.slot-button'));
+
+        if (dateInput && !dateInput.value) {
+            dateInput.value = new Date().toISOString().slice(0, 10);
+        }
+
+        if (timeInput && !timeInput.value) {
+            timeInput.value = '09:00';
+        }
+
+        function updatePatientPreview() {
+            const option = patientSelect?.selectedOptions?.[0];
+            if (!option || !option.value) {
+                if (patientPreviewName) patientPreviewName.textContent = 'No patient selected';
+                if (patientPreviewMeta) patientPreviewMeta.textContent = 'Choose a registered patient';
+                return;
+            }
+            if (patientPreviewName) patientPreviewName.textContent = `${option.dataset.name || 'Patient'} (${option.dataset.pid || 'PID'})`;
+            if (patientPreviewMeta) patientPreviewMeta.textContent = `${option.dataset.gender || '-'} | ${option.dataset.phone || '-'}`;
+        }
+
+        function highlightDoctorSchedule() {
+            const selectedDoctor = doctorSelect?.value || '';
+            scheduleRows.forEach(row => {
+                const active = selectedDoctor && row.dataset.doctor === selectedDoctor;
+                row.classList.toggle('bg-primary/5', active);
+                row.classList.toggle('border-primary', active);
+            });
+        }
+
+        if (doctorSelect) {
+            doctorSelect.addEventListener('change', highlightDoctorSchedule);
+        }
+
+        if (patientSelect) {
+            patientSelect.addEventListener('change', updatePatientPreview);
+            updatePatientPreview();
+        }
+
+        scheduleRows.forEach(row => {
+            row.addEventListener('click', () => {
+                if (doctorSelect && row.dataset.doctor) {
+                    doctorSelect.value = row.dataset.doctor;
+                    highlightDoctorSchedule();
+                }
+                if (timeInput && row.dataset.start) {
+                    timeInput.value = row.dataset.start.substring(0, 5);
                 }
             });
         });
+
+        slotButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                slotButtons.forEach(item => item.classList.remove('bg-primary-container/10', 'border-primary', 'text-primary'));
+                button.classList.add('bg-primary-container/10', 'border-primary', 'text-primary');
+                if (timeInput) {
+                    timeInput.value = button.dataset.time;
+                }
+            });
+        });
+
+        if (form && confirmButton) {
+            form.addEventListener('submit', () => {
+                confirmButton.disabled = true;
+                confirmButton.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span><span>Booking...</span>';
+            });
+        }
+
+        highlightDoctorSchedule();
     </script>
 </div>
-
 </body>
 </html>
