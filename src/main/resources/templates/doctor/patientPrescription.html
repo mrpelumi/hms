@@ -49,23 +49,39 @@
           <table class="w-full text-left text-small">
             <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
             <tr>
+              <th class="px-md py-sm">Date</th>
+              <th class="px-md py-sm" th:if="${patient == null}">Patient</th>
               <th class="px-md py-sm">Medication</th>
               <th class="px-md py-sm">Dose</th>
               <th class="px-md py-sm">Frequency</th>
               <th class="px-md py-sm">Duration</th>
+              <th class="px-md py-sm">Route</th>
+              <th class="px-md py-sm">Status</th>
               <th class="px-md py-sm">Instructions</th>
             </tr>
             </thead>
             <tbody class="divide-y divide-border-base">
             <tr th:if="${#lists.isEmpty(prescriptions)}">
-              <td colspan="5" class="px-md py-lg text-center text-text-secondary">No prescriptions recorded.</td>
+              <td th:colspan="${patient == null ? 9 : 8}" class="px-md py-lg text-center text-text-secondary">No prescriptions recorded.</td>
             </tr>
             <tr th:each="prescription : ${prescriptions}" class="prescription-row hover:bg-surface-bright"
-                th:attr="data-search=${#strings.toLowerCase((prescription.medicationName ?: '') + ' ' + (prescription.dosage ?: '') + ' ' + (prescription.frequency ?: '') + ' ' + (prescription.instructions ?: ''))}">
+                th:with="rowPatient=${patient != null ? patient : patientsById[prescription.patientId]}"
+                th:attr="data-search=${#strings.toLowerCase((rowPatient != null ? rowPatient.fullName : '') + ' ' + (rowPatient != null ? rowPatient.patientId : '') + ' ' + (prescription.medicationName ?: '') + ' ' + (prescription.dosage ?: '') + ' ' + (prescription.frequency ?: '') + ' ' + (prescription.status ?: '') + ' ' + (prescription.instructions ?: ''))}">
+              <td class="px-md py-sm text-text-secondary" th:text="${prescription.createdAt != null ? #temporals.format(prescription.createdAt, 'MMM dd, hh:mm a') : '-'}">-</td>
+              <td class="px-md py-sm" th:if="${patient == null}">
+                <p class="font-semibold text-text-primary" th:text="${rowPatient != null ? rowPatient.fullName : 'Unknown Patient'}">Patient</p>
+                <p class="text-caption text-text-secondary" th:text="${rowPatient != null ? rowPatient.patientId : '-'}">PID</p>
+              </td>
               <td class="px-md py-sm font-semibold text-text-primary" th:text="${prescription.medicationName}">Medication</td>
               <td class="px-md py-sm" th:text="${prescription.dosage ?: '-'}">-</td>
               <td class="px-md py-sm" th:text="${prescription.frequency ?: '-'}">-</td>
               <td class="px-md py-sm" th:text="${prescription.duration ?: '-'}">-</td>
+              <td class="px-md py-sm" th:text="${prescription.route ?: '-'}">-</td>
+              <td class="px-md py-sm">
+                <span class="rounded-full bg-warning/10 px-sm py-1 text-[11px] font-bold text-warning"
+                      th:classappend="${prescription.status == 'DISPENSED' ? ' bg-success/10 text-success' : ''}"
+                      th:text="${prescription.status ?: 'PENDING'}">PENDING</span>
+              </td>
               <td class="px-md py-sm text-text-secondary" th:text="${prescription.instructions ?: '-'}">-</td>
             </tr>
             </tbody>

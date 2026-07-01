@@ -153,7 +153,7 @@ public class NurseController {
     }
 
     private List<QueueEntry> nurseQueueEntries() {
-        return queueEntryRepository.findAll(Sort.by(Sort.Direction.ASC, "queuedAt"))
+        return queueEntryRepository.findAll(Sort.by(Sort.Direction.DESC, "queuedAt"))
                 .stream()
                 .filter(entry -> "WAITING_FOR_NURSE".equals(entry.getStatus()))
                 .toList();

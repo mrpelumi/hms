@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Staff Record | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <form class="mx-auto flex w-full max-w-[980px] flex-col gap-md text-small" method="post" th:action="${formAction}" th:object="${staffMember}">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary" th:text="${formTitle}">Staff Record</h1>
+          <p class="text-small text-text-secondary">Capture employment, module role, credential, shift, and payroll details.</p>
+        </div>
+        <div class="flex gap-sm">
+          <a th:href="@{/hr/staff}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Cancel</a>
+          <button class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Staff</button>
+        </div>
+      </header>
+
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <h2 class="mb-md text-base font-semibold text-text-primary">Identity</h2>
+        <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Full Name</span><input th:field="*{fullName}" class="w-full rounded-md border border-border-base p-sm text-small" required></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Email</span><input th:field="*{email}" class="w-full rounded-md border border-border-base p-sm text-small" type="email" required></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Phone</span><input th:field="*{phoneNumber}" class="w-full rounded-md border border-border-base p-sm text-small"></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Status</span>
+            <select th:field="*{status}" class="w-full rounded-md border border-border-base p-sm text-small">
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="ON_LEAVE">ON_LEAVE</option>
+              <option value="DISABLED">DISABLED</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <h2 class="mb-md text-base font-semibold text-text-primary">Employment</h2>
+        <div class="grid grid-cols-1 gap-sm md:grid-cols-3">
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Department / Clinical Unit</span>
+            <select th:field="*{department}" class="w-full rounded-md border border-border-base p-sm text-small" required>
+              <option value="">Select department</option>
+              <option value="Reception / Front Desk">Reception / Front Desk</option>
+              <option value="OPD Registration">OPD Registration</option>
+              <option value="Patient Records">Patient Records</option>
+              <option value="OPD Nursing">OPD Nursing</option>
+              <option value="Triage">Triage</option>
+              <option value="Emergency Nursing">Emergency Nursing</option>
+              <option value="Ward Nursing">Ward Nursing</option>
+              <option value="Maternity">Maternity</option>
+              <option value="Pediatrics Nursing">Pediatrics Nursing</option>
+              <option value="Immunization / Public Health">Immunization / Public Health</option>
+              <option value="Outpatient Department">Outpatient Department</option>
+              <option value="General Medicine">General Medicine</option>
+              <option value="Pediatrics">Pediatrics</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Emergency">Emergency</option>
+              <option value="Surgery">Surgery</option>
+              <option value="Obstetrics and Gynecology">Obstetrics and Gynecology</option>
+              <option value="Orthopedics">Orthopedics</option>
+              <option value="ENT">ENT</option>
+              <option value="Ophthalmology">Ophthalmology</option>
+              <option value="Laboratory">Laboratory</option>
+              <option value="Hematology">Hematology</option>
+              <option value="Clinical Chemistry">Clinical Chemistry</option>
+              <option value="Microbiology">Microbiology</option>
+              <option value="Sample Collection">Sample Collection</option>
+              <option value="Radiology">Radiology</option>
+              <option value="X-Ray">X-Ray</option>
+              <option value="Ultrasound">Ultrasound</option>
+              <option value="CT / MRI">CT / MRI</option>
+              <option value="Pharmacy">Pharmacy</option>
+              <option value="Dispensary">Dispensary</option>
+              <option value="Drug Store">Drug Store</option>
+              <option value="Billing">Billing</option>
+              <option value="Accounts">Accounts</option>
+              <option value="Insurance / Claims">Insurance / Claims</option>
+              <option value="Human Resources">Human Resources</option>
+              <option value="Payroll Administration">Payroll Administration</option>
+              <option value="Staff Welfare">Staff Welfare</option>
+              <option value="Administration">Administration</option>
+              <option value="Other / Cross-functional">Other / Cross-functional</option>
+            </select>
+          </label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Application Access Role</span>
+            <select th:field="*{staffRole}" class="w-full rounded-md border border-border-base p-sm text-small" required>
+              <option value="">Select role</option>
+              <option value="RECEPTIONIST">RECEPTIONIST</option>
+              <option value="NURSE">NURSE</option>
+              <option value="DOCTOR">DOCTOR</option>
+              <option value="LABORATORY">LABORATORY</option>
+              <option value="RADIOLOGY">RADIOLOGY</option>
+              <option value="PHARMACY">PHARMACY</option>
+              <option value="BILLING">BILLING</option>
+              <option value="HR">HR</option>
+            </select>
+          </label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Job Title</span><input th:field="*{jobTitle}" class="w-full rounded-md border border-border-base p-sm text-small" required></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Employment Type</span>
+            <select th:field="*{employmentType}" class="w-full rounded-md border border-border-base p-sm text-small">
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
+              <option value="Contract">Contract</option>
+              <option value="Locum">Locum</option>
+            </select>
+          </label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Shift</span>
+            <select th:field="*{shift}" class="w-full rounded-md border border-border-base p-sm text-small">
+              <option value="Unassigned">Unassigned</option>
+              <option value="Morning">Morning</option>
+              <option value="Afternoon">Afternoon</option>
+              <option value="Night">Night</option>
+              <option value="Rotating">Rotating</option>
+              <option value="Administrative">Administrative</option>
+            </select>
+          </label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Hire Date</span><input th:field="*{hireDate}" class="w-full rounded-md border border-border-base p-sm text-small" type="date"></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Credential Expiry</span><input th:field="*{credentialExpiryDate}" class="w-full rounded-md border border-border-base p-sm text-small" type="date"></label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <h2 class="mb-md text-base font-semibold text-text-primary">Payroll</h2>
+        <div class="grid grid-cols-1 gap-sm md:grid-cols-3">
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Base Salary</span><input th:field="*{baseSalary}" class="w-full rounded-md border border-border-base p-sm text-small" min="0" step="0.01" type="number"></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Allowances</span><input th:field="*{allowances}" class="w-full rounded-md border border-border-base p-sm text-small" min="0" step="0.01" type="number"></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Deductions</span><input th:field="*{deductions}" class="w-full rounded-md border border-border-base p-sm text-small" min="0" step="0.01" type="number"></label>
+          <label class="space-y-xs md:col-span-3"><span class="text-caption font-bold uppercase text-text-secondary">HR Notes</span><textarea th:field="*{notes}" class="w-full rounded-md border border-border-base p-sm text-small" rows="3"></textarea></label>
+        </div>
+      </section>
+    </form>
+  </main>
+</div>
+</body>
+</html>

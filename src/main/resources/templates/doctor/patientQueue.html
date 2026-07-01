@@ -18,7 +18,7 @@
         <a th:href="@{/doctor/dashboard}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Dashboard</a>
       </header>
 
-      <section class="grid grid-cols-3 gap-sm">
+      <section class="grid grid-cols-2 gap-sm lg:grid-cols-4">
         <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
           <p class="text-[11px] font-bold uppercase text-text-secondary">Ready</p>
           <p class="text-[22px] font-semibold leading-7" th:text="${waitingCount}">0</p>
@@ -26,6 +26,10 @@
         <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
           <p class="text-[11px] font-bold uppercase text-text-secondary">Called</p>
           <p class="text-[22px] font-semibold leading-7" th:text="${calledCount}">0</p>
+        </div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-[11px] font-bold uppercase text-primary">Results Ready</p>
+          <p class="text-[22px] font-semibold leading-7" th:text="${resultsReadyCount}">0</p>
         </div>
         <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
           <p class="text-[11px] font-bold uppercase text-text-secondary">Emergency</p>
@@ -37,7 +41,7 @@
         <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
           <div>
             <h2 class="text-base font-semibold text-text-primary">Active Patient Queue</h2>
-            <p class="text-caption text-text-secondary">Select a patient, review history, then start consultation.</p>
+          <p class="text-caption text-text-secondary">Select a patient, review history, then start or continue consultation.</p>
           </div>
           <input id="queue-filter" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs" placeholder="Search queue" type="text">
         </div>
@@ -69,14 +73,15 @@
               </td>
               <td class="px-md py-sm">
                 <span class="rounded-full bg-warning/10 px-sm py-1 text-[11px] font-bold text-warning"
-                      th:classappend="${entry.status == 'CALLED'} ? ' bg-primary/10 text-primary' : ''"
+                      th:classappend="${entry.status == 'IN_PROGRESS' ? ' bg-success/10 text-success' : (entry.status == 'CALLED' || entry.status == 'RESULTS_READY' ? ' bg-primary/10 text-primary' : '')}"
                       th:text="${entry.status}">READY</span>
               </td>
               <td class="px-md py-sm text-right">
                 <form class="inline" method="post" th:action="@{/doctor/queue/{id}/call(id=${entry.id})}">
                   <button class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary" type="submit">Select</button>
                 </form>
-                <a th:href="@{/doctor/consultation/{id}(id=${entry.id})}" class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">Start</a>
+                <a th:href="@{/doctor/consultation/{id}(id=${entry.id})}" class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white"
+                   th:text="${entry.status == 'IN_PROGRESS' ? 'Continue' : (entry.status == 'RESULTS_READY' ? 'Review Results' : 'Start')}">Start</a>
               </td>
             </tr>
             </tbody>

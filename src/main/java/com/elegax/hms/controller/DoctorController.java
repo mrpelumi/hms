@@ -3,6 +3,8 @@ package com.elegax.hms.controller;
 import com.elegax.hms.authentication.AuthenticationManager;
 import com.elegax.hms.patients.entity.*;
 import com.elegax.hms.patients.repository.*;
+import com.elegax.hms.patients.service.BillingWorkflowService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -13,6 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.OffsetDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,6 +35,7 @@ public class DoctorController {
     private final InvestigationRequestRepository investigationRequestRepository;
     private final DoctorScheduleRepository doctorScheduleRepository;
     private final AuthenticationManager authenticationManager;
+    private final BillingWorkflowService billingWorkflowService;
 
     public DoctorController(PatientRepository patientRepository,
                             AppointmentRepository appointmentRepository,
@@ -39,7 +44,8 @@ public class DoctorController {
                             PrescriptionRepository prescriptionRepository,
                             InvestigationRequestRepository investigationRequestRepository,
                             DoctorScheduleRepository doctorScheduleRepository,
-                            AuthenticationManager authenticationManager) {
+                            AuthenticationManager authenticationManager,
+                            BillingWorkflowService billingWorkflowService) {
         this.patientRepository = patientRepository;
         this.appointmentRepository = appointmentRepository;
         this.queueEntryRepository = queueEntryRepository;
@@ -48,10 +54,12 @@ public class DoctorController {
         this.investigationRequestRepository = investigationRequestRepository;
         this.doctorScheduleRepository = doctorScheduleRepository;
         this.authenticationManager = authenticationManager;
+        this.billingWorkflowService = billingWorkflowService;
     }
 
     @GetMapping({"/home", "/dashboard"})
-    public String dashboard(Model model) {
+    public String dashboard(Model model, HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
         List<QueueEntry> queueEntries = activeQueueEntries();
         addQueueModel(model, queueEntries);
         model.addAttribute("completedToday", appointmentsForCurrentDoctor().stream()
@@ -61,7 +69,8 @@ public class DoctorController {
     }
 
     @GetMapping("/queue")
-    public String queue(Model model) {
+    public String queue(Model model, HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
         addQueueModel(model, activeQueueEntries());
         return "doctor/patientQueue";
     }
@@ -70,7 +79,9 @@ public class DoctorController {
     public String callPatient(@PathVariable Long queueEntryId) {
         QueueEntry queueEntry = getQueueEntry(queueEntryId);
         requireCurrentDoctorQueue(queueEntry);
-        queueEntry.setStatus("CALLED");
+        if ("READY_FOR_DOCTOR".equals(queueEntry.getStatus())) {
+            queueEntry.setStatus("CALLED");
+        }
         queueEntryRepository.save(queueEntry);
         return "redirect:/doctor/patients/" + queueEntry.getPatientId() + "/history?queueEntryId=" + queueEntry.getId();
     }
@@ -78,7 +89,9 @@ public class DoctorController {
     @GetMapping("/patients/{patientId}/history")
     public String patientHistory(@PathVariable Long patientId,
                                  @RequestParam(required = false) Long queueEntryId,
-                                 Model model) {
+                                 Model model,
+                                 HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
         if (!patientBookedWithCurrentDoctor(patientId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This patient is booked with another doctor");
         }
@@ -89,20 +102,22 @@ public class DoctorController {
         Patient patient = getPatient(patientId);
         model.addAttribute("patient", patient);
         model.addAttribute("queueEntry", queueEntry);
-        model.addAttribute("consultations", consultationRepository.findByPatientId(patientId));
-        model.addAttribute("prescriptions", prescriptionRepository.findByPatientId(patientId));
-        model.addAttribute("investigations", investigationRequestRepository.findByPatientId(patientId));
+        model.addAttribute("consultations", latestConsultations(consultationRepository.findByPatientId(patientId)));
+        model.addAttribute("prescriptions", latestPrescriptions(prescriptionRepository.findByPatientId(patientId)));
+        model.addAttribute("investigations", latestInvestigations(investigationRequestRepository.findByPatientId(patientId)));
         return "doctor/patientMedicalHistory";
     }
 
     @GetMapping("/consultation/{queueEntryId}")
-    public String consultation(@PathVariable Long queueEntryId, Model model) {
+    public String consultation(@PathVariable Long queueEntryId, Model model, HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
         QueueEntry queueEntry = getQueueEntry(queueEntryId);
         requireCurrentDoctorQueue(queueEntry);
         Appointment appointment = getAppointment(queueEntry.getAppointmentId());
         Patient patient = getPatient(queueEntry.getPatientId());
         Consultation consultation = consultationRepository.findByAppointmentId(appointment.getId())
                 .stream()
+                .filter(existing -> !"COMPLETED".equals(existing.getStatus()))
                 .findFirst()
                 .orElseGet(() -> consultationRepository.save(Consultation.builder()
                         .appointmentId(appointment.getId())
@@ -111,15 +126,25 @@ public class DoctorController {
                         .status("IN_PROGRESS")
                         .build()));
 
-        queueEntry.setStatus("CALLED");
+        boolean resultsReadyForReview = "RESULTS_READY".equals(consultation.getStatus()) || "RESULTS_READY".equals(queueEntry.getStatus());
+        consultation.setStatus("IN_PROGRESS");
+        consultationRepository.save(consultation);
+
+        queueEntry.setStatus("IN_PROGRESS");
         queueEntryRepository.save(queueEntry);
+        List<InvestigationRequest> investigations = latestInvestigations(investigationRequestRepository.findByConsultationId(consultation.getId()));
+        long pendingInvestigationCount = investigations.stream()
+                .filter(investigation -> !"RESULT_READY".equals(investigation.getStatus()) && !"COMPLETED".equals(investigation.getStatus()))
+                .count();
 
         model.addAttribute("queueEntry", queueEntry);
         model.addAttribute("appointment", appointment);
         model.addAttribute("patient", patient);
         model.addAttribute("consultation", consultation);
-        model.addAttribute("prescriptions", prescriptionRepository.findByConsultationId(consultation.getId()));
-        model.addAttribute("investigations", investigationRequestRepository.findByConsultationId(consultation.getId()));
+        model.addAttribute("prescriptions", latestPrescriptions(prescriptionRepository.findByConsultationId(consultation.getId())));
+        model.addAttribute("investigations", investigations);
+        model.addAttribute("pendingInvestigationCount", pendingInvestigationCount);
+        model.addAttribute("resultsReadyForReview", resultsReadyForReview);
         return "reception/doctorConsultation";
     }
 
@@ -138,6 +163,7 @@ public class DoctorController {
         Appointment appointment = getAppointment(queueEntry.getAppointmentId());
         Consultation consultation = consultationRepository.findByAppointmentId(appointment.getId())
                 .stream()
+                .filter(existing -> !"COMPLETED".equals(existing.getStatus()))
                 .findFirst()
                 .orElseGet(() -> Consultation.builder()
                         .appointmentId(appointment.getId())
@@ -155,6 +181,8 @@ public class DoctorController {
         consultation.setFollowUpDate(followUpDate);
         consultation.setDoctorNotes(doctorNotes);
         consultationRepository.save(consultation);
+        queueEntry.setStatus("IN_PROGRESS");
+        queueEntryRepository.save(queueEntry);
         return "redirect:/doctor/consultation/" + queueEntryId + "?saved";
     }
 
@@ -166,6 +194,9 @@ public class DoctorController {
                                   @RequestParam(required = false) String duration,
                                   @RequestParam(required = false) String route,
                                   @RequestParam(required = false) String instructions) {
+        if (!allText(medicationName, dosage, frequency, duration, route, instructions)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Complete all prescription fields before adding a prescription");
+        }
         Consultation consultation = activeConsultation(queueEntryId);
         prescriptionRepository.save(Prescription.builder()
                 .consultationId(consultation.getId())
@@ -198,14 +229,61 @@ public class DoctorController {
         return "redirect:/doctor/consultation/" + queueEntryId + "?investigationAdded";
     }
 
+    @PostMapping("/consultation/{queueEntryId}/await-results")
+    public String awaitResults(@PathVariable Long queueEntryId) {
+        QueueEntry queueEntry = getQueueEntry(queueEntryId);
+        requireCurrentDoctorQueue(queueEntry);
+        Consultation consultation = activeConsultation(queueEntryId);
+        boolean hasPendingInvestigations = investigationRequestRepository.findByConsultationId(consultation.getId())
+                .stream()
+                .anyMatch(investigation -> !"RESULT_READY".equals(investigation.getStatus()) && !"COMPLETED".equals(investigation.getStatus()));
+        if (!hasPendingInvestigations) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No pending lab or radiology requests exist for this consultation");
+        }
+
+        consultation.setStatus("AWAITING_RESULTS");
+        consultationRepository.save(consultation);
+        queueEntry.setStatus("AWAITING_RESULTS");
+        queueEntryRepository.save(queueEntry);
+        return "redirect:/doctor/queue?awaitingResults";
+    }
+
     @PostMapping("/consultation/{queueEntryId}/complete")
-    public String completeConsultation(@PathVariable Long queueEntryId) {
+    public String completeConsultation(@PathVariable Long queueEntryId,
+                                       @RequestParam(required = false) String symptoms,
+                                       @RequestParam(required = false) String subjectiveNotes,
+                                       @RequestParam(required = false) String objectiveNotes,
+                                       @RequestParam(required = false) String assessment,
+                                       @RequestParam(required = false) String diagnosis,
+                                       @RequestParam(required = false) String treatmentPlan,
+                                       @RequestParam(required = false) String followUpDate,
+                                       @RequestParam(required = false) String doctorNotes) {
         QueueEntry queueEntry = getQueueEntry(queueEntryId);
         requireCurrentDoctorQueue(queueEntry);
         Appointment appointment = getAppointment(queueEntry.getAppointmentId());
         Consultation consultation = activeConsultation(queueEntryId);
+        if (hasText(symptoms) || hasText(subjectiveNotes) || hasText(objectiveNotes) || hasText(assessment) || hasText(diagnosis) || hasText(treatmentPlan) || hasText(followUpDate) || hasText(doctorNotes)) {
+            consultation.setSymptoms(symptoms);
+            consultation.setSubjectiveNotes(subjectiveNotes);
+            consultation.setObjectiveNotes(objectiveNotes);
+            consultation.setAssessment(assessment);
+            consultation.setDiagnosis(diagnosis);
+            consultation.setTreatmentPlan(treatmentPlan);
+            consultation.setFollowUpDate(followUpDate);
+            consultation.setDoctorNotes(doctorNotes);
+        }
+        if (!allText(consultation.getSymptoms(), consultation.getSubjectiveNotes(), consultation.getObjectiveNotes(), consultation.getAssessment(), consultation.getDiagnosis(), consultation.getTreatmentPlan())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Complete SOAP notes and diagnosis before completing consultation");
+        }
+        boolean hasPendingInvestigations = investigationRequestRepository.findByConsultationId(consultation.getId())
+                .stream()
+                .anyMatch(investigation -> !"RESULT_READY".equals(investigation.getStatus()) && !"COMPLETED".equals(investigation.getStatus()));
+        if (hasPendingInvestigations) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pending lab or radiology results must be reviewed before completing consultation");
+        }
         consultation.setStatus("COMPLETED");
         consultationRepository.save(consultation);
+        billingWorkflowService.createForConsultation(consultation.getPatientId(), consultation.getId());
 
         queueEntry.setStatus("SERVED");
         queueEntry.setServedAt(OffsetDateTime.now());
@@ -217,52 +295,77 @@ public class DoctorController {
     }
 
     @GetMapping("/patients/{patientId}/prescriptions")
-    public String prescriptions(@PathVariable Long patientId, Model model) {
+    public String prescriptions(@PathVariable Long patientId, Model model, HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
         if (!patientBookedWithCurrentDoctor(patientId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This patient is booked with another doctor");
         }
         Patient patient = getPatient(patientId);
         model.addAttribute("patient", patient);
-        model.addAttribute("prescriptions", prescriptionRepository.findByPatientId(patientId));
+        model.addAttribute("patientsById", Map.of(patient.getId(), patient));
+        model.addAttribute("prescriptions", latestPrescriptions(prescriptionRepository.findByPatientId(patientId)));
         return "doctor/patientPrescription";
     }
 
     @GetMapping("/prescriptions")
-    public String prescriptionsIndex(Model model) {
+    public String prescriptionsIndex(Model model, HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
         List<Long> patientIds = appointmentsForCurrentDoctor().stream()
                 .map(Appointment::getPatientId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
         model.addAttribute("patient", null);
-        model.addAttribute("prescriptions", prescriptionRepository.findAll()
+        List<Prescription> prescriptions = latestPrescriptions(prescriptionRepository.findAll()
                 .stream()
                 .filter(prescription -> patientIds.contains(prescription.getPatientId()))
                 .toList());
+        model.addAttribute("patientsById", patientRepository.findAllById(patientIds)
+                .stream()
+                .collect(Collectors.toMap(Patient::getId, Function.identity())));
+        model.addAttribute("prescriptions", prescriptions);
         return "doctor/patientPrescription";
     }
 
     @GetMapping("/medical-history")
-    public String medicalHistoryIndex(Model model) {
-        List<Long> patientIds = appointmentsForCurrentDoctor().stream()
+    public String medicalHistoryIndex(Model model, HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
+        List<Appointment> appointments = appointmentsForCurrentDoctor();
+        List<Long> patientIds = appointments.stream()
                 .map(Appointment::getPatientId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
-        List<Patient> patients = patientRepository.findAllById(patientIds)
+        Map<Long, Patient> patientsById = patientRepository.findAllById(patientIds)
                 .stream()
-                .sorted((first, second) -> String.valueOf(first.getFullName()).compareToIgnoreCase(String.valueOf(second.getFullName())))
+                .collect(Collectors.toMap(Patient::getId, Function.identity()));
+        List<Patient> patients = patientIds.stream()
+                .map(patientsById::get)
+                .filter(Objects::nonNull)
                 .toList();
-        Patient patient = patients.isEmpty() ? null : patients.get(0);
-        model.addAttribute("patient", patient);
-        model.addAttribute("consultations", patient == null ? List.of() : consultationRepository.findByPatientId(patient.getId()));
-        model.addAttribute("prescriptions", patient == null ? List.of() : prescriptionRepository.findByPatientId(patient.getId()));
-        model.addAttribute("investigations", patient == null ? List.of() : investigationRequestRepository.findByPatientId(patient.getId()));
+        Map<Long, Appointment> latestAppointmentsByPatientId = appointments.stream()
+                .filter(appointment -> appointment.getPatientId() != null)
+                .collect(Collectors.toMap(Appointment::getPatientId, Function.identity(), (first, ignored) -> first, LinkedHashMap::new));
+        Map<Long, QueueEntry> activeQueueEntriesByPatientId = queueEntryRepository.findAll(Sort.by(Sort.Direction.DESC, "queuedAt"))
+                .stream()
+                .filter(entry -> patientIds.contains(entry.getPatientId()))
+                .filter(entry -> "READY_FOR_DOCTOR".equals(entry.getStatus()) || "CALLED".equals(entry.getStatus()) || "IN_PROGRESS".equals(entry.getStatus()) || "RESULTS_READY".equals(entry.getStatus()))
+                .collect(Collectors.toMap(QueueEntry::getPatientId, Function.identity(), (first, ignored) -> first, LinkedHashMap::new));
+
+        model.addAttribute("patient", null);
+        model.addAttribute("patients", patients);
+        model.addAttribute("patientsById", patientsById);
+        model.addAttribute("latestAppointmentsByPatientId", latestAppointmentsByPatientId);
+        model.addAttribute("activeQueueEntriesByPatientId", activeQueueEntriesByPatientId);
+        model.addAttribute("consultations", List.of());
+        model.addAttribute("prescriptions", List.of());
+        model.addAttribute("investigations", List.of());
         return "doctor/patientMedicalHistory";
     }
 
     @GetMapping("/schedule")
-    public String schedule(Model model) {
+    public String schedule(Model model, HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
         List<String> days = scheduleDays();
         Map<String, DoctorSchedule> scheduleByDay = doctorScheduleRepository.findByDoctorUsernameOrderByIdAsc(currentDoctorUsername())
                 .stream()
@@ -300,10 +403,10 @@ public class DoctorController {
 
     private List<QueueEntry> activeQueueEntries() {
         String doctorUsername = currentDoctorUsername();
-        return queueEntryRepository.findAll(Sort.by(Sort.Direction.ASC, "queuedAt"))
+        return queueEntryRepository.findAll(Sort.by(Sort.Direction.DESC, "queuedAt"))
                 .stream()
                 .filter(entry -> !"SERVED".equals(entry.getStatus()))
-                .filter(entry -> "READY_FOR_DOCTOR".equals(entry.getStatus()) || "CALLED".equals(entry.getStatus()))
+                .filter(entry -> "READY_FOR_DOCTOR".equals(entry.getStatus()) || "CALLED".equals(entry.getStatus()) || "IN_PROGRESS".equals(entry.getStatus()) || "RESULTS_READY".equals(entry.getStatus()))
                 .filter(entry -> appointmentBelongsToCurrentDoctor(entry, doctorUsername))
                 .toList();
     }
@@ -323,12 +426,29 @@ public class DoctorController {
                         .toList())
                 .stream()
                 .collect(Collectors.toMap(Appointment::getId, Function.identity()));
+        Map<Long, Consultation> consultationsByAppointmentId = consultationRepository.findAll()
+                .stream()
+                .filter(consultation -> consultation.getAppointmentId() != null)
+                .collect(Collectors.toMap(Consultation::getAppointmentId, Function.identity(), (first, second) -> {
+                    OffsetDateTime firstDate = first.getConsultationAt();
+                    OffsetDateTime secondDate = second.getConsultationAt();
+                    if (firstDate == null) {
+                        return second;
+                    }
+                    if (secondDate == null) {
+                        return first;
+                    }
+                    return firstDate.isAfter(secondDate) ? first : second;
+                }));
 
         model.addAttribute("queueEntries", queueEntries);
         model.addAttribute("patientsById", patientsById);
         model.addAttribute("appointmentsById", appointmentsById);
+        model.addAttribute("consultationsByAppointmentId", consultationsByAppointmentId);
         model.addAttribute("waitingCount", queueEntries.stream().filter(entry -> "READY_FOR_DOCTOR".equals(entry.getStatus())).count());
         model.addAttribute("calledCount", queueEntries.stream().filter(entry -> "CALLED".equals(entry.getStatus())).count());
+        model.addAttribute("inProgressCount", queueEntries.stream().filter(entry -> "IN_PROGRESS".equals(entry.getStatus())).count());
+        model.addAttribute("resultsReadyCount", queueEntries.stream().filter(entry -> "RESULTS_READY".equals(entry.getStatus())).count());
         model.addAttribute("criticalCount", queueEntries.stream()
                 .map(entry -> appointmentsById.get(entry.getAppointmentId()))
                 .filter(appointment -> appointment != null && "Emergency".equalsIgnoreCase(appointment.getPriority()))
@@ -341,6 +461,7 @@ public class DoctorController {
         Appointment appointment = getAppointment(queueEntry.getAppointmentId());
         return consultationRepository.findByAppointmentId(appointment.getId())
                 .stream()
+                .filter(existing -> !"COMPLETED".equals(existing.getStatus()))
                 .findFirst()
                 .orElseGet(() -> consultationRepository.save(Consultation.builder()
                         .appointmentId(appointment.getId())
@@ -378,7 +499,7 @@ public class DoctorController {
     private List<Appointment> appointmentsForCurrentDoctor() {
         String doctorUsername = currentDoctorUsername();
         String doctorName = authenticationManager.getDisplayName();
-        return appointmentRepository.findAll()
+        return appointmentRepository.findAll(Sort.by(Sort.Direction.DESC, "scheduledAt"))
                 .stream()
                 .filter(appointment -> Objects.equals(appointment.getProviderUsername(), doctorUsername)
                         || Objects.equals(appointment.getProvider(), doctorName))
@@ -389,7 +510,7 @@ public class DoctorController {
         if (!appointmentBelongsToCurrentDoctor(queueEntry, currentDoctorUsername())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This patient is booked with another doctor");
         }
-        if (!"READY_FOR_DOCTOR".equals(queueEntry.getStatus()) && !"CALLED".equals(queueEntry.getStatus())) {
+        if (!"READY_FOR_DOCTOR".equals(queueEntry.getStatus()) && !"CALLED".equals(queueEntry.getStatus()) && !"IN_PROGRESS".equals(queueEntry.getStatus()) && !"RESULTS_READY".equals(queueEntry.getStatus())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nurse intake is not complete for this patient");
         }
     }
@@ -405,7 +526,33 @@ public class DoctorController {
         return username.isBlank() ? authenticationManager.getDisplayName() : username;
     }
 
+    private boolean allText(String... values) {
+        return Arrays.stream(values).allMatch(this::hasText);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
+
     private List<String> scheduleDays() {
         return Arrays.asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
+    }
+
+    private List<Consultation> latestConsultations(List<Consultation> consultations) {
+        return consultations.stream()
+                .sorted(Comparator.comparing(Consultation::getConsultationAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+    }
+
+    private List<Prescription> latestPrescriptions(List<Prescription> prescriptions) {
+        return prescriptions.stream()
+                .sorted(Comparator.comparing(Prescription::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+    }
+
+    private List<InvestigationRequest> latestInvestigations(List<InvestigationRequest> investigations) {
+        return investigations.stream()
+                .sorted(Comparator.comparing(InvestigationRequest::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
     }
 }

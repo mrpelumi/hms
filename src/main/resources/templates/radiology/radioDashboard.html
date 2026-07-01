@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Radiology Dashboard | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Radiology Dashboard</h1>
+          <p class="text-small text-text-secondary">Imaging requests sent from OPD consultation.</p>
+        </div>
+      </header>
+
+      <div th:if="${param.imagingComplete}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Imaging marked complete.</div>
+      <div th:if="${param.completed}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Radiology report completed and sent to billing.</div>
+      <div th:if="${param.expected}" class="rounded-md border border-primary/30 bg-primary/5 px-md py-sm font-semibold text-primary">Expected result time saved for patient follow-up.</div>
+
+      <section class="grid grid-cols-2 gap-sm lg:grid-cols-4">
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Pending</p><p class="text-[22px] font-semibold" th:text="${pendingCount}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Imaging Done</p><p class="text-[22px] font-semibold" th:text="${imagingCount}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Completed</p><p class="text-[22px] font-semibold" th:text="${completedCount}">0</p></div>
+        <div class="rounded-lg border border-danger/20 bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-danger">Urgent</p><p class="text-[22px] font-semibold" th:text="${urgentCount}">0</p></div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-text-primary">Imaging Request Queue</h2>
+            <p class="text-caption text-text-secondary">Capture imaging, complete report, then send charge to billing.</p>
+          </div>
+          <input id="radio-search" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs" placeholder="Search patient or scan" type="text">
+        </div>
+        <div class="max-h-[calc(100vh-305px)] overflow-auto">
+          <table class="w-full text-left text-small">
+            <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+            <tr>
+              <th class="px-md py-sm">Patient</th>
+              <th class="px-md py-sm">Scan</th>
+              <th class="px-md py-sm">Priority</th>
+              <th class="px-md py-sm">Status</th>
+              <th class="px-md py-sm text-right">Action</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr th:if="${#lists.isEmpty(requests)}">
+              <td colspan="5" class="px-md py-lg text-center text-text-secondary">No radiology requests are waiting.</td>
+            </tr>
+            <tr th:each="request : ${requests}" class="radio-row hover:bg-surface-bright"
+                th:with="patient=${patientsById[request.patientId]}"
+                th:attr="data-search=${#strings.toLowerCase((patient != null ? patient.fullName : '') + ' ' + (patient != null ? patient.patientId : '') + ' ' + (request.testName ?: '') + ' ' + (request.priority ?: '') + ' ' + (request.status ?: ''))}">
+              <td class="px-md py-sm">
+                <p class="font-semibold text-text-primary" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                <p class="text-caption text-text-secondary" th:text="${patient != null ? patient.patientId : '-'}">PID</p>
+              </td>
+              <td class="px-md py-sm">
+                <p class="font-semibold" th:text="${request.testName}">Scan</p>
+                <p class="line-clamp-1 text-caption text-text-secondary" th:text="${request.notes ?: 'No notes'}">Notes</p>
+              </td>
+              <td class="px-md py-sm">
+                <span class="rounded-full bg-surface-container-high px-sm py-1 text-[11px] font-bold text-text-secondary"
+                      th:classappend="${request.priority == 'Emergency' || request.priority == 'Urgent'} ? ' bg-danger/10 text-danger' : ''"
+                      th:text="${request.priority ?: 'Routine'}">Routine</span>
+              </td>
+              <td class="px-md py-sm">
+                <span class="rounded-full bg-primary/10 px-sm py-1 text-[11px] font-bold text-primary" th:text="${request.status ?: 'REQUESTED'}">REQUESTED</span>
+                <p class="mt-xs text-caption text-text-secondary" th:if="${request.expectedResultAt != null}"
+                   th:text="${'Expected ' + #temporals.format(request.expectedResultAt, 'MMM dd, hh:mm a')}">Expected</p>
+              </td>
+              <td class="px-md py-sm text-right">
+                <form th:if="${request.status != 'IMAGING_COMPLETE' && request.status != 'RESULT_READY' && request.status != 'COMPLETED'}" class="inline" method="post" th:action="@{/radiology/requests/{id}/imaging(id=${request.id})}">
+                  <button class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary" type="submit">Imaging</button>
+                </form>
+                <form th:if="${request.status != 'RESULT_READY' && request.status != 'COMPLETED'}" class="mt-xs flex flex-col gap-xs" method="post" th:action="@{/radiology/requests/{id}/expected(id=${request.id})}">
+                  <input class="rounded-md border border-border-base px-xs py-1 text-caption" name="expectedResultAt" type="datetime-local" required>
+                  <input class="rounded-md border border-border-base px-xs py-1 text-caption" name="patientUpdateNote" placeholder="Patient update note">
+                  <button class="rounded-md border border-warning px-sm py-xs text-caption font-bold text-warning" type="submit">Set ETA</button>
+                </form>
+                <form th:if="${request.status != 'RESULT_READY' && request.status != 'COMPLETED'}" class="mt-xs flex flex-col gap-xs" method="post" th:action="@{/radiology/requests/{id}/complete(id=${request.id})}">
+                  <textarea class="rounded-md border border-border-base px-xs py-1 text-caption" name="resultSummary" rows="2" placeholder="Report summary"></textarea>
+                  <button class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white" type="submit">Result Ready</button>
+                </form>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const radioSearch = document.getElementById('radio-search');
+    const radioRows = Array.from(document.querySelectorAll('.radio-row'));
+    if (radioSearch) {
+      radioSearch.addEventListener('input', () => {
+        const query = radioSearch.value.trim().toLowerCase();
+        radioRows.forEach(row => row.classList.toggle('hidden', query && !row.dataset.search.includes(query)));
+      });
+    }
+  </script>
+</div>
+</body>
+</html>

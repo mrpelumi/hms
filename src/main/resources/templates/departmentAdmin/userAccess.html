@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>System Users | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+            <header class="flex flex-col gap-sm md:flex-row md:items-end md:justify-between">
+                <div>
+                    <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                        <a class="hover:text-primary" th:href="@{/department-admin/dashboard}">Department Admin</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <span class="font-bold text-primary">System Users</span>
+                    </nav>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Employee Access Provisioning</h1>
+                    <p class="text-small text-text-secondary">Create system users from employee records, assign access role, assign department, and activate the account.</p>
+                </div>
+                <div class="flex flex-wrap gap-sm">
+                    <select id="department-filter" class="rounded-md border border-border-base bg-white px-md py-sm text-small">
+                        <option value="">All departments</option>
+                        <option th:each="department : ${departments}" th:value="${department}" th:text="${department}">Department</option>
+                    </select>
+                    <button id="bulk-activate" class="inline-flex items-center gap-xs rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary" type="button">
+                        <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                        Activate Selected
+                    </button>
+                </div>
+            </header>
+
+            <section class="grid grid-cols-1 gap-sm md:grid-cols-3">
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Employee Records</p>
+                    <p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${totalStaff}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Active</p>
+                    <p class="mt-xs text-[24px] font-semibold text-success" th:text="${activeStaff}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Pending System User</p>
+                    <p class="mt-xs text-[24px] font-semibold text-warning" th:text="${pendingUsers}">0</p>
+                </article>
+            </section>
+
+            <section class="rounded-lg border border-border-base bg-white shadow-sm">
+                <div class="border-b border-border-base p-md">
+                    <h2 class="text-base font-semibold text-text-primary">Employee Records and Access Actions</h2>
+                    <p class="text-caption text-text-secondary">Keycloak user creation is represented here as a provisioning action; connect the Keycloak admin client when credentials are available.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[860px] text-left text-small">
+                        <thead class="bg-surface-muted text-caption uppercase text-text-secondary">
+                        <tr>
+                            <th class="px-md py-sm"><input id="select-all" type="checkbox"></th>
+                            <th class="px-md py-sm">Employee</th>
+                            <th class="px-md py-sm">Role</th>
+                            <th class="px-md py-sm">Department</th>
+                            <th class="px-md py-sm">Status</th>
+                            <th class="px-md py-sm text-right">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-base">
+                        <tr class="staff-row hover:bg-surface-muted/60" th:each="staff : ${staffMembers}" th:data-department="${staff.department}">
+                            <td class="px-md py-sm"><input class="staff-check" type="checkbox"></td>
+                            <td class="px-md py-sm">
+                                <p class="font-semibold text-text-primary" th:text="${staff.fullName}">Staff Name</p>
+                                <p class="text-caption text-text-secondary" th:text="${staff.staffId ?: 'Staff ID pending'}">STAFF-001</p>
+                            </td>
+                            <td class="px-md py-sm" th:text="${staff.staffRole ?: 'UNASSIGNED'}">DOCTOR</td>
+                            <td class="px-md py-sm" th:text="${staff.department ?: 'Unassigned'}">Department</td>
+                            <td class="px-md py-sm">
+                                <span class="rounded-full px-sm py-xs text-caption font-bold"
+                                      th:classappend="${staff.status == 'ACTIVE'} ? ' bg-success/10 text-success' : ' bg-warning/10 text-warning'"
+                                      th:text="${staff.status ?: 'PENDING'}">ACTIVE</span>
+                            </td>
+                            <td class="px-md py-sm text-right">
+                                <button class="provision-button rounded-md bg-primary px-sm py-xs font-semibold text-white" type="button"
+                                        th:data-name="${staff.fullName}" th:data-role="${staff.staffRole}" th:data-department="${staff.department}">
+                                    Create User
+                                </button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(staffMembers)}">
+                            <td class="px-md py-md text-text-secondary" colspan="6">No employee records available.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <aside id="provision-panel" class="hidden rounded-lg border border-border-base bg-white p-md shadow-sm">
+                <div class="mb-md flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-semibold text-text-primary">Create System User</h2>
+                        <p class="text-caption text-text-secondary">Confirm Keycloak account details before activation.</p>
+                    </div>
+                    <span class="rounded-full bg-warning/10 px-sm py-xs text-caption font-bold text-warning">Draft</span>
+                </div>
+                <div class="grid grid-cols-1 gap-sm md:grid-cols-4">
+                    <label class="space-y-xs md:col-span-2">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Employee</span>
+                        <input id="selected-employee" class="w-full rounded-md border border-border-base p-sm text-small" readonly>
+                    </label>
+                    <label class="space-y-xs">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Role</span>
+                        <input id="selected-role" class="w-full rounded-md border border-border-base p-sm text-small" readonly>
+                    </label>
+                    <label class="space-y-xs">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Department</span>
+                        <input id="selected-department" class="w-full rounded-md border border-border-base p-sm text-small" readonly>
+                    </label>
+                </div>
+                <div class="mt-md flex justify-end">
+                    <button id="activate-account" class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="button">Activate Account</button>
+                </div>
+            </aside>
+        </section>
+    </main>
+    <script>
+        const departmentFilter = document.getElementById('department-filter');
+        const provisionPanel = document.getElementById('provision-panel');
+        const selectedEmployee = document.getElementById('selected-employee');
+        const selectedRole = document.getElementById('selected-role');
+        const selectedDepartment = document.getElementById('selected-department');
+
+        departmentFilter?.addEventListener('change', () => {
+            document.querySelectorAll('.staff-row').forEach(row => {
+                const department = row.dataset.department || '';
+                row.style.display = !departmentFilter.value || department === departmentFilter.value ? '' : 'none';
+            });
+        });
+
+        document.querySelectorAll('.provision-button').forEach(button => {
+            button.addEventListener('click', () => {
+                selectedEmployee.value = button.dataset.name || '';
+                selectedRole.value = button.dataset.role || '';
+                selectedDepartment.value = button.dataset.department || '';
+                provisionPanel.classList.remove('hidden');
+                provisionPanel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+            });
+        });
+
+        document.getElementById('select-all')?.addEventListener('change', event => {
+            document.querySelectorAll('.staff-check').forEach(input => input.checked = event.target.checked);
+        });
+
+        document.getElementById('activate-account')?.addEventListener('click', event => {
+            event.target.textContent = 'Account Activated';
+            event.target.disabled = true;
+            event.target.classList.add('opacity-70');
+        });
+    </script>
+</div>
+</body>
+</html>

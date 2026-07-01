@@ -39,8 +39,24 @@
               <span class="material-symbols-outlined text-[18px]">history</span>
               History
             </a>
-            <form method="post" th:action="@{/doctor/consultation/{id}/complete(id=${queueEntry.id})}">
-              <button class="inline-flex items-center gap-xs rounded-md bg-success px-md py-sm font-semibold text-white" type="submit">
+            <form method="post" th:action="@{/doctor/consultation/{id}/await-results(id=${queueEntry.id})}"
+                  th:if="${pendingInvestigationCount != null && pendingInvestigationCount > 0}">
+              <button class="inline-flex items-center gap-xs rounded-md bg-warning px-md py-sm font-semibold text-white" type="submit">
+                <span class="material-symbols-outlined text-[18px]">hourglass_top</span>
+                Await Results
+              </button>
+            </form>
+            <form id="complete-consultation-form" method="post" th:action="@{/doctor/consultation/{id}/complete(id=${queueEntry.id})}"
+                  th:if="${pendingInvestigationCount == null || pendingInvestigationCount == 0}">
+              <input type="hidden" name="symptoms">
+              <input type="hidden" name="subjectiveNotes">
+              <input type="hidden" name="objectiveNotes">
+              <input type="hidden" name="assessment">
+              <input type="hidden" name="diagnosis">
+              <input type="hidden" name="treatmentPlan">
+              <input type="hidden" name="followUpDate">
+              <input type="hidden" name="doctorNotes">
+              <button id="complete-consultation-button" class="inline-flex items-center gap-xs rounded-md bg-success px-md py-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50" type="submit" disabled>
                 <span class="material-symbols-outlined text-[18px]">task_alt</span>
                 Complete
               </button>
@@ -52,6 +68,7 @@
       <div th:if="${param.saved}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm text-small font-semibold text-success">Consultation notes saved.</div>
       <div th:if="${param.prescriptionAdded}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm text-small font-semibold text-success">Prescription added.</div>
       <div th:if="${param.investigationAdded}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm text-small font-semibold text-success">Investigation request added.</div>
+      <div th:if="${resultsReadyForReview}" class="rounded-md border border-primary/30 bg-primary/5 px-md py-sm text-small font-semibold text-primary">Investigation results are ready for doctor review.</div>
 
       <section class="grid grid-cols-2 gap-sm md:grid-cols-4">
         <div class="rounded-lg border border-border-base bg-white p-sm shadow-sm">
@@ -98,32 +115,32 @@
             <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
               <div class="md:col-span-2 space-y-xs">
                 <label class="block text-caption font-bold uppercase text-text-secondary" for="symptoms">Symptoms / Presenting Complaint</label>
-                <textarea id="symptoms" name="symptoms" rows="2" class="w-full rounded-md border border-border-base p-sm text-small focus:border-primary focus:ring-primary"
+                <textarea id="symptoms" name="symptoms" rows="2" class="required-clinical-field w-full rounded-md border border-border-base p-sm text-small focus:border-primary focus:ring-primary"
                           th:text="${consultation.symptoms}" placeholder="Patient reported symptoms"></textarea>
               </div>
               <div class="space-y-xs">
                 <label class="block text-caption font-bold uppercase text-text-secondary" for="subjectiveNotes">Subjective</label>
-                <textarea id="subjectiveNotes" name="subjectiveNotes" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                <textarea id="subjectiveNotes" name="subjectiveNotes" rows="4" class="required-clinical-field w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
                           th:text="${consultation.subjectiveNotes}"></textarea>
               </div>
               <div class="space-y-xs">
                 <label class="block text-caption font-bold uppercase text-text-secondary" for="objectiveNotes">Objective</label>
-                <textarea id="objectiveNotes" name="objectiveNotes" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                <textarea id="objectiveNotes" name="objectiveNotes" rows="4" class="required-clinical-field w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
                           th:text="${consultation.objectiveNotes}"></textarea>
               </div>
               <div class="space-y-xs">
                 <label class="block text-caption font-bold uppercase text-text-secondary" for="assessment">Assessment</label>
-                <textarea id="assessment" name="assessment" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                <textarea id="assessment" name="assessment" rows="4" class="required-clinical-field w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
                           th:text="${consultation.assessment}"></textarea>
               </div>
               <div class="space-y-xs">
                 <label class="block text-caption font-bold uppercase text-text-secondary" for="diagnosis">Diagnosis / ICD-10</label>
-                <textarea id="diagnosis" name="diagnosis" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                <textarea id="diagnosis" name="diagnosis" rows="4" class="required-clinical-field w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
                           th:text="${consultation.diagnosis}" placeholder="Working or final diagnosis"></textarea>
               </div>
               <div class="space-y-xs">
                 <label class="block text-caption font-bold uppercase text-text-secondary" for="treatmentPlan">Treatment Plan</label>
-                <textarea id="treatmentPlan" name="treatmentPlan" rows="4" class="w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
+                <textarea id="treatmentPlan" name="treatmentPlan" rows="4" class="required-clinical-field w-full rounded-md border border-border-base p-sm text-small focus:ring-primary"
                           th:text="${consultation.treatmentPlan}"></textarea>
               </div>
               <div class="grid grid-cols-1 gap-sm">
@@ -167,16 +184,17 @@
 
           <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
             <h2 class="text-base font-semibold text-text-primary">Prescription</h2>
-            <form class="mt-sm space-y-sm" method="post" th:action="@{/doctor/consultation/{id}/prescriptions(id=${queueEntry.id})}">
-              <input name="medicationName" class="w-full rounded-md border border-border-base p-sm text-small" placeholder="Medication" required>
+            <form id="prescription-form" class="mt-sm space-y-sm" method="post" th:action="@{/doctor/consultation/{id}/prescriptions(id=${queueEntry.id})}">
+              <input name="medicationName" class="prescription-field w-full rounded-md border border-border-base p-sm text-small" placeholder="Medication">
               <div class="grid grid-cols-2 gap-xs">
-                <input name="dosage" class="rounded-md border border-border-base p-sm text-small" placeholder="Dosage">
-                <input name="frequency" class="rounded-md border border-border-base p-sm text-small" placeholder="Frequency">
-                <input name="duration" class="rounded-md border border-border-base p-sm text-small" placeholder="Duration">
-                <input name="route" class="rounded-md border border-border-base p-sm text-small" placeholder="Route">
+                <input name="dosage" class="prescription-field rounded-md border border-border-base p-sm text-small" placeholder="Dosage">
+                <input name="frequency" class="prescription-field rounded-md border border-border-base p-sm text-small" placeholder="Frequency">
+                <input name="duration" class="prescription-field rounded-md border border-border-base p-sm text-small" placeholder="Duration">
+                <input name="route" class="prescription-field rounded-md border border-border-base p-sm text-small" placeholder="Route">
               </div>
-              <textarea name="instructions" class="w-full rounded-md border border-border-base p-sm text-small" rows="2" placeholder="Instructions"></textarea>
-              <button class="w-full rounded-md bg-primary py-sm font-semibold text-white" type="submit">Add Prescription</button>
+              <textarea name="instructions" class="prescription-field w-full rounded-md border border-border-base p-sm text-small" rows="2" placeholder="Instructions"></textarea>
+              <button id="add-prescription-button" class="w-full rounded-md bg-primary py-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50" type="submit" disabled>Add Prescription</button>
+              <p id="prescription-requirement" class="hidden text-caption text-warning">Complete all prescription fields before adding.</p>
             </form>
             <div class="mt-sm max-h-36 space-y-xs overflow-auto">
               <div th:if="${#lists.isEmpty(prescriptions)}" class="text-caption text-text-secondary">No prescriptions added.</div>
@@ -207,7 +225,12 @@
               <div th:if="${#lists.isEmpty(investigations)}" class="text-caption text-text-secondary">No requests added.</div>
               <div th:each="investigation : ${investigations}" class="rounded-md border border-border-base p-sm">
                 <p class="font-semibold text-text-primary" th:text="${investigation.testName}">Test</p>
-                <p class="text-caption text-text-secondary" th:text="${investigation.requestType + ' | ' + investigation.priority}">Type</p>
+                <p class="text-caption text-text-secondary" th:text="${investigation.requestType + ' | ' + investigation.priority + ' | ' + (investigation.status ?: 'REQUESTED')}">Type</p>
+                <p class="text-caption text-text-secondary" th:if="${investigation.expectedResultAt != null}"
+                   th:text="${'Expected ' + #temporals.format(investigation.expectedResultAt, 'MMM dd, hh:mm a')}">Expected</p>
+                <p class="text-caption text-success" th:if="${investigation.resultReadyAt != null}"
+                   th:text="${'Ready ' + #temporals.format(investigation.resultReadyAt, 'MMM dd, hh:mm a')}">Ready</p>
+                <p class="text-caption text-text-secondary whitespace-pre-line" th:if="${investigation.resultSummary != null}" th:text="${investigation.resultSummary}">Result</p>
               </div>
             </div>
           </section>
@@ -219,6 +242,47 @@
     const form = document.getElementById('consultation-form');
     const saveButton = document.getElementById('save-consultation');
     const draftStatus = document.getElementById('draft-status');
+    const completeForm = document.getElementById('complete-consultation-form');
+    const completeButton = document.getElementById('complete-consultation-button');
+    const requiredClinicalFields = Array.from(document.querySelectorAll('.required-clinical-field'));
+    const prescriptionForm = document.getElementById('prescription-form');
+    const prescriptionFields = Array.from(document.querySelectorAll('.prescription-field'));
+    const addPrescriptionButton = document.getElementById('add-prescription-button');
+    const prescriptionRequirement = document.getElementById('prescription-requirement');
+
+    function hasValue(field) {
+      return field && field.value.trim().length > 0;
+    }
+
+    function syncCompletePayload() {
+      if (!completeForm || !form) return;
+      ['symptoms', 'subjectiveNotes', 'objectiveNotes', 'assessment', 'diagnosis', 'treatmentPlan', 'followUpDate', 'doctorNotes'].forEach(name => {
+        const source = form.elements[name];
+        const target = completeForm.elements[name];
+        if (source && target) target.value = source.value;
+      });
+    }
+
+    function updateCompleteState() {
+      const canComplete = requiredClinicalFields.length > 0 && requiredClinicalFields.every(hasValue);
+      if (completeButton) {
+        completeButton.disabled = !canComplete;
+        completeButton.title = canComplete ? '' : 'Complete SOAP notes and diagnosis before ending consultation.';
+      }
+      syncCompletePayload();
+    }
+
+    function updatePrescriptionState() {
+      const filledCount = prescriptionFields.filter(hasValue).length;
+      const allFilled = prescriptionFields.length > 0 && filledCount === prescriptionFields.length;
+      if (addPrescriptionButton) {
+        addPrescriptionButton.disabled = !allFilled;
+        addPrescriptionButton.title = allFilled ? '' : 'Complete all prescription fields before adding.';
+      }
+      if (prescriptionRequirement) {
+        prescriptionRequirement.classList.toggle('hidden', filledCount === 0 || allFilled);
+      }
+    }
 
     document.querySelectorAll('#consultation-form textarea, #consultation-form input').forEach(field => {
       field.addEventListener('input', () => {
@@ -227,8 +291,31 @@
           draftStatus.classList.remove('text-text-secondary');
           draftStatus.classList.add('text-warning');
         }
+        updateCompleteState();
       });
     });
+
+    if (completeForm) {
+      completeForm.addEventListener('submit', event => {
+        updateCompleteState();
+        if (completeButton?.disabled) {
+          event.preventDefault();
+        }
+      });
+    }
+
+    prescriptionFields.forEach(field => {
+      field.addEventListener('input', updatePrescriptionState);
+    });
+
+    if (prescriptionForm) {
+      prescriptionForm.addEventListener('submit', event => {
+        updatePrescriptionState();
+        if (addPrescriptionButton?.disabled) {
+          event.preventDefault();
+        }
+      });
+    }
 
     if (form && saveButton) {
       form.addEventListener('submit', () => {
@@ -236,6 +323,9 @@
         saveButton.textContent = 'Saving...';
       });
     }
+
+    updateCompleteState();
+    updatePrescriptionState();
   </script>
 </div>
 </body>

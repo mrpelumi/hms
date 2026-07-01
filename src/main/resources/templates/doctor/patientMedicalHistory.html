@@ -12,18 +12,69 @@
     <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
       <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Patient Summary and History</h1>
-          <p class="text-small text-text-secondary">Review clinical context before starting or continuing consultation.</p>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary" th:text="${patient == null ? 'Medical Records' : 'Patient Summary and History'}">Medical Records</h1>
+          <p class="text-small text-text-secondary" th:text="${patient == null ? 'Most recent booked patients and their available history.' : 'Review clinical context before starting or continuing consultation.'}">Review clinical context.</p>
         </div>
         <div class="flex flex-wrap gap-sm" th:if="${patient != null}">
           <a th:href="@{/doctor/patients/{id}/prescriptions(id=${patient.id})}"
              class="rounded-md border border-primary px-md py-sm font-semibold text-primary">Prescriptions</a>
           <a th:if="${queueEntry != null}" th:href="@{/doctor/consultation/{id}(id=${queueEntry.id})}"
-             class="rounded-md bg-primary px-md py-sm font-semibold text-white">Start Consultation</a>
+             class="rounded-md bg-primary px-md py-sm font-semibold text-white"
+             th:text="${queueEntry.status == 'IN_PROGRESS' ? 'Continue Consultation' : (queueEntry.status == 'RESULTS_READY' ? 'Review Results' : 'Start Consultation')}">Start Consultation</a>
         </div>
       </header>
 
-      <div th:if="${patient == null}" class="rounded-lg border border-border-base bg-white p-md text-text-secondary shadow-sm">No patient record is available yet.</div>
+      <section th:if="${patient == null}" class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-text-primary">Recent Patients</h2>
+            <p class="text-caption text-text-secondary">Ordered by the latest appointment connected to your doctor account.</p>
+          </div>
+          <input id="medical-record-search" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs" placeholder="Search patient records" type="text">
+        </div>
+        <div class="max-h-[calc(100vh-220px)] overflow-auto">
+          <table class="w-full text-left text-small">
+            <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+            <tr>
+              <th class="px-md py-sm">Patient</th>
+              <th class="px-md py-sm">Latest Appointment</th>
+              <th class="px-md py-sm">Visit</th>
+              <th class="px-md py-sm">Queue Status</th>
+              <th class="px-md py-sm text-right">Action</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr th:if="${#lists.isEmpty(patients)}">
+              <td colspan="5" class="px-md py-lg text-center text-text-secondary">No patient records are available for your appointments.</td>
+            </tr>
+            <tr th:each="recordPatient : ${patients}" class="medical-record-row hover:bg-surface-bright"
+                th:with="appointment=${latestAppointmentsByPatientId[recordPatient.id]}, activeQueue=${activeQueueEntriesByPatientId[recordPatient.id]}"
+                th:attr="data-search=${#strings.toLowerCase((recordPatient.fullName ?: '') + ' ' + (recordPatient.patientId ?: '') + ' ' + (appointment != null ? appointment.reason : '') + ' ' + (appointment != null ? appointment.status : '') + ' ' + (activeQueue != null ? activeQueue.status : ''))}">
+              <td class="px-md py-sm">
+                <p class="font-semibold text-text-primary" th:text="${recordPatient.fullName ?: 'Unnamed Patient'}">Patient</p>
+                <p class="text-caption text-text-secondary" th:text="${recordPatient.patientId ?: '-'}">PID</p>
+              </td>
+              <td class="px-md py-sm text-text-secondary" th:text="${appointment != null && appointment.scheduledAt != null ? #temporals.format(appointment.scheduledAt, 'MMM dd, yyyy hh:mm a') : '-'}">-</td>
+              <td class="px-md py-sm">
+                <p class="font-semibold" th:text="${appointment != null ? (appointment.visitType ?: '-') : '-'}">Visit</p>
+                <p class="line-clamp-1 text-caption text-text-secondary" th:text="${appointment != null ? (appointment.reason ?: 'No reason recorded') : '-'}">Reason</p>
+              </td>
+              <td class="px-md py-sm">
+                <span class="rounded-full bg-surface-container-high px-sm py-1 text-[11px] font-bold text-text-secondary"
+                      th:classappend="${activeQueue != null && activeQueue.status == 'IN_PROGRESS' ? ' bg-success/10 text-success' : (activeQueue != null && activeQueue.status == 'RESULTS_READY' ? ' bg-primary/10 text-primary' : '')}"
+                      th:text="${activeQueue != null ? activeQueue.status : (appointment != null ? appointment.status : '-')}">Status</span>
+              </td>
+              <td class="px-md py-sm text-right">
+                <a th:if="${activeQueue != null}" th:href="@{/doctor/patients/{id}/history(id=${recordPatient.id}, queueEntryId=${activeQueue.id})}"
+                   class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">View</a>
+                <a th:if="${activeQueue == null}" th:href="@{/doctor/patients/{id}/history(id=${recordPatient.id})}"
+                   class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">View</a>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <div th:if="${patient != null}" class="grid grid-cols-1 gap-md xl:grid-cols-12">
         <section class="xl:col-span-8 space-y-md">
@@ -77,21 +128,37 @@
 
           <section class="rounded-lg border border-border-base bg-white shadow-sm">
             <div class="border-b border-border-base px-md py-sm">
-              <h2 class="text-base font-semibold text-text-primary">Consultation Timeline</h2>
+              <h2 class="text-base font-semibold text-text-primary">Consultation Records</h2>
             </div>
             <div class="max-h-[calc(100vh-455px)] min-h-48 overflow-auto p-md">
               <div th:if="${#lists.isEmpty(consultations)}" class="text-text-secondary">No prior consultations recorded.</div>
-              <div class="space-y-sm">
-                <article th:each="consultation : ${consultations}" class="rounded-md border border-border-base p-sm">
-                  <div class="flex flex-col gap-xs md:flex-row md:items-center md:justify-between">
-                    <p class="text-caption font-bold text-primary" th:text="${consultation.consultationAt != null ? #temporals.format(consultation.consultationAt, 'MMM dd, yyyy hh:mm a') : 'Unscheduled'}">Date</p>
+              <table th:if="${!#lists.isEmpty(consultations)}" class="w-full text-left text-small">
+                <thead class="sticky top-0 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+                <tr>
+                  <th class="px-sm py-xs">Date</th>
+                  <th class="px-sm py-xs" th:if="${patient == null}">Patient</th>
+                  <th class="px-sm py-xs">Diagnosis</th>
+                  <th class="px-sm py-xs">Treatment Plan</th>
+                  <th class="px-sm py-xs">Follow-up</th>
+                  <th class="px-sm py-xs">Status</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-border-base">
+                <tr th:each="consultation : ${consultations}" th:with="rowPatient=${patient != null ? patient : patientsById[consultation.patientId]}">
+                  <td class="px-sm py-sm text-text-secondary" th:text="${consultation.consultationAt != null ? #temporals.format(consultation.consultationAt, 'MMM dd, hh:mm a') : '-'}">-</td>
+                  <td class="px-sm py-sm" th:if="${patient == null}">
+                    <p class="font-semibold" th:text="${rowPatient != null ? rowPatient.fullName : 'Unknown Patient'}">Patient</p>
+                    <p class="text-caption text-text-secondary" th:text="${rowPatient != null ? rowPatient.patientId : '-'}">PID</p>
+                  </td>
+                  <td class="px-sm py-sm" th:text="${consultation.diagnosis ?: '-'}">-</td>
+                  <td class="px-sm py-sm text-text-secondary" th:text="${consultation.treatmentPlan ?: consultation.doctorNotes ?: '-'}">-</td>
+                  <td class="px-sm py-sm" th:text="${consultation.followUpDate ?: '-'}">-</td>
+                  <td class="px-sm py-sm">
                     <span class="rounded-full bg-surface-container-high px-sm py-1 text-[11px] font-bold text-text-secondary" th:text="${consultation.status ?: 'IN_PROGRESS'}">Status</span>
-                  </div>
-                  <h3 class="mt-xs font-semibold text-text-primary" th:text="${consultation.diagnosis ?: 'Consultation'}">Diagnosis</h3>
-                  <p class="mt-xs line-clamp-3 whitespace-pre-line text-text-secondary"
-                     th:text="${consultation.doctorNotes ?: consultation.treatmentPlan ?: consultation.assessment ?: 'No notes recorded.'}">Notes</p>
-                </article>
-              </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
             </div>
           </section>
         </section>
@@ -99,33 +166,69 @@
         <aside class="xl:col-span-4 space-y-md">
           <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
             <h2 class="text-base font-semibold text-text-primary">Active Prescriptions</h2>
-            <div class="mt-sm max-h-56 space-y-xs overflow-auto">
+            <div class="mt-sm max-h-56 overflow-auto">
               <div th:if="${#lists.isEmpty(prescriptions)}" class="text-caption text-text-secondary">No prescriptions recorded.</div>
-              <div th:each="prescription : ${prescriptions}" class="rounded-md border border-border-base p-sm">
-                <p class="font-semibold text-text-primary" th:text="${prescription.medicationName}">Medication</p>
-                <p class="text-caption text-text-secondary" th:text="${(prescription.dosage ?: '') + ' ' + (prescription.frequency ?: '') + ' ' + (prescription.duration ?: '')}">Dose</p>
-                <p class="text-caption text-text-secondary" th:text="${prescription.instructions ?: ''}">Instructions</p>
-              </div>
+              <table th:if="${!#lists.isEmpty(prescriptions)}" class="w-full text-left text-caption">
+                <thead class="sticky top-0 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+                <tr>
+                  <th class="px-sm py-xs">Date</th>
+                  <th class="px-sm py-xs">Medication</th>
+                  <th class="px-sm py-xs">Status</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-border-base">
+                <tr th:each="prescription : ${prescriptions}">
+                  <td class="px-sm py-sm text-text-secondary" th:text="${prescription.createdAt != null ? #temporals.format(prescription.createdAt, 'MMM dd') : '-'}">-</td>
+                  <td class="px-sm py-sm">
+                    <p class="font-semibold text-text-primary" th:text="${prescription.medicationName}">Medication</p>
+                    <p class="text-text-secondary" th:text="${(prescription.dosage ?: '-') + ' | ' + (prescription.frequency ?: '-')}">Dose</p>
+                  </td>
+                  <td class="px-sm py-sm" th:text="${prescription.status ?: 'PENDING'}">PENDING</td>
+                </tr>
+                </tbody>
+              </table>
             </div>
           </section>
 
           <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
             <h2 class="text-base font-semibold text-text-primary">Investigations</h2>
-            <div class="mt-sm max-h-56 space-y-xs overflow-auto">
+            <div class="mt-sm max-h-56 overflow-auto">
               <div th:if="${#lists.isEmpty(investigations)}" class="text-caption text-text-secondary">No lab or radiology requests.</div>
-              <div th:each="investigation : ${investigations}" class="rounded-md border border-border-base p-sm">
-                <div class="flex items-center justify-between gap-sm">
-                  <p class="font-semibold text-text-primary" th:text="${investigation.testName}">Test</p>
-                  <span class="text-[11px] font-bold uppercase text-text-secondary" th:text="${investigation.priority ?: 'Routine'}">Routine</span>
-                </div>
-                <p class="text-caption text-text-secondary" th:text="${investigation.requestType + ' | ' + (investigation.status ?: 'Requested')}">Status</p>
-              </div>
+              <table th:if="${!#lists.isEmpty(investigations)}" class="w-full text-left text-caption">
+                <thead class="sticky top-0 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+                <tr>
+                  <th class="px-sm py-xs">Date</th>
+                  <th class="px-sm py-xs">Test</th>
+                  <th class="px-sm py-xs">Status</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-border-base">
+                <tr th:each="investigation : ${investigations}">
+                  <td class="px-sm py-sm text-text-secondary" th:text="${investigation.createdAt != null ? #temporals.format(investigation.createdAt, 'MMM dd') : '-'}">-</td>
+                  <td class="px-sm py-sm">
+                    <p class="font-semibold text-text-primary" th:text="${investigation.testName}">Test</p>
+                    <p class="text-text-secondary" th:text="${(investigation.requestType ?: '-') + ' | ' + (investigation.priority ?: 'Routine')}">Type</p>
+                  </td>
+                  <td class="px-sm py-sm" th:text="${investigation.status ?: 'REQUESTED'}">REQUESTED</td>
+                </tr>
+                </tbody>
+              </table>
             </div>
           </section>
         </aside>
       </div>
     </div>
   </main>
+  <script>
+    const recordSearch = document.getElementById('medical-record-search');
+    const recordRows = Array.from(document.querySelectorAll('.medical-record-row'));
+    if (recordSearch) {
+      recordSearch.addEventListener('input', () => {
+        const query = recordSearch.value.trim().toLowerCase();
+        recordRows.forEach(row => row.classList.toggle('hidden', query && !row.dataset.search.includes(query)));
+      });
+    }
+  </script>
 </div>
 </body>
 </html>

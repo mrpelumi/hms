@@ -25,10 +25,15 @@ public class Prescription {
     private String route;
     @Column(columnDefinition = "text")
     private String instructions;
+    private String status;
+    private OffsetDateTime dispensedAt;
     private OffsetDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
         createdAt = OffsetDateTime.now();
+        if (status == null) {
+            status = "PENDING";
+        }
     }
 }

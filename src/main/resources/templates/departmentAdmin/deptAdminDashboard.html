@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>Department Admin Dashboard | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+            <header class="flex flex-col gap-sm md:flex-row md:items-end md:justify-between">
+                <div>
+                    <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                        <span>Department Admin</span>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <span class="font-bold text-primary">Hospital Dashboard</span>
+                    </nav>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Hospital Operations Dashboard</h1>
+                    <p class="text-small text-text-secondary">Review staffing, account provisioning, role assignment, and department activity from one workspace.</p>
+                </div>
+                <a th:href="@{/department-admin/users}" class="inline-flex items-center gap-xs rounded-md bg-primary px-md py-sm font-semibold text-white">
+                    <span class="material-symbols-outlined text-[18px]">person_add</span>
+                    Create System User
+                </a>
+            </header>
+
+            <section class="grid grid-cols-1 gap-sm md:grid-cols-4">
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Employee Records</p>
+                    <p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${totalStaff}">0</p>
+                    <p class="text-caption text-text-secondary">Synced from HR staff records</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Active Accounts</p>
+                    <p class="mt-xs text-[24px] font-semibold text-success" th:text="${activeStaff}">0</p>
+                    <p class="text-caption text-text-secondary">Ready for department work</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Pending Provisioning</p>
+                    <p class="mt-xs text-[24px] font-semibold text-warning" th:text="${pendingUsers}">0</p>
+                    <p class="text-caption text-text-secondary">Missing system access details</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Departments</p>
+                    <p class="mt-xs text-[24px] font-semibold text-primary" th:text="${#lists.size(departments)}">0</p>
+                    <p class="text-caption text-text-secondary">Units with assigned staff</p>
+                </article>
+            </section>
+
+            <section class="grid grid-cols-1 gap-md lg:grid-cols-12">
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm lg:col-span-8">
+                    <div class="mb-sm flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-semibold text-text-primary">Department Coverage</h2>
+                            <p class="text-caption text-text-secondary">Monitor staffing distribution by assigned department.</p>
+                        </div>
+                        <a th:href="@{/department-admin/staff}" class="text-caption font-bold text-primary">Review records</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[520px] text-left text-small">
+                            <thead class="bg-surface-muted text-caption uppercase text-text-secondary">
+                            <tr>
+                                <th class="px-md py-sm">Department</th>
+                                <th class="px-md py-sm">Employees</th>
+                                <th class="px-md py-sm">Operational Status</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-base">
+                            <tr th:each="entry : ${departmentCounts}">
+                                <td class="px-md py-sm font-semibold text-text-primary" th:text="${entry.key}">General Medicine</td>
+                                <td class="px-md py-sm" th:text="${entry.value}">0</td>
+                                <td class="px-md py-sm">
+                                    <span class="rounded-full bg-success/10 px-sm py-xs text-caption font-bold text-success">ACTIVE</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#maps.isEmpty(departmentCounts)}">
+                                <td class="px-md py-md text-text-secondary" colspan="3">No department records available.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <aside class="rounded-lg border border-border-base bg-white p-md shadow-sm lg:col-span-4">
+                    <h2 class="text-base font-semibold text-text-primary">Provisioning Workflow</h2>
+                    <ol class="mt-sm space-y-sm text-small">
+                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">dashboard</span><span>View hospital dashboard</span></li>
+                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">badge</span><span>Review employee records</span></li>
+                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">person_add</span><span>Create system user in Keycloak</span></li>
+                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span><span>Assign role and department</span></li>
+                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">verified_user</span><span>Activate account</span></li>
+                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">monitoring</span><span>Monitor operations</span></li>
+                    </ol>
+                </aside>
+            </section>
+        </section>
+    </main>
+</div>
+</body>
+</html>

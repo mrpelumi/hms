@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>Create Staff | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <form id="create-staff-form" class="mx-auto flex w-full max-w-[1080px] flex-col gap-md text-small" method="post" enctype="multipart/form-data" th:action="@{/hr/staff}">
+            <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+                <div>
+                    <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                        <a class="hover:text-primary" th:href="@{/hr/dashboard}">HR</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <a class="hover:text-primary" th:href="@{/hr/staff}">Staff Records</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <span class="font-bold text-primary">Create Staff</span>
+                    </nav>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Create Staff Record</h1>
+                    <p class="text-small text-text-secondary">Create workforce records for the modules and roles used in the HMS workflow.</p>
+                </div>
+                <div class="flex flex-wrap gap-sm">
+                    <a th:href="@{/hr/staff}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Cancel</a>
+                    <button id="save-staff-button" class="rounded-md bg-primary px-md py-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50" type="submit">
+                        Save Staff
+                    </button>
+                </div>
+            </header>
+
+            <section class="grid grid-cols-1 gap-md lg:grid-cols-12">
+                <div class="lg:col-span-8 space-y-md">
+                    <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                        <div class="mb-md">
+                            <h2 class="text-base font-semibold text-text-primary">Identity</h2>
+                            <p class="text-caption text-text-secondary">Basic staff profile used by HR, attendance, leave and payroll.</p>
+                        </div>
+                        <div class="grid grid-cols-1 gap-md lg:grid-cols-[180px_1fr]">
+                            <div class="rounded-lg border border-dashed border-border-base bg-surface-muted p-sm">
+                                <div class="flex flex-col items-center gap-sm text-center">
+                                    <div class="flex h-24 w-24 items-center justify-center rounded-full border border-border-base bg-white text-text-secondary">
+                                        <span class="material-symbols-outlined text-[34px]">badge</span>
+                                    </div>
+                                    <label class="w-full cursor-pointer rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">
+                                        Upload Photo
+                                        <input id="profilePicture" name="profilePicture" class="sr-only" type="file" accept="image/png,image/jpeg,image/webp">
+                                    </label>
+                                    <p id="profile-picture-label" class="text-caption text-text-secondary">JPG, PNG or WEBP</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
+                                <label class="space-y-xs">
+                                    <span class="text-caption font-bold uppercase text-text-secondary">Full Name</span>
+                                    <input id="fullName" name="fullName" class="staff-required w-full rounded-md border border-border-base p-sm text-small" placeholder="Staff full name" required>
+                                </label>
+                                <label class="space-y-xs">
+                                    <span class="text-caption font-bold uppercase text-text-secondary">Email</span>
+                                    <input id="email" name="email" class="staff-required w-full rounded-md border border-border-base p-sm text-small" placeholder="name@telhealth.local" type="email" required>
+                                </label>
+                                <label class="space-y-xs">
+                                    <span class="text-caption font-bold uppercase text-text-secondary">Phone Number</span>
+                                    <input name="phoneNumber" class="w-full rounded-md border border-border-base p-sm text-small" placeholder="+234...">
+                                </label>
+                                <label class="space-y-xs">
+                                    <span class="text-caption font-bold uppercase text-text-secondary">Staff ID</span>
+                                    <input class="w-full rounded-md border border-border-base bg-surface-muted p-sm text-small text-text-secondary" readonly value="Generated after save">
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                        <div class="mb-md">
+                            <h2 class="text-base font-semibold text-text-primary">Access Role and Hospital Assignment</h2>
+                            <p class="text-caption text-text-secondary">Application role controls system access. Department/clinical unit controls where the staff member works.</p>
+                        </div>
+                        <div class="grid grid-cols-1 gap-sm md:grid-cols-3">
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Application Access Role</span>
+                                <select id="staffRole" name="staffRole" class="staff-required w-full rounded-md border border-border-base p-sm text-small" required>
+                                    <option value="" data-default-department="">Select access role</option>
+                                    <option value="RECEPTIONIST" data-default-department="Reception / Front Desk">Receptionist</option>
+                                    <option value="NURSE" data-default-department="OPD Nursing">Nurse</option>
+                                    <option value="DOCTOR" data-default-department="Outpatient Department">Doctor</option>
+                                    <option value="LABORATORY" data-default-department="Laboratory">Laboratory</option>
+                                    <option value="RADIOLOGY" data-default-department="Radiology">Radiology</option>
+                                    <option value="PHARMACY" data-default-department="Pharmacy">Pharmacy</option>
+                                    <option value="BILLING" data-default-department="Billing">Billing</option>
+                                    <option value="HR" data-default-department="Human Resources">Human Resources</option>
+                                </select>
+                                <span class="text-caption text-text-secondary">Example: a pediatrician uses access role Doctor and department Pediatrics.</span>
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Department / Clinical Unit</span>
+                                <select id="department" name="department" class="staff-required w-full rounded-md border border-border-base p-sm text-small" required>
+                                    <option value="">Select department</option>
+                                </select>
+                                <span class="text-caption text-text-secondary">Filtered by access role, with Administration and Other / Cross-functional available for exceptions.</span>
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Job Title</span>
+                                <input id="jobTitle" name="jobTitle" class="staff-required w-full rounded-md border border-border-base p-sm text-small" placeholder="e.g. OPD Nurse" required>
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Employment Type</span>
+                                <select name="employmentType" class="w-full rounded-md border border-border-base p-sm text-small">
+                                    <option>Full-time</option>
+                                    <option>Part-time</option>
+                                    <option>Contract</option>
+                                    <option>Locum</option>
+                                </select>
+                            </label>
+                            <input name="shift" type="hidden" value="Unassigned">
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Hire Date</span>
+                                <input name="hireDate" class="w-full rounded-md border border-border-base p-sm text-small" type="date">
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                        <div class="mb-md">
+                            <h2 class="text-base font-semibold text-text-primary">Compliance and Payroll</h2>
+                            <p class="text-caption text-text-secondary">Credential expiry supports HR compliance alerts; payroll values feed export.</p>
+                        </div>
+                        <div class="grid grid-cols-1 gap-sm md:grid-cols-3">
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Credential Expiry</span>
+                                <input name="credentialExpiryDate" class="w-full rounded-md border border-border-base p-sm text-small" type="date">
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Base Salary</span>
+                                <input name="baseSalary" class="w-full rounded-md border border-border-base p-sm text-small" min="0" step="0.01" type="number">
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Initial Allowances</span>
+                                <input name="allowances" class="w-full rounded-md border border-border-base p-sm text-small" min="0" step="0.01" type="number">
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Initial Deductions</span>
+                                <input name="deductions" class="w-full rounded-md border border-border-base p-sm text-small" min="0" step="0.01" type="number">
+                            </label>
+                            <label class="space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Status</span>
+                                <select name="status" class="w-full rounded-md border border-border-base p-sm text-small">
+                                    <option value="ACTIVE">ACTIVE</option>
+                                    <option value="ON_LEAVE">ON_LEAVE</option>
+                                    <option value="DISABLED">DISABLED</option>
+                                </select>
+                            </label>
+                            <label class="space-y-xs md:col-span-3">
+                                <span class="text-caption font-bold uppercase text-text-secondary">HR Notes</span>
+                                <textarea name="notes" class="w-full rounded-md border border-border-base p-sm text-small" rows="3" placeholder="Onboarding notes, credential reminders, employment conditions"></textarea>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                        <div class="mb-md">
+                            <h2 class="text-base font-semibold text-text-primary">Registration Documents</h2>
+                            <p class="text-caption text-text-secondary">Upload supporting onboarding documents for HR review.</p>
+                        </div>
+                        <label class="relative flex min-h-36 w-full cursor-pointer flex-col items-center justify-center gap-xs overflow-hidden rounded-lg border border-dashed border-border-base bg-surface-muted p-lg text-center transition hover:border-primary hover:bg-surface-container-low">
+                            <span class="material-symbols-outlined text-[34px] text-primary">cloud_upload</span>
+                            <span class="block max-w-full text-small font-semibold text-text-primary">Drop registration documents here or click to browse</span>
+                            <span id="registration-documents-label" class="block max-w-full truncate text-caption text-text-secondary">Accepted: PDF, Word, JPG, PNG. Multiple files allowed.</span>
+                            <input id="registrationDocuments" name="registrationDocuments" tabindex="-1" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0);pointer-events:none;">
+                        </label>
+                        <div class="mt-sm grid grid-cols-1 gap-xs text-caption text-text-secondary md:grid-cols-2">
+                            <div class="rounded-md bg-surface-muted p-sm">
+                                <p class="font-bold text-text-primary">Clinical staff</p>
+                                <p>Professional license, current certification, government ID, employment contract.</p>
+                            </div>
+                            <div class="rounded-md bg-surface-muted p-sm">
+                                <p class="font-bold text-text-primary">Administrative staff</p>
+                                <p>Government ID, tax/payroll details, employment contract, qualification documents.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="lg:col-span-4 space-y-md">
+                    <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                        <h2 class="text-base font-semibold text-text-primary">Role Preview</h2>
+                        <div class="mt-sm rounded-md border border-border-base bg-surface-container-low p-md">
+                            <p id="preview-name" class="font-semibold text-text-primary">New Staff</p>
+                            <p id="preview-role" class="text-caption text-text-secondary">Select an application role</p>
+                            <div class="mt-md grid grid-cols-2 gap-sm text-caption">
+                                <div>
+                                    <p class="font-bold uppercase text-text-secondary">Module</p>
+                                    <p id="preview-module" class="text-text-primary">-</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold uppercase text-text-secondary">Department</p>
+                                    <p id="preview-department" class="text-text-primary">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </aside>
+            </section>
+        </form>
+    </main>
+    <script>
+        const form = document.getElementById('create-staff-form');
+        const saveButton = document.getElementById('save-staff-button');
+        const roleSelect = document.getElementById('staffRole');
+        const departmentSelect = document.getElementById('department');
+        const fullNameInput = document.getElementById('fullName');
+        const jobTitleInput = document.getElementById('jobTitle');
+        const previewName = document.getElementById('preview-name');
+        const previewRole = document.getElementById('preview-role');
+        const previewModule = document.getElementById('preview-module');
+        const previewDepartment = document.getElementById('preview-department');
+        const profilePicture = document.getElementById('profilePicture');
+        const registrationDocuments = document.getElementById('registrationDocuments');
+        const profilePictureLabel = document.getElementById('profile-picture-label');
+        const registrationDocumentsLabel = document.getElementById('registration-documents-label');
+        const sharedDepartments = ['Administration', 'Other / Cross-functional'];
+        const departmentOptionsByRole = {
+            RECEPTIONIST: ['Reception / Front Desk', 'OPD Registration', 'Patient Records'],
+            NURSE: ['OPD Nursing', 'Triage', 'Emergency Nursing', 'Ward Nursing', 'Maternity', 'Pediatrics Nursing', 'Immunization / Public Health'],
+            DOCTOR: ['Outpatient Department', 'General Medicine', 'Pediatrics', 'Cardiology', 'Neurology', 'Emergency', 'Surgery', 'Obstetrics and Gynecology', 'Orthopedics', 'ENT', 'Ophthalmology'],
+            LABORATORY: ['Laboratory', 'Hematology', 'Clinical Chemistry', 'Microbiology', 'Sample Collection'],
+            RADIOLOGY: ['Radiology', 'X-Ray', 'Ultrasound', 'CT / MRI'],
+            PHARMACY: ['Pharmacy', 'Dispensary', 'Drug Store'],
+            BILLING: ['Billing', 'Accounts', 'Insurance / Claims'],
+            HR: ['Human Resources', 'Payroll Administration', 'Staff Welfare']
+        };
+
+        function appendDepartmentOption(value, selectedValue) {
+            if (!departmentSelect) return;
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            option.selected = value === selectedValue;
+            departmentSelect.appendChild(option);
+        }
+
+        function refreshDepartmentOptions() {
+            if (!departmentSelect) return;
+            const selectedRole = roleSelect?.value || '';
+            const currentDepartment = departmentSelect.value;
+            const roleDefault = roleSelect?.selectedOptions?.[0]?.dataset.defaultDepartment || '';
+            const departments = selectedRole ? [...(departmentOptionsByRole[selectedRole] || []), ...sharedDepartments] : sharedDepartments;
+            const uniqueDepartments = [...new Set(departments)];
+            const nextDepartment = uniqueDepartments.includes(currentDepartment) ? currentDepartment : roleDefault;
+
+            departmentSelect.innerHTML = '<option value="">Select department</option>';
+            uniqueDepartments.forEach(department => appendDepartmentOption(department, nextDepartment));
+
+            if (nextDepartment && uniqueDepartments.includes(nextDepartment)) {
+                departmentSelect.value = nextDepartment;
+            }
+        }
+
+        function updatePreview() {
+            const option = roleSelect?.selectedOptions?.[0];
+            if (previewName) previewName.textContent = fullNameInput?.value.trim() || 'New Staff';
+            if (previewRole) previewRole.textContent = jobTitleInput?.value.trim() || 'Role not set';
+            if (previewModule) previewModule.textContent = option?.textContent?.trim() || '-';
+            if (previewDepartment) previewDepartment.textContent = departmentSelect?.value || '-';
+        }
+
+        [roleSelect, departmentSelect, fullNameInput, jobTitleInput].forEach(field => {
+            if (field) field.addEventListener('input', updatePreview);
+            if (field) field.addEventListener('change', updatePreview);
+        });
+
+        if (form && saveButton) {
+            form.addEventListener('submit', () => {
+                saveButton.disabled = true;
+                saveButton.textContent = 'Saving...';
+            });
+        }
+
+        if (profilePicture) {
+            profilePicture.addEventListener('change', () => {
+                const file = profilePicture.files?.[0];
+                if (file && previewName) {
+                    previewName.title = `Photo selected: ${file.name}`;
+                }
+                if (profilePictureLabel) {
+                    profilePictureLabel.textContent = file ? file.name : 'JPG, PNG or WEBP';
+                }
+            });
+        }
+
+        if (registrationDocuments) {
+            registrationDocuments.addEventListener('change', () => {
+                registrationDocuments.title = `${registrationDocuments.files.length} document(s) selected`;
+                if (registrationDocumentsLabel) {
+                    registrationDocumentsLabel.textContent = registrationDocuments.files.length
+                        ? `${registrationDocuments.files.length} document(s) selected`
+                        : 'Accepted: PDF, Word, JPG, PNG. Multiple files allowed.';
+                }
+            });
+        }
+
+        if (roleSelect) {
+            roleSelect.addEventListener('change', () => {
+                refreshDepartmentOptions();
+                updatePreview();
+            });
+        }
+
+        refreshDepartmentOptions();
+        updatePreview();
+    </script>
+</div>
+</body>
+</html>

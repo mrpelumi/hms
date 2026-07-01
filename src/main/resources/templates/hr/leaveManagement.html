@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Leave Management | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header>
+        <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Leave Management</h1>
+        <p class="text-small text-text-secondary">Submit leave, review coverage impact, and approve or reject requests.</p>
+      </header>
+
+      <div th:if="${param.submitted}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Leave request submitted.</div>
+      <div th:if="${param.updated}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Leave decision saved.</div>
+
+      <section class="grid grid-cols-1 gap-md lg:grid-cols-12">
+        <form class="lg:col-span-4 rounded-lg border border-border-base bg-white p-md shadow-sm space-y-sm" method="post" th:action="@{/hr/leave}">
+          <h2 class="text-base font-semibold text-text-primary">Submit Leave Request</h2>
+          <select name="staffMemberId" class="w-full rounded-md border border-border-base p-sm text-small" required>
+            <option value="">Select staff</option>
+            <option th:each="staff : ${staffMembers}" th:value="${staff.id}" th:text="${(staff.staffId ?: '-') + ' - ' + (staff.fullName ?: 'Unnamed Staff')}">Staff</option>
+          </select>
+          <select name="leaveType" class="w-full rounded-md border border-border-base p-sm text-small"><option>Annual</option><option>Sick</option><option>Personal</option><option>Maternity</option><option>Bereavement</option></select>
+          <div class="grid grid-cols-2 gap-xs">
+            <input name="startDate" type="date" class="rounded-md border border-border-base p-sm text-small" required>
+            <input name="endDate" type="date" class="rounded-md border border-border-base p-sm text-small" required>
+          </div>
+          <textarea name="reason" rows="3" class="w-full rounded-md border border-border-base p-sm text-small" placeholder="Reason"></textarea>
+          <button class="w-full rounded-md bg-primary py-sm font-semibold text-white" type="submit">Submit Request</button>
+        </form>
+
+        <section class="lg:col-span-8 space-y-md">
+          <div class="grid grid-cols-3 gap-sm">
+            <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-warning">Pending</p><p class="text-[22px] font-semibold" th:text="${pendingCount}">0</p></div>
+            <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-success">Approved</p><p class="text-[22px] font-semibold" th:text="${approvedCount}">0</p></div>
+            <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-primary">On Leave Today</p><p class="text-[22px] font-semibold" th:text="${activeLeaveCount}">0</p></div>
+          </div>
+          <div class="rounded-lg border border-border-base bg-white shadow-sm">
+            <div class="max-h-[calc(100vh-275px)] overflow-auto">
+              <table class="w-full text-left text-small">
+                <thead class="sticky top-0 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+                <tr><th class="px-md py-sm">Staff</th><th class="px-md py-sm">Type</th><th class="px-md py-sm">Duration</th><th class="px-md py-sm">Status</th><th class="px-md py-sm text-right">Decision</th></tr>
+                </thead>
+                <tbody class="divide-y divide-border-base">
+                <tr th:if="${#lists.isEmpty(leaveRequests)}"><td colspan="5" class="px-md py-lg text-center text-text-secondary">No leave requests yet.</td></tr>
+                <tr th:each="leave : ${leaveRequests}" th:with="staff=${staffById[leave.staffMemberId]}" class="hover:bg-surface-bright">
+                  <td class="px-md py-sm"><p class="font-semibold" th:text="${staff != null ? staff.fullName : 'Unknown Staff'}">Staff</p><p class="text-caption text-text-secondary" th:text="${staff != null ? staff.department : '-'}">Department</p></td>
+                  <td class="px-md py-sm" th:text="${leave.leaveType}">Annual</td>
+                  <td class="px-md py-sm"><p th:text="${leave.startDate + ' - ' + leave.endDate}">Dates</p><p class="text-caption text-text-secondary" th:text="${leave.reason ?: 'No reason'}">Reason</p></td>
+                  <td class="px-md py-sm"><span class="rounded-full bg-warning/10 px-sm py-1 text-[11px] font-bold text-warning" th:classappend="${leave.status == 'APPROVED' ? ' bg-success/10 text-success' : (leave.status == 'REJECTED' ? ' bg-danger/10 text-danger' : '')}" th:text="${leave.status}">PENDING</span></td>
+                  <td class="px-md py-sm text-right">
+                    <form th:if="${leave.status == 'PENDING'}" class="inline-flex gap-xs" method="post" th:action="@{/hr/leave/{id}/decision(id=${leave.id})}">
+                      <input type="hidden" name="hrComment" value="">
+                      <button name="status" value="APPROVED" class="rounded-md bg-success px-sm py-xs text-caption font-bold text-white" type="submit">Approve</button>
+                      <button name="status" value="REJECTED" class="rounded-md border border-danger px-sm py-xs text-caption font-bold text-danger" type="submit">Reject</button>
+                    </form>
+                    <span th:if="${leave.status != 'PENDING'}" class="text-caption text-text-secondary" th:text="${leave.decidedAt != null ? #temporals.format(leave.decidedAt, 'MMM dd, hh:mm a') : 'Decided'}">Decided</span>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

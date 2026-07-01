@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Stream;
 
 @Service("userGroupManager")
@@ -47,6 +48,42 @@ public class AuthenticationManager {
                 .anyMatch(group -> hasRole(group, "nurse", "nursing"));
     }
 
+    public Boolean isLaboratory(){
+        return getGroups()
+                .stream()
+                .anyMatch(group -> hasRole(group, "laboratory", "lab", "medical laboratory"));
+    }
+
+    public Boolean isRadiology(){
+        return getGroups()
+                .stream()
+                .anyMatch(group -> hasRole(group, "radiology", "radiographer", "imaging"));
+    }
+
+    public Boolean isPharmacy(){
+        return getGroups()
+                .stream()
+                .anyMatch(group -> hasRole(group, "pharmacy", "pharmacist"));
+    }
+
+    public Boolean isBilling(){
+        return getGroups()
+                .stream()
+                .anyMatch(group -> hasRole(group, "billing", "finance", "cashier"));
+    }
+
+    public Boolean isHr(){
+        return getGroups()
+                .stream()
+                .anyMatch(group -> hasRole(group, "hr", "human resources", "human-resource", "human_resources"));
+    }
+
+    public Boolean isDepartmentAdmin(){
+        return getGroups()
+                .stream()
+                .anyMatch(group -> hasRole(group, "department admin", "department-admin", "department_admin", "dept admin", "dept-admin", "dept_admin"));
+    }
+
     public String getUsername() {
         return firstNonBlank(get("preferred_username"), get("email"), get("username"), get("sub"));
     }
@@ -64,7 +101,8 @@ public class AuthenticationManager {
     }
 
     private List<String> getGroups() {
-        return Stream.of(get("group"))
+        return Stream.of(get("group"), get("groups"), get("role"), get("roles"), get("authorities"),
+                        get("realm_access"), get("resource_access"))
                 .flatMap(this::groupValues)
                 .flatMap(this::splitGroupValue)
                 .map(String::trim)
@@ -75,6 +113,9 @@ public class AuthenticationManager {
     private Stream<String> groupValues(Object groups) {
         if (groups instanceof Collection<?> collection) {
             return collection.stream().flatMap(this::groupValues);
+        }
+        if (groups instanceof Map<?, ?> map) {
+            return map.values().stream().flatMap(this::groupValues);
         }
         if (groups instanceof String group) {
             return Stream.of(group);
@@ -89,7 +130,7 @@ public class AuthenticationManager {
         return Stream.of(group.replace("[", "")
                         .replace("]", "")
                         .replace("\"", "")
-                        .split("[,;\\s]+"));
+                        .split("[,;]+"));
     }
 
     private boolean hasRole(String group, String... acceptedRoles) {
@@ -108,6 +149,10 @@ public class AuthenticationManager {
         if (slashIndex >= 0 && slashIndex < normalizedGroup.length() - 1) {
             normalizedGroup = normalizedGroup.substring(slashIndex + 1);
         }
+        if (normalizedGroup.startsWith("role_")) {
+            normalizedGroup = normalizedGroup.substring(5);
+        }
+        normalizedGroup = normalizedGroup.replace("-", "").replace("_", "").replace(" ", "");
         return normalizedGroup;
     }
 

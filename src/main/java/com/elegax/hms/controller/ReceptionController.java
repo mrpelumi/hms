@@ -3,11 +3,13 @@ package com.elegax.hms.controller;
 import com.elegax.hms.patients.entity.Appointment;
 import com.elegax.hms.patients.entity.Consultation;
 import com.elegax.hms.patients.entity.DoctorSchedule;
+import com.elegax.hms.patients.entity.InvestigationRequest;
 import com.elegax.hms.patients.entity.Patient;
 import com.elegax.hms.patients.entity.QueueEntry;
 import com.elegax.hms.patients.repository.AppointmentRepository;
 import com.elegax.hms.patients.repository.ConsultationRepository;
 import com.elegax.hms.patients.repository.DoctorScheduleRepository;
+import com.elegax.hms.patients.repository.InvestigationRequestRepository;
 import com.elegax.hms.patients.repository.PatientRepository;
 import com.elegax.hms.patients.repository.QueueEntryRepository;
 import org.springframework.data.domain.Sort;
@@ -24,9 +26,11 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Locale;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -38,23 +42,26 @@ public class ReceptionController {
 	private final QueueEntryRepository queueEntryRepository;
 	private final ConsultationRepository consultationRepository;
 	private final DoctorScheduleRepository doctorScheduleRepository;
+	private final InvestigationRequestRepository investigationRequestRepository;
 
 	public ReceptionController(PatientRepository patientRepository,
 							   AppointmentRepository appointmentRepository,
 							   QueueEntryRepository queueEntryRepository,
 							   ConsultationRepository consultationRepository,
-							   DoctorScheduleRepository doctorScheduleRepository) {
+							   DoctorScheduleRepository doctorScheduleRepository,
+							   InvestigationRequestRepository investigationRequestRepository) {
 		this.patientRepository = patientRepository;
 		this.appointmentRepository = appointmentRepository;
 		this.queueEntryRepository = queueEntryRepository;
 		this.consultationRepository = consultationRepository;
 		this.doctorScheduleRepository = doctorScheduleRepository;
+		this.investigationRequestRepository = investigationRequestRepository;
 	}
 
 	@GetMapping("/reception/home")
 	public String home(Model model) {
-		List<Patient> patients = patientRepository.findAll();
-		List<QueueEntry> activeQueueEntries = queueEntryRepository.findAll(Sort.by(Sort.Direction.ASC, "queuedAt"))
+		List<Patient> patients = patientRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+		List<QueueEntry> activeQueueEntries = queueEntryRepository.findAll(Sort.by(Sort.Direction.DESC, "queuedAt"))
 				.stream()
 				.filter(entry -> !"SERVED".equals(entry.getStatus()))
 				.toList();
@@ -70,6 +77,11 @@ public class ReceptionController {
 				.filter(appointment -> appointment.getDepartment() != null && appointment.getProvider() != null)
 				.collect(Collectors.groupingBy(Appointment::getDepartment,
 						Collectors.mapping(Appointment::getProvider, Collectors.collectingAndThen(Collectors.toSet(), set -> (long) set.size()))));
+		List<InvestigationRequest> pendingResultUpdates = investigationRequestRepository.findAll(Sort.by(Sort.Direction.ASC, "expectedResultAt"))
+				.stream()
+				.filter(request -> "RESULT_PENDING".equals(request.getStatus()))
+				.toList();
+		Map<Long, Patient> resultPatientsById = patientsById(pendingResultUpdates.stream().map(InvestigationRequest::getPatientId).toList());
 
 		model.addAttribute("pageTitle", "Patient Management");
 		model.addAttribute("todaysRegistrations", countPatientsCreatedToday(patients));
@@ -80,6 +92,8 @@ public class ReceptionController {
 		model.addAttribute("patientsById", patientsById);
 		model.addAttribute("appointmentsById", appointmentsById);
 		model.addAttribute("activeDoctorsByDepartment", activeDoctorsByDepartment);
+		model.addAttribute("pendingResultUpdates", pendingResultUpdates);
+		model.addAttribute("resultPatientsById", resultPatientsById);
 		model.addAttribute("queueVolumeLabel", activeQueueEntries.size() >= 8 ? "High Volume" : "Normal Flow");
 		return "reception/home";
 	}
@@ -134,9 +148,17 @@ public class ReceptionController {
 	@GetMapping("/reception/appointment/new")
 	public String scheduleAppointment(Model model) {
 		List<DoctorSchedule> availableSchedules = doctorScheduleRepository.findByAvailableTrueOrderByDoctorNameAscDayOfWeekAscStartTimeAsc();
+		List<Appointment> bookedAppointments = appointmentRepository.findAll(Sort.by(Sort.Direction.ASC, "scheduledAt"))
+				.stream()
+				.filter(appointment -> appointment.getScheduledAt() != null)
+				.filter(appointment -> appointment.getProviderUsername() != null)
+				.filter(appointment -> !"CANCELLED".equals(appointment.getStatus()) && !"COMPLETED".equals(appointment.getStatus()))
+				.toList();
 		model.addAttribute("pageTitle", "Schedule Appointment");
 		model.addAttribute("patients", patientRepository.findAll(Sort.by(Sort.Direction.ASC, "fullName")));
 		model.addAttribute("doctorSchedules", availableSchedules);
+		model.addAttribute("bookedAppointments", bookedAppointments);
+		model.addAttribute("today", LocalDate.now());
 		model.addAttribute("doctors", availableSchedules.stream()
 				.collect(Collectors.toMap(DoctorSchedule::getDoctorUsername, Function.identity(), (first, ignored) -> first))
 				.values()
@@ -164,11 +186,30 @@ public class ReceptionController {
 				LocalTime.parse(appointmentTime),
 				ZoneId.systemDefault().getRules().getOffset(OffsetDateTime.now().toInstant())
 		);
+		LocalDate selectedDate = scheduledAt.toLocalDate();
+		LocalTime selectedTime = scheduledAt.toLocalTime();
+		if (selectedDate.isBefore(LocalDate.now())) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment date cannot be in the past");
+		}
+		String selectedDay = selectedDate.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
 		DoctorSchedule selectedDoctor = doctorScheduleRepository.findByDoctorUsernameOrderByIdAsc(providerUsername)
 				.stream()
 				.filter(DoctorSchedule::isAvailable)
+				.filter(schedule -> selectedDay.equalsIgnoreCase(schedule.getDayOfWeek()))
+				.filter(schedule -> !selectedTime.isBefore(schedule.getStartTime()) && selectedTime.isBefore(schedule.getEndTime()))
 				.findFirst()
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected doctor has not submitted a schedule"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected doctor is not available for the selected date and time"));
+		boolean slotBooked = appointmentRepository.findAll()
+				.stream()
+				.filter(appointment -> appointment.getScheduledAt() != null)
+				.filter(appointment -> Objects.equals(appointment.getProviderUsername(), providerUsername))
+				.filter(appointment -> !"CANCELLED".equals(appointment.getStatus()) && !"COMPLETED".equals(appointment.getStatus()))
+				.anyMatch(appointment -> Objects.equals(appointment.getScheduledAt().toLocalDate(), selectedDate)
+						&& selectedTime.isBefore(appointment.getScheduledAt().toLocalTime().plusMinutes(30))
+						&& selectedTime.plusMinutes(30).isAfter(appointment.getScheduledAt().toLocalTime()));
+		if (slotBooked) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected doctor is already booked for this time");
+		}
 
 		Appointment appointment = Appointment.builder()
 				.patientId(patientId)
@@ -219,7 +260,7 @@ public class ReceptionController {
 
 	@GetMapping("/reception/queue")
 	public String queue(Model model) {
-		List<QueueEntry> queueEntries = queueEntryRepository.findAll(Sort.by(Sort.Direction.ASC, "queuedAt"))
+		List<QueueEntry> queueEntries = queueEntryRepository.findAll(Sort.by(Sort.Direction.DESC, "queuedAt"))
 				.stream()
 				.filter(entry -> !"SERVED".equals(entry.getStatus()))
 				.toList();
@@ -237,7 +278,7 @@ public class ReceptionController {
 		model.addAttribute("appointmentsById", appointmentsById);
 		model.addAttribute("waitingCount", queueEntries.stream().filter(entry -> "WAITING_FOR_NURSE".equals(entry.getStatus())).count());
 		model.addAttribute("readyForDoctorCount", queueEntries.stream().filter(entry -> "READY_FOR_DOCTOR".equals(entry.getStatus())).count());
-		model.addAttribute("calledCount", queueEntries.stream().filter(entry -> "CALLED".equals(entry.getStatus())).count());
+		model.addAttribute("calledCount", queueEntries.stream().filter(entry -> "CALLED".equals(entry.getStatus()) || "IN_PROGRESS".equals(entry.getStatus())).count());
 		model.addAttribute("servedCount", queueEntryRepository.countByStatus("SERVED"));
 		return "reception/queue";
 	}
@@ -245,10 +286,12 @@ public class ReceptionController {
 	@PostMapping("/reception/queue/{queueEntryId}/call")
 	public String callQueueEntry(@PathVariable Long queueEntryId) {
 		QueueEntry queueEntry = getQueueEntry(queueEntryId);
-		if (!"READY_FOR_DOCTOR".equals(queueEntry.getStatus()) && !"CALLED".equals(queueEntry.getStatus())) {
+		if (!"READY_FOR_DOCTOR".equals(queueEntry.getStatus()) && !"CALLED".equals(queueEntry.getStatus()) && !"IN_PROGRESS".equals(queueEntry.getStatus())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Patient is not ready for doctor consultation");
 		}
-		queueEntry.setStatus("CALLED");
+		if (!"IN_PROGRESS".equals(queueEntry.getStatus())) {
+			queueEntry.setStatus("CALLED");
+		}
 		queueEntryRepository.save(queueEntry);
 		return "redirect:/reception/consultation/" + queueEntry.getId();
 	}

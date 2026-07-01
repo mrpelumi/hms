@@ -24,6 +24,12 @@ public class InvestigationRequest {
     @Column(columnDefinition = "text")
     private String notes;
     private String status;
+    private OffsetDateTime expectedResultAt;
+    private OffsetDateTime resultReadyAt;
+    @Column(columnDefinition = "text")
+    private String resultSummary;
+    @Column(columnDefinition = "text")
+    private String patientUpdateNote;
     private OffsetDateTime createdAt;
 
     @PrePersist

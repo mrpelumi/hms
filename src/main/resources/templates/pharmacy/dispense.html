@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Pharmacy Dispense | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Pharmacy Dispense</h1>
+          <p class="text-small text-text-secondary">Prescriptions created during OPD consultation.</p>
+        </div>
+      </header>
+
+      <div th:if="${param.dispensed}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Prescription dispensed and sent to billing.</div>
+
+      <section class="grid grid-cols-3 gap-sm">
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Total</p><p class="text-[22px] font-semibold" th:text="${totalCount}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Pending</p><p class="text-[22px] font-semibold" th:text="${pendingCount}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Dispensed</p><p class="text-[22px] font-semibold" th:text="${dispensedCount}">0</p></div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-text-primary">Prescription Queue</h2>
+            <p class="text-caption text-text-secondary">Dispensed items become billable pharmacy records.</p>
+          </div>
+          <input id="rx-search" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs" placeholder="Search patient or medication" type="text">
+        </div>
+        <div class="max-h-[calc(100vh-290px)] overflow-auto">
+          <table class="w-full text-left text-small">
+            <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+            <tr>
+              <th class="px-md py-sm">Patient</th>
+              <th class="px-md py-sm">Medication</th>
+              <th class="px-md py-sm">Directions</th>
+              <th class="px-md py-sm">Status</th>
+              <th class="px-md py-sm text-right">Action</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr th:if="${#lists.isEmpty(prescriptions)}">
+              <td colspan="5" class="px-md py-lg text-center text-text-secondary">No prescriptions are available for dispensing.</td>
+            </tr>
+            <tr th:each="prescription : ${prescriptions}" class="rx-row hover:bg-surface-bright"
+                th:with="patient=${patientsById[prescription.patientId]}"
+                th:attr="data-search=${#strings.toLowerCase((patient != null ? patient.fullName : '') + ' ' + (patient != null ? patient.patientId : '') + ' ' + (prescription.medicationName ?: '') + ' ' + (prescription.status ?: ''))}">
+              <td class="px-md py-sm">
+                <p class="font-semibold text-text-primary" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                <p class="text-caption text-text-secondary" th:text="${patient != null ? patient.patientId : '-'}">PID</p>
+              </td>
+              <td class="px-md py-sm">
+                <p class="font-semibold" th:text="${prescription.medicationName}">Medication</p>
+                <p class="text-caption text-text-secondary" th:text="${prescription.dosage ?: '-'}">Dose</p>
+              </td>
+              <td class="px-md py-sm text-text-secondary">
+                <span th:text="${(prescription.frequency ?: '-') + ' | ' + (prescription.duration ?: '-') + ' | ' + (prescription.route ?: '-')}">Directions</span>
+              </td>
+              <td class="px-md py-sm">
+                <span class="rounded-full bg-warning/10 px-sm py-1 text-[11px] font-bold text-warning"
+                      th:classappend="${prescription.status == 'DISPENSED'} ? ' bg-success/10 text-success' : ''"
+                      th:text="${prescription.status ?: 'PENDING'}">PENDING</span>
+              </td>
+              <td class="px-md py-sm text-right">
+                <form th:if="${prescription.status != 'DISPENSED'}" method="post" th:action="@{/pharmacy/prescriptions/{id}/dispense(id=${prescription.id})}">
+                  <button class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white" type="submit">Dispense</button>
+                </form>
+                <span th:if="${prescription.status == 'DISPENSED'}" class="text-caption text-text-secondary"
+                      th:text="${prescription.dispensedAt != null ? #temporals.format(prescription.dispensedAt, 'hh:mm a') : 'Done'}">Done</span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const rxSearch = document.getElementById('rx-search');
+    const rxRows = Array.from(document.querySelectorAll('.rx-row'));
+    if (rxSearch) {
+      rxSearch.addEventListener('input', () => {
+        const query = rxSearch.value.trim().toLowerCase();
+        rxRows.forEach(row => row.classList.toggle('hidden', query && !row.dataset.search.includes(query)));
+      });
+    }
+  </script>
+</div>
+</body>
+</html>

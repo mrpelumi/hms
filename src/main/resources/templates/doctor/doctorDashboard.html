@@ -37,12 +37,12 @@
           <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${calledCount}">0</p>
         </div>
         <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
-          <p class="text-[11px] font-bold uppercase text-text-secondary">Completed Today</p>
-          <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${completedToday}">0</p>
+          <p class="text-[11px] font-bold uppercase text-primary">Results Ready</p>
+          <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${resultsReadyCount}">0</p>
         </div>
         <div class="rounded-lg border border-danger/30 bg-white p-md shadow-sm">
-          <p class="text-[11px] font-bold uppercase text-danger">Emergency Priority</p>
-          <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${criticalCount}">0</p>
+          <p class="text-[11px] font-bold uppercase text-text-secondary">Completed Today</p>
+          <p class="mt-xs text-[22px] font-semibold leading-7 text-text-primary" th:text="${completedToday}">0</p>
         </div>
       </section>
 
@@ -84,7 +84,7 @@
                 </td>
                 <td class="px-md py-sm">
                   <span class="rounded-full bg-warning/10 px-sm py-1 text-[11px] font-bold text-warning"
-                        th:classappend="${entry.status == 'CALLED'} ? ' bg-primary/10 text-primary' : ''"
+                        th:classappend="${entry.status == 'IN_PROGRESS' ? ' bg-success/10 text-success' : (entry.status == 'CALLED' || entry.status == 'RESULTS_READY' ? ' bg-primary/10 text-primary' : '')}"
                         th:text="${entry.status}">READY</span>
                 </td>
                 <td class="px-md py-sm text-right">
@@ -92,7 +92,8 @@
                     <a th:href="@{/doctor/patients/{id}/history(id=${entry.patientId}, queueEntryId=${entry.id})}"
                        class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">History</a>
                     <a th:href="@{/doctor/consultation/{id}(id=${entry.id})}"
-                       class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">Start</a>
+                       class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white"
+                       th:text="${entry.status == 'IN_PROGRESS' ? 'Continue' : (entry.status == 'RESULTS_READY' ? 'Review Results' : 'Start')}">Start</a>
                   </div>
                 </td>
               </tr>
@@ -102,15 +103,6 @@
         </div>
 
         <aside class="space-y-md">
-          <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
-            <h2 class="text-base font-semibold text-text-primary">Workflow</h2>
-            <ol class="mt-sm space-y-sm text-small text-text-secondary">
-              <li class="flex gap-sm"><span class="font-bold text-primary">1</span><span>Review nurse-ready patient queue.</span></li>
-              <li class="flex gap-sm"><span class="font-bold text-primary">2</span><span>Open history and nurse vitals.</span></li>
-              <li class="flex gap-sm"><span class="font-bold text-primary">3</span><span>Record SOAP notes, diagnosis, plan, prescriptions, and requests.</span></li>
-              <li class="flex gap-sm"><span class="font-bold text-primary">4</span><span>Complete the consultation to close the visit.</span></li>
-            </ol>
-          </section>
           <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
             <h2 class="text-base font-semibold text-text-primary">Clinical Alerts</h2>
             <p class="mt-sm text-small text-text-secondary">

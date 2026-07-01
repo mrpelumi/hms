@@ -12,7 +12,7 @@
            style="height: 100vh; overflow-y: auto;" id="main-sidebar">
         <div class="px-xl py-xl flex items-center gap-md">
             <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
-                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtEMEcsH3dtninr-xWD50Hrtf3oLDLjqHeSogeSdsTlhHH_cgygb3emw2M3bBj-ldvH4YRqqmwNFd--_KffCWtQPK3cJglp1hKxamDpTnqfvhH0tyj7s1eXCv9Hidrezfa0h0Viiic_Z00dogBUciseXuKkZgr0lbYxLypoZEeV3Ff1t36c0DlRlRrvKYnWrX8wgrZLqDDkDVQxQo2SE-r-sa_aGC7-levwdgSn-4ICCrDWCVvvevsZXOOq">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
             </div>
             <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
         </div>
@@ -57,7 +57,7 @@
            style="height: 100vh; overflow-y: auto;" id="main-sidebar">
         <div class="px-xl py-xl flex items-center gap-md">
             <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
-                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtEMEcsH3dtninr-xWD50Hrtf3oLDLjqHeSogeSdsTlhHH_cgygb3emw2M3bBj-ldvH4YRqqmwNFd--_KffCWtQPK3cJglp1hKxamDpTnqfvhH0tyj7s1eXCv9Hidrezfa0h0Viiic_Z00dogBUciseXuKkZgr0lbYxLypoZEeV3Ff1t36c0DlRlRrvKYnWrX8wgrZLqDDkDVQxQo2SE-r-sa_aGC7-levwdgSn-4ICCrDWCVvvevsZXOOq">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
             </div>
             <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
         </div>
@@ -85,12 +85,128 @@
         </div>
     </aside>
 
+    <aside th:if="${session.userRole == 'LABORATORY'}"
+           class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+           style="height: 100vh; overflow-y: auto;" id="main-sidebar">
+        <div class="px-xl py-xl flex items-center gap-md">
+            <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
+            </div>
+            <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
+            <div class="space-y-xs">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Laboratory</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/laboratory/dashboard}">
+                    <span class="material-symbols-outlined text-[20px]">biotech</span>
+                    <span class="font-small text-small">Lab Dashboard</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-lg border-t border-white/10 space-y-xs">
+            <form method="post" th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-small text-small">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <aside th:if="${session.userRole == 'RADIOLOGY'}"
+           class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+           style="height: 100vh; overflow-y: auto;" id="main-sidebar">
+        <div class="px-xl py-xl flex items-center gap-md">
+            <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
+            </div>
+            <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
+            <div class="space-y-xs">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Radiology</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/radiology/dashboard}">
+                    <span class="material-symbols-outlined text-[20px]">radiology</span>
+                    <span class="font-small text-small">Radiology Queue</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-lg border-t border-white/10 space-y-xs">
+            <form method="post" th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-small text-small">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <aside th:if="${session.userRole == 'PHARMACY'}"
+           class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+           style="height: 100vh; overflow-y: auto;" id="main-sidebar">
+        <div class="px-xl py-xl flex items-center gap-md">
+            <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
+            </div>
+            <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
+            <div class="space-y-xs">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Pharmacy</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/pharmacy/dispense}">
+                    <span class="material-symbols-outlined text-[20px]">prescriptions</span>
+                    <span class="font-small text-small">Dispense</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-lg border-t border-white/10 space-y-xs">
+            <form method="post" th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-small text-small">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <aside th:if="${session.userRole == 'BILLING'}"
+           class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+           style="height: 100vh; overflow-y: auto;" id="main-sidebar">
+        <div class="px-xl py-xl flex items-center gap-md">
+            <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
+            </div>
+            <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
+            <div class="space-y-xs">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Billing</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/billing/home}">
+                    <span class="material-symbols-outlined text-[20px]">payments</span>
+                    <span class="font-small text-small">Billing</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-lg border-t border-white/10 space-y-xs">
+            <form method="post" th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-small text-small">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
     <aside th:if="${session.userRole == 'RECEPTIONIST'}"
            class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
            style="height: 100vh; overflow-y: auto;" id="main-sidebar">
         <div class="px-xl py-xl flex items-center gap-md">
             <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
-                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtEMEcsH3dtninr-xWD50Hrtf3oLDLjqHeSogeSdsTlhHH_cgygb3emw2M3bBj-ldvH4YRqqmwNFd--_KffCWtQPK3cJglp1hKxamDpTnqfvhH0tyj7s1eXCv9Hidrezfa0h0Viiic_Z00dogBUciseXuKkZgr0lbYxLypoZEeV3Ff1t36c0DlRlRrvKYnWrX8wgrZLqDDkDVQxQo2SE-r-sa_aGC7-levwdgSn-4ICCrDWCVvvevsZXOOq">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
             </div>
             <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
         </div>
@@ -130,12 +246,102 @@
         </div>
     </aside>
 
-    <aside th:if="${session.userRole != 'DOCTOR' && session.userRole != 'NURSE' && session.userRole != 'RECEPTIONIST'}"
+    <aside th:if="${session.userRole == 'HR'}"
            class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
            style="height: 100vh; overflow-y: auto;" id="main-sidebar">
         <div class="px-xl py-xl flex items-center gap-md">
             <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
-                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtEMEcsH3dtninr-xWD50Hrtf3oLDLjqHeSogeSdsTlhHH_cgygb3emw2M3bBj-ldvH4YRqqmwNFd--_KffCWtQPK3cJglp1hKxamDpTnqfvhH0tyj7s1eXCv9Hidrezfa0h0Viiic_Z00dogBUciseXuKkZgr0lbYxLypoZEeV3Ff1t36c0DlRlRrvKYnWrX8wgrZLqDDkDVQxQo2SE-r-sa_aGC7-levwdgSn-4ICCrDWCVvvevsZXOOq">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
+            </div>
+            <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
+            <div class="space-y-xs">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Human Resources</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hr/dashboard}">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                    <span class="font-small text-small">Dashboard</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hr/staff}">
+                    <span class="material-symbols-outlined text-[20px]">badge</span>
+                    <span class="font-small text-small">Staff Records</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hr/attendance}">
+                    <span class="material-symbols-outlined text-[20px]">schedule</span>
+                    <span class="font-small text-small">Attendance</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hr/leave}">
+                    <span class="material-symbols-outlined text-[20px]">event_busy</span>
+                    <span class="font-small text-small">Leave Management</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hr/payroll}">
+                    <span class="material-symbols-outlined text-[20px]">payments</span>
+                    <span class="font-small text-small">Payroll Export</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-lg border-t border-white/10 space-y-xs">
+            <form method="post" th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-small text-small">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <aside th:if="${session.userRole == 'DEPARTMENT_ADMIN'}"
+           class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+           style="height: 100vh; overflow-y: auto;" id="main-sidebar">
+        <div class="px-xl py-xl flex items-center gap-md">
+            <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
+            </div>
+            <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
+            <div class="space-y-xs">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Department Admin</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/dashboard}">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                    <span class="font-small text-small">Hospital Dashboard</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/staff}">
+                    <span class="material-symbols-outlined text-[20px]">badge</span>
+                    <span class="font-small text-small">Employee Records</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/users}">
+                    <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+                    <span class="font-small text-small">System Users</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/permissions}">
+                    <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+                    <span class="font-small text-small">Roles and Permissions</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/operations}">
+                    <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                    <span class="font-small text-small">Operations Monitor</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-lg border-t border-white/10 space-y-xs">
+            <form method="post" th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-small text-small">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <aside th:if="${session.userRole != 'DOCTOR' && session.userRole != 'NURSE' && session.userRole != 'LABORATORY' && session.userRole != 'RADIOLOGY' && session.userRole != 'PHARMACY' && session.userRole != 'BILLING' && session.userRole != 'RECEPTIONIST' && session.userRole != 'HR' && session.userRole != 'DEPARTMENT_ADMIN'}"
+           class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+           style="height: 100vh; overflow-y: auto;" id="main-sidebar">
+        <div class="px-xl py-xl flex items-center gap-md">
+            <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
             </div>
             <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
         </div>

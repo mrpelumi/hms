@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>Roles and Operations | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+            <header>
+                <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                    <a class="hover:text-primary" th:href="@{/department-admin/dashboard}">Department Admin</a>
+                    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    <span class="font-bold text-primary">Roles and Operations</span>
+                </nav>
+                <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Role, Department and Operations Monitor</h1>
+                <p class="text-small text-text-secondary">Validate access role distribution, department coverage, and active account readiness.</p>
+            </header>
+
+            <section class="grid grid-cols-1 gap-md lg:grid-cols-2">
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <div class="mb-sm flex items-center justify-between">
+                        <h2 class="text-base font-semibold text-text-primary">Role Assignments</h2>
+                        <a th:href="@{/department-admin/users}" class="text-caption font-bold text-primary">Manage users</a>
+                    </div>
+                    <div class="space-y-xs">
+                        <div class="flex items-center justify-between rounded-md bg-surface-muted p-sm" th:each="entry : ${roleCounts}">
+                            <span class="font-semibold text-text-primary" th:text="${entry.key}">DOCTOR</span>
+                            <span class="rounded-full bg-primary/10 px-sm py-xs text-caption font-bold text-primary" th:text="${entry.value}">0</span>
+                        </div>
+                        <p class="text-text-secondary" th:if="${#maps.isEmpty(roleCounts)}">No role assignments available.</p>
+                    </div>
+                </article>
+
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <div class="mb-sm flex items-center justify-between">
+                        <h2 class="text-base font-semibold text-text-primary">Department Assignments</h2>
+                        <span class="text-caption text-text-secondary">Operational coverage</span>
+                    </div>
+                    <div class="space-y-xs">
+                        <div class="flex items-center justify-between rounded-md bg-surface-muted p-sm" th:each="entry : ${departmentCounts}">
+                            <span class="font-semibold text-text-primary" th:text="${entry.key}">General Medicine</span>
+                            <span class="rounded-full bg-success/10 px-sm py-xs text-caption font-bold text-success" th:text="${entry.value}">0</span>
+                        </div>
+                        <p class="text-text-secondary" th:if="${#maps.isEmpty(departmentCounts)}">No department assignments available.</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                <div class="mb-sm flex flex-col gap-xs md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 class="text-base font-semibold text-text-primary">Activation and Monitoring Checklist</h2>
+                        <p class="text-caption text-text-secondary">Use this page after provisioning to confirm users are ready for live operations.</p>
+                    </div>
+                    <span class="rounded-full bg-primary/10 px-sm py-xs text-caption font-bold text-primary">Department Admin Control</span>
+                </div>
+                <div class="grid grid-cols-1 gap-sm md:grid-cols-3">
+                    <article class="rounded-md border border-border-base p-sm">
+                        <div class="mb-xs flex items-center gap-xs text-primary">
+                            <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                            <h3 class="font-semibold text-text-primary">Assign Role</h3>
+                        </div>
+                        <p class="text-caption text-text-secondary">Confirm the Keycloak role matches the staff workflow role such as Doctor, Nurse, Billing, HR, or Department Admin.</p>
+                    </article>
+                    <article class="rounded-md border border-border-base p-sm">
+                        <div class="mb-xs flex items-center gap-xs text-primary">
+                            <span class="material-symbols-outlined text-[18px]">apartment</span>
+                            <h3 class="font-semibold text-text-primary">Assign Department</h3>
+                        </div>
+                        <p class="text-caption text-text-secondary">Match each user to the clinical or administrative unit used for queues, appointments, and reports.</p>
+                    </article>
+                    <article class="rounded-md border border-border-base p-sm">
+                        <div class="mb-xs flex items-center gap-xs text-primary">
+                            <span class="material-symbols-outlined text-[18px]">monitoring</span>
+                            <h3 class="font-semibold text-text-primary">Monitor Operations</h3>
+                        </div>
+                        <p class="text-caption text-text-secondary">Review active staff, missing assignments, inactive accounts, and department coverage regularly.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="rounded-lg border border-border-base bg-white shadow-sm">
+                <div class="border-b border-border-base p-md">
+                    <h2 class="text-base font-semibold text-text-primary">Recent Employee Access Records</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[760px] text-left text-small">
+                        <thead class="bg-surface-muted text-caption uppercase text-text-secondary">
+                        <tr>
+                            <th class="px-md py-sm">Employee</th>
+                            <th class="px-md py-sm">Role</th>
+                            <th class="px-md py-sm">Department</th>
+                            <th class="px-md py-sm">Account State</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-base">
+                        <tr th:each="staff : ${staffMembers}">
+                            <td class="px-md py-sm">
+                                <p class="font-semibold text-text-primary" th:text="${staff.fullName}">Staff Name</p>
+                                <p class="text-caption text-text-secondary" th:text="${staff.email ?: 'Email pending'}">email@example.com</p>
+                            </td>
+                            <td class="px-md py-sm" th:text="${staff.staffRole ?: 'UNASSIGNED'}">DOCTOR</td>
+                            <td class="px-md py-sm" th:text="${staff.department ?: 'Unassigned'}">Department</td>
+                            <td class="px-md py-sm">
+                                <span class="rounded-full px-sm py-xs text-caption font-bold"
+                                      th:classappend="${staff.status == 'ACTIVE'} ? ' bg-success/10 text-success' : ' bg-warning/10 text-warning'"
+                                      th:text="${staff.status ?: 'PENDING'}">ACTIVE</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(staffMembers)}">
+                            <td class="px-md py-md text-text-secondary" colspan="4">No access records available.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+</body>
+</html>
