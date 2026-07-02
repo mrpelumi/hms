@@ -1,11 +1,14 @@
 package com.elegax.hms.controller;
 
+import com.elegax.hms.authentication.AuthenticationManager;
 import com.elegax.hms.patients.entity.Appointment;
 import com.elegax.hms.patients.entity.Patient;
 import com.elegax.hms.patients.entity.QueueEntry;
+import com.elegax.hms.patients.entity.StaffMember;
 import com.elegax.hms.patients.repository.AppointmentRepository;
 import com.elegax.hms.patients.repository.PatientRepository;
 import com.elegax.hms.patients.repository.QueueEntryRepository;
+import com.elegax.hms.patients.repository.StaffMemberRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -20,8 +23,10 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,13 +37,19 @@ public class NurseController {
     private final PatientRepository patientRepository;
     private final AppointmentRepository appointmentRepository;
     private final QueueEntryRepository queueEntryRepository;
+    private final StaffMemberRepository staffMemberRepository;
+    private final AuthenticationManager authenticationManager;
 
     public NurseController(PatientRepository patientRepository,
                            AppointmentRepository appointmentRepository,
-                           QueueEntryRepository queueEntryRepository) {
+                           QueueEntryRepository queueEntryRepository,
+                           StaffMemberRepository staffMemberRepository,
+                           AuthenticationManager authenticationManager) {
         this.patientRepository = patientRepository;
         this.appointmentRepository = appointmentRepository;
         this.queueEntryRepository = queueEntryRepository;
+        this.staffMemberRepository = staffMemberRepository;
+        this.authenticationManager = authenticationManager;
     }
 
     @GetMapping({"/home", "/dashboard"})
@@ -56,6 +67,7 @@ public class NurseController {
     @GetMapping("/vitals/{queueEntryId}")
     public String vitals(@PathVariable Long queueEntryId, Model model) {
         QueueEntry queueEntry = getQueueEntry(queueEntryId);
+        requireNurseCanAccess(queueEntry);
         if (!"WAITING_FOR_NURSE".equals(queueEntry.getStatus())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This patient is not waiting for nurse intake");
         }
@@ -84,6 +96,7 @@ public class NurseController {
                              @RequestParam(required = false) String chiefComplaint,
                              @RequestParam(required = false) String nurseNotes) {
         QueueEntry queueEntry = getQueueEntry(queueEntryId);
+        requireNurseCanAccess(queueEntry);
         if (!"WAITING_FOR_NURSE".equals(queueEntry.getStatus())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This patient is not waiting for nurse intake");
         }
@@ -106,6 +119,7 @@ public class NurseController {
     }
 
     private void addQueueModel(Model model) {
+        Optional<StaffMember> nurse = currentNurseStaffMember();
         List<QueueEntry> queueEntries = nurseQueueEntries();
         Map<Long, Patient> patientsById = patientRepository.findAllById(queueEntries.stream()
                         .map(QueueEntry::getPatientId)
@@ -126,8 +140,8 @@ public class NurseController {
         model.addAttribute("patientsById", patientsById);
         model.addAttribute("appointmentsById", appointmentsById);
         model.addAttribute("waitingForNurseCount", queueEntries.stream().filter(entry -> "WAITING_FOR_NURSE".equals(entry.getStatus())).count());
-        model.addAttribute("readyForDoctorCount", queueEntryRepository.countByStatus("READY_FOR_DOCTOR"));
-        model.addAttribute("completedVitalsToday", queueEntryRepository.findAll().stream()
+        model.addAttribute("readyForDoctorCount", nurseQueueEntriesByStatus("READY_FOR_DOCTOR").size());
+        model.addAttribute("completedVitalsToday", scopedQueueEntries().stream()
                 .filter(entry -> entry.getVitalsCapturedAt() != null && entry.getVitalsCapturedAt().toLocalDate().equals(OffsetDateTime.now().toLocalDate()))
                 .count());
         model.addAttribute("criticalCount", queueEntries.stream()
@@ -148,15 +162,126 @@ public class NurseController {
                 .size());
         model.addAttribute("averageWaitMinutes", averageWaitMinutes(queueEntries));
         model.addAttribute("intakeLoadLabel", queueEntries.size() >= 8 ? "High Load" : "Normal Load");
-        model.addAttribute("shiftLabel", "Morning Shift");
-        model.addAttribute("stationName", "Clinical Intake");
+        model.addAttribute("shiftLabel", nurse.map(StaffMember::getShift).filter(shift -> !shift.isBlank()).orElse("Unassigned Shift"));
+        model.addAttribute("stationName", nurse.map(StaffMember::getDepartment).filter(department -> !department.isBlank()).orElse("Clinical Intake"));
+        model.addAttribute("nurseUnit", nurse.map(StaffMember::getDepartment).orElse("No nurse unit assigned"));
+        model.addAttribute("nurseScopeNotice", nurse.isPresent()
+                ? "Showing patients for " + valueOr(nurse.get().getDepartment(), "your assigned nursing unit") + "."
+                : "No staff profile was found for this nurse account, so the patient queue is hidden.");
     }
 
     private List<QueueEntry> nurseQueueEntries() {
+        return nurseQueueEntriesByStatus("WAITING_FOR_NURSE");
+    }
+
+    private List<QueueEntry> nurseQueueEntriesByStatus(String status) {
+        Optional<StaffMember> nurse = currentNurseStaffMember();
+        if (nurse.isEmpty()) {
+            return List.of();
+        }
         return queueEntryRepository.findAll(Sort.by(Sort.Direction.DESC, "queuedAt"))
                 .stream()
-                .filter(entry -> "WAITING_FOR_NURSE".equals(entry.getStatus()))
+                .filter(entry -> status.equals(entry.getStatus()))
+                .filter(entry -> nurseCanAccess(nurse.get(), entry))
                 .toList();
+    }
+
+    private List<QueueEntry> scopedQueueEntries() {
+        Optional<StaffMember> nurse = currentNurseStaffMember();
+        if (nurse.isEmpty()) {
+            return List.of();
+        }
+        return queueEntryRepository.findAll(Sort.by(Sort.Direction.DESC, "queuedAt"))
+                .stream()
+                .filter(entry -> nurseCanAccess(nurse.get(), entry))
+                .toList();
+    }
+
+    private Optional<StaffMember> currentNurseStaffMember() {
+        String username = valueOr(authenticationManager.getUsername(), "").trim();
+        String displayName = valueOr(authenticationManager.getDisplayName(), "").trim();
+        return staffMemberRepository.findAll().stream()
+                .filter(member -> "NURSE".equalsIgnoreCase(valueOr(member.getStaffRole(), "")))
+                .filter(member -> "ACTIVE".equalsIgnoreCase(valueOr(member.getStatus(), "ACTIVE")))
+                .filter(member -> valueOr(member.getEmail(), "").equalsIgnoreCase(username)
+                        || valueOr(member.getStaffId(), "").equalsIgnoreCase(username)
+                        || valueOr(member.getFullName(), "").equalsIgnoreCase(displayName))
+                .findFirst();
+    }
+
+    private void requireNurseCanAccess(QueueEntry queueEntry) {
+        StaffMember nurse = currentNurseStaffMember()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "No nurse staff profile is linked to this account"));
+        if (!nurseCanAccess(nurse, queueEntry)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This patient is outside your assigned nursing unit");
+        }
+    }
+
+    private boolean nurseCanAccess(StaffMember nurse, QueueEntry queueEntry) {
+        Appointment appointment = queueEntry.getAppointmentId() == null
+                ? null
+                : appointmentRepository.findById(queueEntry.getAppointmentId()).orElse(null);
+        return appointmentMatchesNurseUnit(nurse.getDepartment(), appointment);
+    }
+
+    private boolean appointmentMatchesNurseUnit(String nurseDepartment, Appointment appointment) {
+        String unit = normalizeScope(nurseDepartment);
+        if (unit.isBlank()) {
+            return false;
+        }
+        if (appointment == null) {
+            return unit.contains("general") || unit.contains("opd") || unit.contains("outpatient");
+        }
+
+        String appointmentScope = normalizeScope(String.join(" ",
+                valueOr(appointment.getDepartment(), ""),
+                valueOr(appointment.getVisitType(), ""),
+                valueOr(appointment.getReason(), ""),
+                valueOr(appointment.getPriority(), "")));
+
+        if (isEmergencyScope(unit)) {
+            return isEmergencyScope(appointmentScope);
+        }
+        if (isOpdScope(unit)) {
+            return appointmentScope.isBlank() || isOpdScope(appointmentScope) || appointmentScope.contains("generalmedicine");
+        }
+        if (unit.contains("triage")) {
+            return isOpdScope(appointmentScope) || isEmergencyScope(appointmentScope);
+        }
+        if (unit.contains("pediatric") || unit.contains("paediatric")) {
+            return appointmentScope.contains("pediatric") || appointmentScope.contains("paediatric") || appointmentScope.contains("child");
+        }
+        if (unit.contains("maternity") || unit.contains("obstetric") || unit.contains("gynecology") || unit.contains("gynaecology")) {
+            return appointmentScope.contains("maternity") || appointmentScope.contains("obstetric")
+                    || appointmentScope.contains("gynecology") || appointmentScope.contains("gynaecology")
+                    || appointmentScope.contains("antenatal");
+        }
+        if (unit.contains("ward") || unit.contains("inpatient")) {
+            return appointmentScope.contains("ward") || appointmentScope.contains("inpatient");
+        }
+        if (unit.contains("immunization") || unit.contains("publichealth")) {
+            return appointmentScope.contains("immunization") || appointmentScope.contains("publichealth");
+        }
+        return !appointmentScope.isBlank() && (appointmentScope.contains(unit) || unit.contains(appointmentScope));
+    }
+
+    private boolean isEmergencyScope(String value) {
+        return value.contains("emergency") || value.contains("urgent");
+    }
+
+    private boolean isOpdScope(String value) {
+        return value.contains("opd") || value.contains("outpatient") || value.contains("general");
+    }
+
+    private String normalizeScope(String value) {
+        return valueOr(value, "").toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "")
+                .replace("nursing", "")
+                .replace("nurse", "")
+                .replace("department", "")
+                .replace("clinic", "")
+                .replace("clinical", "")
+                .replace("unit", "");
     }
 
     private String resolveBloodPressure(String bloodPressure, String systolic, String diastolic) {
@@ -193,5 +318,9 @@ public class NurseController {
     private QueueEntry getQueueEntry(Long id) {
         return queueEntryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Queue entry not found"));
+    }
+
+    private String valueOr(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 }

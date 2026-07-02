@@ -8,24 +8,24 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "staff_attendance")
+@Table(name = "staff_shifts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StaffAttendance {
+public class StaffShift {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long staffMemberId;
-    private Long shiftId;
-    private LocalDate attendanceDate;
-    private String scheduledShift;
-    private LocalTime clockIn;
-    private LocalTime clockOut;
+    private Long departmentId;
+    private LocalDate shiftDate;
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private String shiftType;
     private String status;
-    private String source;
+    private String createdBy;
     @Column(columnDefinition = "text")
     private String notes;
     private OffsetDateTime createdAt;
@@ -35,11 +35,8 @@ public class StaffAttendance {
     public void prePersist() {
         createdAt = OffsetDateTime.now();
         updatedAt = createdAt;
-        if (status == null) {
-            status = "PRESENT";
-        }
-        if (source == null) {
-            source = "MANUAL";
+        if (status == null || status.isBlank()) {
+            status = "ASSIGNED";
         }
     }
 

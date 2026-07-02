@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><meta charset="utf-8"><title>Book Appointment | Tel Health</title></head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <section class="mx-auto flex w-full max-w-[980px] flex-col gap-md text-small">
+      <header><h1 class="text-[22px] leading-7 font-semibold text-text-primary">Book Appointment</h1><p class="text-small text-text-secondary">Select an available doctor schedule and submit your appointment request.</p></header>
+      <section th:if="${patient == null}" class="rounded-lg border border-warning/30 bg-warning/10 p-md">Complete your profile before booking. <a class="font-bold text-primary" th:href="@{/patient/profile}">Complete profile</a></section>
+      <form class="rounded-lg border border-border-base bg-white p-md shadow-sm" method="post" th:action="@{/patient/appointments}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
+          <label class="space-y-xs md:col-span-2"><span class="text-caption font-bold uppercase text-text-secondary">Doctor</span><select name="providerUsername" class="w-full rounded-md border border-border-base p-sm text-small" required><option value="">Select doctor</option><option th:each="schedule : ${doctorSchedules}" th:value="${schedule.doctorUsername}" th:text="${schedule.doctorName + ' - ' + schedule.dayOfWeek + ' ' + schedule.startTime + ' to ' + schedule.endTime}">Doctor</option></select></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Date and Time</span><input name="scheduledAt" type="datetime-local" class="w-full rounded-md border border-border-base p-sm text-small" required></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Visit Type</span><select name="visitType" class="w-full rounded-md border border-border-base p-sm text-small"><option>Consultation</option><option>Follow-up</option><option>Review Results</option></select></label>
+          <label class="space-y-xs md:col-span-2"><span class="text-caption font-bold uppercase text-text-secondary">Reason</span><textarea name="reason" rows="4" class="w-full rounded-md border border-border-base p-sm text-small" placeholder="Briefly describe the reason for this visit"></textarea></label>
+        </div>
+        <button class="mt-md rounded-md bg-primary px-md py-sm font-semibold text-white disabled:opacity-50" th:disabled="${patient == null}" type="submit">Book Appointment</button>
+      </form>
+      <article class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="border-b border-border-base p-md"><h2 class="text-base font-semibold text-text-primary">Available Doctor Schedules</h2></div>
+        <div class="max-h-[340px] overflow-auto">
+          <table class="w-full min-w-[680px] text-left text-small"><thead class="sticky top-0 bg-surface-muted text-caption uppercase text-text-secondary"><tr><th class="px-md py-sm">Doctor</th><th class="px-md py-sm">Day</th><th class="px-md py-sm">Start</th><th class="px-md py-sm">End</th></tr></thead><tbody class="divide-y divide-border-base"><tr th:each="schedule : ${doctorSchedules}"><td class="px-md py-sm font-semibold" th:text="${schedule.doctorName}">Doctor</td><td class="px-md py-sm" th:text="${schedule.dayOfWeek}">Day</td><td class="px-md py-sm" th:text="${schedule.startTime}">Start</td><td class="px-md py-sm" th:text="${schedule.endTime}">End</td></tr></tbody></table>
+        </div>
+      </article>
+    </section>
+  </main>
+</div>
+</body>
+</html>

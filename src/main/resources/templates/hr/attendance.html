@@ -61,13 +61,14 @@
           <div class="max-h-[calc(100vh-320px)] overflow-auto">
             <table class="w-full text-left text-small">
               <thead class="sticky top-0 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
-              <tr><th class="px-md py-sm">Staff</th><th class="px-md py-sm">Shift</th><th class="px-md py-sm">Clock In</th><th class="px-md py-sm">Clock Out</th><th class="px-md py-sm">Status</th></tr>
+              <tr><th class="px-md py-sm">Staff</th><th class="px-md py-sm">Shift</th><th class="px-md py-sm">Source</th><th class="px-md py-sm">Clock In</th><th class="px-md py-sm">Clock Out</th><th class="px-md py-sm">Status</th></tr>
               </thead>
               <tbody class="divide-y divide-border-base">
-              <tr th:if="${#lists.isEmpty(attendanceRecords)}"><td colspan="5" class="px-md py-lg text-center text-text-secondary">No attendance records for this date.</td></tr>
+              <tr th:if="${#lists.isEmpty(attendanceRecords)}"><td colspan="6" class="px-md py-lg text-center text-text-secondary">No attendance records for this date.</td></tr>
               <tr th:each="record : ${attendanceRecords}" th:with="staff=${staffById[record.staffMemberId]}" class="hover:bg-surface-bright">
                 <td class="px-md py-sm"><p class="font-semibold" th:text="${staff != null ? staff.fullName : 'Unknown Staff'}">Staff</p><p class="text-caption text-text-secondary" th:text="${staff != null ? staff.staffId : '-'}">ID</p></td>
                 <td class="px-md py-sm" th:text="${record.scheduledShift ?: '-'}">Shift</td>
+                <td class="px-md py-sm" th:text="${record.source ?: 'MANUAL'}">Source</td>
                 <td class="px-md py-sm" th:text="${record.clockIn ?: '-'}">-</td>
                 <td class="px-md py-sm" th:text="${record.clockOut ?: '-'}">-</td>
                 <td class="px-md py-sm"><span class="rounded-full bg-success/10 px-sm py-1 text-[11px] font-bold text-success" th:classappend="${record.status == 'ABSENT' ? ' bg-danger/10 text-danger' : (record.status == 'LATE' ? ' bg-warning/10 text-warning' : '')}" th:text="${record.status}">PRESENT</span></td>

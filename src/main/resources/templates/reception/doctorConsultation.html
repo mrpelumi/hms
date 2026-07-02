@@ -231,6 +231,9 @@
                 <p class="text-caption text-success" th:if="${investigation.resultReadyAt != null}"
                    th:text="${'Ready ' + #temporals.format(investigation.resultReadyAt, 'MMM dd, hh:mm a')}">Ready</p>
                 <p class="text-caption text-text-secondary whitespace-pre-line" th:if="${investigation.resultSummary != null}" th:text="${investigation.resultSummary}">Result</p>
+                <a th:if="${investigation.status == 'RESULT_READY' || investigation.status == 'COMPLETED'}"
+                   th:href="@{/doctor/investigations/{id}/report(id=${investigation.id})}"
+                   class="mt-xs inline-flex rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">View Report</a>
               </div>
             </div>
           </section>

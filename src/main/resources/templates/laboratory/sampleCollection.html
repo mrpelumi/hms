@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Sample Collection | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <form class="mx-auto flex w-full max-w-[900px] flex-col gap-md text-small" method="post" th:action="@{/laboratory/requests/{id}/sample(id=${request.id})}">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Sample Collection</h1>
+          <p class="text-small text-text-secondary" th:text="${request.testName + ' for ' + (patient != null ? patient.fullName : 'Unknown Patient')}">Test</p>
+        </div>
+        <div class="flex gap-sm">
+          <a th:href="@{/laboratory/dashboard}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Back</a>
+          <button class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Sample</button>
+        </div>
+      </header>
+
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <div class="grid grid-cols-1 gap-md md:grid-cols-2">
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Sample Type</span><input name="sampleType" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${request.sampleType}" placeholder="Blood, urine, stool, sputum..." required></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Container Type</span><input name="containerType" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${request.containerType}" placeholder="EDTA, plain bottle, sterile container"></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Collection Location</span><input name="collectionLocation" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${request.collectionLocation}" placeholder="OPD, ward, emergency, lab desk"></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Sample Condition</span>
+            <select name="sampleCondition" class="w-full rounded-md border border-border-base p-sm text-small">
+              <option th:selected="${request.sampleCondition == null || request.sampleCondition == 'Acceptable'}">Acceptable</option>
+              <option th:selected="${request.sampleCondition == 'Hemolyzed'}">Hemolyzed</option>
+              <option th:selected="${request.sampleCondition == 'Clotted'}">Clotted</option>
+              <option th:selected="${request.sampleCondition == 'Insufficient'}">Insufficient</option>
+              <option th:selected="${request.sampleCondition == 'Mislabeled'}">Mislabeled</option>
+              <option th:selected="${request.sampleCondition == 'Recollect Required'}">Recollect Required</option>
+            </select>
+          </label>
+          <label class="space-y-xs md:col-span-2"><span class="text-caption font-bold uppercase text-text-secondary">Sample Notes</span><textarea name="sampleNotes" class="w-full rounded-md border border-border-base p-sm text-small" rows="4" th:text="${request.sampleNotes}" placeholder="Condition notes, recollection instructions, handling notes"></textarea></label>
+        </div>
+      </section>
+    </form>
+  </main>
+</div>
+</body>
+</html>

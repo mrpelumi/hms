@@ -41,7 +41,11 @@
                 </div>
             </div>
             <div th:if="${param.created}" class="mb-md rounded-lg border border-success/30 bg-white p-lg text-success font-card-heading">
-                Patient record created successfully.
+                Patient record and portal account created successfully. Temporary password: 1234.
+            </div>
+            <div th:if="${param.portalError}" class="mb-md rounded-lg border border-error/30 bg-white p-lg text-error font-card-heading"
+                 th:text="${errorMessage ?: 'Patient was not saved because the portal account could not be created.'}">
+                Patient was not saved because the portal account could not be created.
             </div>
             <!-- Guided Multi-Step Navigation -->
             <div class="bg-surface border border-border-base rounded-lg overflow-hidden shadow-sm mb-md">
@@ -112,7 +116,7 @@
                             </div>
                             <div class="space-y-sm">
                                 <label class="font-card-heading text-text-primary">Email Address</label>
-                                <input name="emailAddress" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="patient@example.com" type="email">
+                                <input name="emailAddress" class="w-full p-md border border-border-base rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="patient@example.com" type="email" required>
                             </div>
                         </div>
                         <div class="space-y-sm">

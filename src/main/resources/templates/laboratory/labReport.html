@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Laboratory Report | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[980px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Laboratory Report</h1>
+          <p class="text-small text-text-secondary" th:text="${request.testName + ' | ' + (patient != null ? patient.fullName : 'Unknown Patient')}">Report</p>
+        </div>
+        <div class="flex gap-sm">
+          <a th:href="@{/laboratory/dashboard}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Back</a>
+          <a th:href="@{/laboratory/requests/{id}/report/download(id=${request.id})}" class="rounded-md bg-primary px-md py-sm font-semibold text-white">Download</a>
+        </div>
+      </header>
+      <section class="rounded-lg border border-border-base bg-white p-lg shadow-sm">
+        <div class="grid grid-cols-1 gap-md md:grid-cols-2">
+          <div><p class="text-caption font-bold uppercase text-text-secondary">Patient</p><p class="font-semibold" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p><p class="text-caption text-text-secondary" th:text="${patient != null ? patient.patientId : '-'}">PID</p></div>
+          <div><p class="text-caption font-bold uppercase text-text-secondary">Test</p><p class="font-semibold" th:text="${request.testName}">Test</p><p class="text-caption text-text-secondary" th:text="${request.priority ?: 'Routine'}">Routine</p></div>
+          <div><p class="text-caption font-bold uppercase text-text-secondary">Sample</p><p th:text="${request.sampleType ?: '-'}">-</p><p class="text-caption text-text-secondary" th:text="${request.sampleCondition ?: '-'}">-</p></div>
+          <div><p class="text-caption font-bold uppercase text-text-secondary">Verified</p><p th:text="${request.verifiedBy ?: '-'}">-</p><p class="text-caption text-text-secondary" th:text="${request.verifiedAt != null ? #temporals.format(request.verifiedAt, 'MMM dd, yyyy hh:mm a') : '-'}">-</p></div>
+        </div>
+        <div class="mt-md">
+          <h2 class="text-base font-semibold text-text-primary">Result Summary</h2>
+          <p class="mt-xs whitespace-pre-line text-text-primary" th:text="${request.resultSummary ?: '-'}">-</p>
+        </div>
+        <div class="mt-md" th:if="${!#lists.isEmpty(resultRows)}">
+          <h2 class="text-base font-semibold text-text-primary">Result Parameters</h2>
+          <table class="mt-xs w-full text-left text-small">
+            <thead class="bg-surface-muted text-caption uppercase text-text-secondary"><tr><th class="px-sm py-xs">Parameter</th><th class="px-sm py-xs">Result</th><th class="px-sm py-xs">Unit</th><th class="px-sm py-xs">Reference</th><th class="px-sm py-xs">Flag</th></tr></thead>
+            <tbody class="divide-y divide-border-base"><tr th:each="row : ${resultRows}"><td class="px-sm py-xs" th:text="${row[0]}">-</td><td class="px-sm py-xs" th:text="${row[1]}">-</td><td class="px-sm py-xs" th:text="${row[2]}">-</td><td class="px-sm py-xs" th:text="${row[3]}">-</td><td class="px-sm py-xs" th:text="${row[4]}">-</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

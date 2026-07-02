@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>Department Workload | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1080px] flex-col gap-md text-small">
+            <header>
+                <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                    <a class="hover:text-primary" th:href="@{/department-management/dashboard}">Department Admin</a>
+                    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    <span class="font-bold text-primary">Workload</span>
+                </nav>
+                <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Monitor Department Workload</h1>
+                <p class="text-small text-text-secondary">Track coverage pressure using staff role mix and shift distribution.</p>
+            </header>
+
+            <section class="grid grid-cols-1 gap-md lg:grid-cols-2">
+                <article class="rounded-lg border border-border-base bg-white shadow-sm">
+                    <div class="border-b border-border-base p-md">
+                        <h2 class="text-base font-semibold text-text-primary">Staff by Role</h2>
+                    </div>
+                    <div class="space-y-sm p-md">
+                        <div th:each="entry : ${roleCounts}" class="flex items-center justify-between rounded-md bg-surface-muted p-sm">
+                            <span class="font-semibold text-text-primary" th:text="${entry.key}">Role</span>
+                            <span class="rounded-full bg-primary/10 px-sm py-[2px] text-caption font-bold text-primary" th:text="${entry.value}">0</span>
+                        </div>
+                        <p th:if="${#maps.isEmpty(roleCounts)}" class="text-text-secondary">No role data available.</p>
+                    </div>
+                </article>
+
+                <article class="rounded-lg border border-border-base bg-white shadow-sm">
+                    <div class="border-b border-border-base p-md">
+                        <h2 class="text-base font-semibold text-text-primary">Staff by Shift</h2>
+                    </div>
+                    <div class="space-y-sm p-md">
+                        <div th:each="entry : ${shiftCounts}" class="flex items-center justify-between rounded-md bg-surface-muted p-sm">
+                            <span class="font-semibold text-text-primary" th:text="${entry.key}">Shift</span>
+                            <span class="rounded-full bg-success/10 px-sm py-[2px] text-caption font-bold text-success" th:text="${entry.value}">0</span>
+                        </div>
+                        <p th:if="${#maps.isEmpty(shiftCounts)}" class="text-text-secondary">No shift data available.</p>
+                    </div>
+                </article>
+            </section>
+        </section>
+    </main>
+</div>
+</body>
+</html>

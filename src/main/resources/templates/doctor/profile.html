@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Doctor Profile | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <section class="mx-auto flex w-full max-w-[980px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+            <a class="hover:text-primary" th:href="@{/doctor/dashboard}">Doctor</a>
+            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span class="font-bold text-primary">Profile</span>
+          </nav>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Doctor Profile</h1>
+          <p class="text-small text-text-secondary">Read-only professional details from the HR staff record and authenticated account.</p>
+        </div>
+        <a th:href="@{/doctor/schedule}" class="inline-flex items-center gap-xs rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">
+          <span class="material-symbols-outlined text-[18px]">event</span>
+          View Schedule
+        </a>
+      </header>
+
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <div class="flex flex-col gap-md md:flex-row md:items-center">
+          <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <span class="material-symbols-outlined text-[40px]">stethoscope</span>
+          </div>
+          <div class="min-w-0">
+            <h2 class="truncate text-[20px] font-semibold leading-7 text-text-primary" th:text="${doctorName}">Doctor Name</h2>
+            <p class="text-small text-text-secondary" th:text="${doctor != null ? (doctor.jobTitle ?: 'Doctor') : 'Doctor'}">Doctor</p>
+            <p class="text-caption text-text-secondary" th:text="${doctorEmail}">doctor@example.com</p>
+          </div>
+          <div class="md:ml-auto">
+            <span class="rounded-full px-sm py-[2px] text-caption font-bold"
+                  th:classappend="${doctor == null || doctor.status == 'ACTIVE'} ? ' bg-success/10 text-success' : ' bg-surface-muted text-text-secondary'"
+                  th:text="${doctor != null ? (doctor.status ?: 'ACTIVE') : 'ACTIVE'}">ACTIVE</span>
+          </div>
+        </div>
+      </section>
+
+      <section th:if="${doctor == null}" class="rounded-lg border border-warning/30 bg-warning/10 p-md text-small text-text-primary">
+        No HR staff record was found for this doctor account. The page is showing authenticated account details only.
+      </section>
+
+      <section class="grid grid-cols-1 gap-md lg:grid-cols-2">
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <h2 class="mb-md text-base font-semibold text-text-primary">Staff Details</h2>
+          <dl class="grid grid-cols-1 gap-sm">
+            <div class="rounded-md bg-surface-muted p-sm">
+              <dt class="text-caption font-bold uppercase text-text-secondary">Staff ID</dt>
+              <dd class="mt-xs font-semibold text-text-primary" th:text="${doctor != null ? (doctor.staffId ?: 'Not assigned') : 'Not assigned'}">STF-0001</dd>
+            </div>
+            <div class="rounded-md bg-surface-muted p-sm">
+              <dt class="text-caption font-bold uppercase text-text-secondary">Department / Clinical Unit</dt>
+              <dd class="mt-xs font-semibold text-text-primary" th:text="${doctor != null ? (doctor.department ?: 'Not set') : 'Not set'}">Outpatient Department</dd>
+            </div>
+            <div class="rounded-md bg-surface-muted p-sm">
+              <dt class="text-caption font-bold uppercase text-text-secondary">Application Role</dt>
+              <dd class="mt-xs font-semibold text-text-primary" th:text="${doctor != null ? (doctor.staffRole ?: 'DOCTOR') : 'DOCTOR'}">DOCTOR</dd>
+            </div>
+            <div class="rounded-md bg-surface-muted p-sm">
+              <dt class="text-caption font-bold uppercase text-text-secondary">Employment Type</dt>
+              <dd class="mt-xs font-semibold text-text-primary" th:text="${doctor != null ? (doctor.employmentType ?: 'Not set') : 'Not set'}">Full-time</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <h2 class="mb-md text-base font-semibold text-text-primary">Contact and Compliance</h2>
+          <dl class="grid grid-cols-1 gap-sm">
+            <div class="rounded-md bg-surface-muted p-sm">
+              <dt class="text-caption font-bold uppercase text-text-secondary">Email</dt>
+              <dd class="mt-xs break-words font-semibold text-text-primary" th:text="${doctorEmail}">doctor@example.com</dd>
+            </div>
+            <div class="rounded-md bg-surface-muted p-sm">
+              <dt class="text-caption font-bold uppercase text-text-secondary">Phone</dt>
+              <dd class="mt-xs font-semibold text-text-primary" th:text="${doctor != null ? (doctor.phoneNumber ?: 'Not provided') : 'Not provided'}">Not provided</dd>
+            </div>
+            <div class="rounded-md bg-surface-muted p-sm">
+              <dt class="text-caption font-bold uppercase text-text-secondary">Credential Expiry</dt>
+              <dd class="mt-xs font-semibold text-text-primary" th:text="${doctor != null && doctor.credentialExpiryDate != null ? #temporals.format(doctor.credentialExpiryDate, 'dd MMM yyyy') : 'Not set'}">Not set</dd>
+            </div>
+            <div class="rounded-md bg-surface-muted p-sm">
+              <dt class="text-caption font-bold uppercase text-text-secondary">Hire Date</dt>
+              <dd class="mt-xs font-semibold text-text-primary" th:text="${doctor != null && doctor.hireDate != null ? #temporals.format(doctor.hireDate, 'dd MMM yyyy') : 'Not set'}">Not set</dd>
+            </div>
+          </dl>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 gap-md lg:grid-cols-3">
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Booked Appointments</p>
+          <p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${appointmentCount}">0</p>
+        </article>
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Completed</p>
+          <p class="mt-xs text-[24px] font-semibold text-success" th:text="${completedCount}">0</p>
+        </article>
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Schedule Entries</p>
+          <p class="mt-xs text-[24px] font-semibold text-primary" th:text="${#lists.size(schedules)}">0</p>
+        </article>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="border-b border-border-base p-md">
+          <h2 class="text-base font-semibold text-text-primary">Submitted Schedule</h2>
+        </div>
+        <div class="max-h-[260px] overflow-auto">
+          <table class="w-full min-w-[640px] text-left text-small">
+            <thead class="sticky top-0 bg-surface-muted text-caption uppercase text-text-secondary">
+            <tr>
+              <th class="px-md py-sm font-bold">Day</th>
+              <th class="px-md py-sm font-bold">Availability</th>
+              <th class="px-md py-sm font-bold">Start</th>
+              <th class="px-md py-sm font-bold">End</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr th:each="schedule : ${schedules}">
+              <td class="px-md py-sm font-semibold text-text-primary" th:text="${schedule.dayOfWeek}">Monday</td>
+              <td class="px-md py-sm" th:text="${schedule.available ? 'Available' : 'Unavailable'}">Available</td>
+              <td class="px-md py-sm text-text-secondary" th:text="${schedule.startTime != null ? schedule.startTime : '-'}">09:00</td>
+              <td class="px-md py-sm text-text-secondary" th:text="${schedule.endTime != null ? schedule.endTime : '-'}">17:00</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(schedules)}">
+              <td colspan="4" class="px-md py-lg text-center text-text-secondary">No schedule has been submitted yet.</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+</body>
+</html>

@@ -6,6 +6,7 @@ import com.elegax.hms.patients.entity.StaffMember;
 import com.elegax.hms.patients.repository.LeaveRequestRepository;
 import com.elegax.hms.patients.repository.StaffAttendanceRepository;
 import com.elegax.hms.patients.repository.StaffMemberRepository;
+import com.elegax.hms.patients.service.AttendanceService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
@@ -36,13 +37,16 @@ public class HrController {
     private final StaffMemberRepository staffMemberRepository;
     private final StaffAttendanceRepository staffAttendanceRepository;
     private final LeaveRequestRepository leaveRequestRepository;
+    private final AttendanceService attendanceService;
 
     public HrController(StaffMemberRepository staffMemberRepository,
                         StaffAttendanceRepository staffAttendanceRepository,
-                        LeaveRequestRepository leaveRequestRepository) {
+                        LeaveRequestRepository leaveRequestRepository,
+                        AttendanceService attendanceService) {
         this.staffMemberRepository = staffMemberRepository;
         this.staffAttendanceRepository = staffAttendanceRepository;
         this.leaveRequestRepository = leaveRequestRepository;
+        this.attendanceService = attendanceService;
     }
 
     @GetMapping({"/home", "/dashboard"})
@@ -53,7 +57,7 @@ public class HrController {
         List<LeaveRequest> leaves = leaves();
         model.addAttribute("totalStaff", staff.size());
         model.addAttribute("activeStaff", staff.stream().filter(member -> "ACTIVE".equals(member.getStatus())).count());
-        model.addAttribute("onDutyCount", todayAttendance.stream().filter(attendance -> "PRESENT".equals(attendance.getStatus()) || "LATE".equals(attendance.getStatus())).count());
+        model.addAttribute("onDutyCount", todayAttendance.stream().filter(this::isOnDuty).count());
         model.addAttribute("pendingLeaveCount", leaves.stream().filter(leave -> "PENDING".equals(leave.getStatus())).count());
         model.addAttribute("credentialDueCount", staff.stream().filter(this::credentialDueSoon).count());
         model.addAttribute("departmentCounts", staff.stream().collect(Collectors.groupingBy(member -> valueOr(member.getDepartment(), "Unassigned"), Collectors.counting())));
@@ -159,7 +163,7 @@ public class HrController {
         model.addAttribute("attendanceRecords", attendance);
         model.addAttribute("staffMembers", staff());
         model.addAttribute("staffById", staffById());
-        model.addAttribute("onDutyCount", attendance.stream().filter(record -> "PRESENT".equals(record.getStatus()) || "LATE".equals(record.getStatus())).count());
+        model.addAttribute("onDutyCount", attendance.stream().filter(this::isOnDuty).count());
         model.addAttribute("lateCount", attendance.stream().filter(record -> "LATE".equals(record.getStatus())).count());
         model.addAttribute("absentCount", attendance.stream().filter(record -> "ABSENT".equals(record.getStatus())).count());
         model.addAttribute("leaveCount", leaveRequestRepository.findAll().stream().filter(leave -> "APPROVED".equals(leave.getStatus()) && !selectedDate.isBefore(leave.getStartDate()) && !selectedDate.isAfter(leave.getEndDate())).count());
@@ -174,16 +178,7 @@ public class HrController {
                                  @RequestParam(required = false) String clockOut,
                                  @RequestParam String status,
                                  @RequestParam(required = false) String notes) {
-        StaffAttendance attendance = StaffAttendance.builder()
-                .staffMemberId(staffMemberId)
-                .attendanceDate(LocalDate.parse(attendanceDate))
-                .scheduledShift(scheduledShift)
-                .clockIn(parseTime(clockIn))
-                .clockOut(parseTime(clockOut))
-                .status(status)
-                .notes(notes)
-                .build();
-        staffAttendanceRepository.save(attendance);
+        attendanceService.recordManualAttendance(staffMemberId, LocalDate.parse(attendanceDate), scheduledShift, parseTime(clockIn), parseTime(clockOut), status, notes);
         return "redirect:/hr/attendance?date=" + attendanceDate + "&recorded";
     }
 
@@ -288,6 +283,12 @@ public class HrController {
         return staffMember.getCredentialExpiryDate() != null
                 && !staffMember.getCredentialExpiryDate().isBefore(LocalDate.now())
                 && ChronoUnit.DAYS.between(LocalDate.now(), staffMember.getCredentialExpiryDate()) <= 30;
+    }
+
+    private boolean isOnDuty(StaffAttendance attendance) {
+        return "PRESENT".equals(attendance.getStatus())
+                || "LATE".equals(attendance.getStatus())
+                || "UNSCHEDULED_PRESENT".equals(attendance.getStatus());
     }
 
     private LocalTime parseTime(String time) {

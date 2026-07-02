@@ -1,6 +1,7 @@
 package com.elegax.hms.keycloak;
 
 import com.elegax.hms.patients.entity.StaffMember;
+import com.elegax.hms.patients.entity.Patient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class KeycloakService {
 
     public static final String TEMPORARY_STAFF_PASSWORD = "1234";
+    public static final String TEMPORARY_PATIENT_PASSWORD = "1234";
 
     private final KeycloakFeignClient keycloakFeignClient;
 
@@ -90,6 +92,42 @@ public class KeycloakService {
         return new ProvisionedUser(userId, username, true);
     }
 
+    public ProvisionedUser provisionPatientUser(Patient patient) {
+        validatePatient(patient);
+
+        String username = patient.getEmailAddress().trim().toLowerCase(Locale.ROOT);
+        String accessToken = bearerToken();
+        Map<String, Object> existingUser = findUser(accessToken, username);
+        if (existingUser != null) {
+            String userId = String.valueOf(existingUser.get("id"));
+            keycloakFeignClient.updateUser(accessToken, realm, userId, userUpdateForPatient(patient, true));
+            assignGroup(accessToken, userId, "PATIENT");
+            resetTemporaryPassword(accessToken, userId, TEMPORARY_PATIENT_PASSWORD);
+            return new ProvisionedUser(userId, username, true);
+        }
+
+        Map<String, Object> user = userUpdateForPatient(patient, true);
+        user.put("username", username);
+        user.put("email", patient.getEmailAddress().trim());
+        user.put("emailVerified", true);
+        applyNames(user, patient.getFullName());
+        user.put("credentials", List.of(Map.of(
+                "type", "password",
+                "value", TEMPORARY_PATIENT_PASSWORD,
+                "temporary", true
+        )));
+
+        keycloakFeignClient.createUser(accessToken, realm, user);
+        Map<String, Object> createdUser = findUser(accessToken, username);
+        if (createdUser == null) {
+            throw new IllegalStateException("Keycloak patient user was created but could not be found by username: " + username);
+        }
+
+        String userId = String.valueOf(createdUser.get("id"));
+        assignGroup(accessToken, userId, "PATIENT");
+        return new ProvisionedUser(userId, username, false);
+    }
+
     private String bearerToken() {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("client_id", clientId);
@@ -130,9 +168,13 @@ public class KeycloakService {
     }
 
     private void resetTemporaryPassword(String accessToken, String userId) {
+        resetTemporaryPassword(accessToken, userId, TEMPORARY_STAFF_PASSWORD);
+    }
+
+    private void resetTemporaryPassword(String accessToken, String userId, String password) {
         keycloakFeignClient.resetPassword(accessToken, realm, userId, Map.of(
                 "type", "password",
-                "value", TEMPORARY_STAFF_PASSWORD,
+                "value", password,
                 "temporary", true
         ));
     }
@@ -147,6 +189,32 @@ public class KeycloakService {
         if (staffMember.getStaffRole() == null || staffMember.getStaffRole().isBlank()) {
             throw new IllegalArgumentException("Staff access role is required before creating a Keycloak account");
         }
+    }
+
+    private void validatePatient(Patient patient) {
+        if (patient == null) {
+            throw new IllegalArgumentException("Patient is required");
+        }
+        if (patient.getEmailAddress() == null || patient.getEmailAddress().isBlank()) {
+            throw new IllegalArgumentException("Patient email is required before creating a portal account");
+        }
+        if (patient.getPatientId() == null || patient.getPatientId().isBlank()) {
+            throw new IllegalArgumentException("Patient ID is required before creating a portal account");
+        }
+    }
+
+    private Map<String, Object> userUpdateForPatient(Patient patient, boolean enabled) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("enabled", enabled);
+        user.put("email", patient.getEmailAddress().trim());
+        user.put("emailVerified", true);
+        applyNames(user, patient.getFullName());
+        user.put("attributes", Map.of(
+                "patientId", List.of(valueOr(patient.getPatientId(), "")),
+                "patientRecordId", List.of(patient.getId() == null ? "" : String.valueOf(patient.getId())),
+                "patientPhone", List.of(valueOr(patient.getPhoneNumber(), ""))
+        ));
+        return user;
     }
 
     private void applyNames(Map<String, Object> user, String fullName) {
@@ -172,6 +240,7 @@ public class KeycloakService {
             case "PHARMACY" -> "pharmacy";
             case "BILLING" -> "billing";
             case "HR" -> "hr";
+            case "PATIENT" -> "patient";
             case "HOSPITAL_ADMIN" -> "hospital-admin";
             case "DEPARTMENT_MANAGER" -> "department-manager";
             default -> normalizedRole.toLowerCase(Locale.ROOT).replace('_', '-');

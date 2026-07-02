@@ -20,6 +20,9 @@ public class PatientDTO {
     private String phoneNumber;
     private String emailAddress;
     private String residentialAddress;
+    private String portalUsername;
+    private String keycloakUserId;
+    private String portalAccountStatus;
 
     private String insuranceProvider;
     private String policyNumber;

@@ -5,13 +5,18 @@ import com.elegax.hms.patients.entity.*;
 import com.elegax.hms.patients.repository.*;
 import com.elegax.hms.patients.service.BillingWorkflowService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -246,6 +251,45 @@ public class DoctorController {
                 .notes(notes)
                 .build());
         return "redirect:/doctor/consultation/" + queueEntryId + "?investigationAdded";
+    }
+
+    @GetMapping("/investigations/{id}/report")
+    public ResponseEntity<ByteArrayResource> investigationReport(@PathVariable Long id) {
+        InvestigationRequest request = investigationRequestRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Report not found"));
+        if (!patientBookedWithCurrentDoctor(request.getPatientId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This patient is booked with another doctor");
+        }
+        if (!"RESULT_READY".equals(request.getStatus()) && !"COMPLETED".equals(request.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Report is not ready");
+        }
+        Patient patient = getPatient(request.getPatientId());
+        String content = """
+                Tel Health Investigation Report
+
+                Patient: %s
+                Patient ID: %s
+                Test: %s
+                Type: %s
+                Status: %s
+                Sample: %s
+                Collected: %s by %s
+                Verified: %s by %s
+
+                Result Summary:
+                %s
+
+                Result Parameters:
+                %s
+                """.formatted(patient.getFullName(), patient.getPatientId(), request.getTestName(), request.getRequestType(),
+                request.getStatus(), valueOr(request.getSampleType(), "-"),
+                request.getCollectedAt() == null ? "-" : request.getCollectedAt(), valueOr(request.getCollectedBy(), "-"),
+                request.getVerifiedAt() == null ? "-" : request.getVerifiedAt(), valueOr(request.getVerifiedBy(), "-"),
+                valueOr(request.getResultSummary(), "-"), valueOr(request.getResultParameters(), "-"));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=investigation-report-" + request.getId() + ".txt")
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(new ByteArrayResource(content.getBytes(StandardCharsets.UTF_8)));
     }
 
     @PostMapping("/consultation/{queueEntryId}/await-results")

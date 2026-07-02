@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Expected Result Time | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <form class="mx-auto flex w-full max-w-[760px] flex-col gap-md text-small" method="post" th:action="@{/laboratory/requests/{id}/expected(id=${request.id})}">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Expected Result Time</h1>
+          <p class="text-small text-text-secondary">This tells reception, doctor, and patient when the result is expected to be available.</p>
+        </div>
+        <div class="flex gap-sm">
+          <a th:href="@{/laboratory/dashboard}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Back</a>
+          <button class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Time</button>
+        </div>
+      </header>
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <div class="space-y-md">
+          <label class="space-y-xs block"><span class="text-caption font-bold uppercase text-text-secondary">Expected Result Date and Time</span><input name="expectedResultAt" type="datetime-local" class="w-full rounded-md border border-border-base p-sm text-small" required></label>
+          <label class="space-y-xs block"><span class="text-caption font-bold uppercase text-text-secondary">Patient Update Note</span><textarea name="patientUpdateNote" class="w-full rounded-md border border-border-base p-sm text-small" rows="4" th:text="${request.patientUpdateNote}" placeholder="Example: Result expected tomorrow morning. Patient should return with card."></textarea></label>
+        </div>
+      </section>
+    </form>
+  </main>
+</div>
+</body>
+</html>

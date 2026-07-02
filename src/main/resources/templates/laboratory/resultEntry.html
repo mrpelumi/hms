@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Result Entry | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <form class="mx-auto flex w-full max-w-[1060px] flex-col gap-md text-small" method="post" th:action="@{/laboratory/requests/{id}/result(id=${request.id})}">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Result Entry</h1>
+          <p class="text-small text-text-secondary" th:text="${request.testName + ' | Sample: ' + (request.sampleType ?: '-')}">Test</p>
+        </div>
+        <div class="flex gap-sm">
+          <a th:href="@{/laboratory/dashboard}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Back</a>
+          <button class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Result</button>
+        </div>
+      </header>
+
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <h2 class="text-base font-semibold text-text-primary">Structured Parameters</h2>
+        <p class="mb-sm text-caption text-text-secondary">Use rows only when the test has measurable parameters. Leave blank for summary-only tests.</p>
+        <div id="result-rows" class="space-y-xs">
+          <div th:each="i : ${#numbers.sequence(1, 5)}" class="grid grid-cols-2 gap-xs lg:grid-cols-5">
+            <input class="rounded-md border border-border-base p-sm text-small" name="parameterName" placeholder="Parameter">
+            <input class="rounded-md border border-border-base p-sm text-small" name="parameterValue" placeholder="Result">
+            <input class="rounded-md border border-border-base p-sm text-small" name="parameterUnit" placeholder="Unit">
+            <input class="rounded-md border border-border-base p-sm text-small" name="referenceRange" placeholder="Reference range">
+            <select class="rounded-md border border-border-base p-sm text-small" name="resultFlag"><option>Normal</option><option>Low</option><option>High</option><option>Critical</option></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <label class="space-y-xs block"><span class="text-caption font-bold uppercase text-text-secondary">Result Summary and Interpretation</span><textarea name="resultSummary" class="w-full rounded-md border border-border-base p-sm text-small" rows="7" th:text="${request.resultSummary}" placeholder="Narrative report, interpretation, comments"></textarea></label>
+      </section>
+    </form>
+  </main>
+</div>
+</body>
+</html>

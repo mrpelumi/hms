@@ -4,14 +4,20 @@ import com.elegax.hms.patients.entity.Appointment;
 import com.elegax.hms.patients.entity.Consultation;
 import com.elegax.hms.patients.entity.DoctorSchedule;
 import com.elegax.hms.patients.entity.InvestigationRequest;
+import com.elegax.hms.patients.entity.LeaveRequest;
 import com.elegax.hms.patients.entity.Patient;
 import com.elegax.hms.patients.entity.QueueEntry;
+import com.elegax.hms.patients.entity.StaffMember;
 import com.elegax.hms.patients.repository.AppointmentRepository;
 import com.elegax.hms.patients.repository.ConsultationRepository;
 import com.elegax.hms.patients.repository.DoctorScheduleRepository;
 import com.elegax.hms.patients.repository.InvestigationRequestRepository;
+import com.elegax.hms.patients.repository.LeaveRequestRepository;
 import com.elegax.hms.patients.repository.PatientRepository;
 import com.elegax.hms.patients.repository.QueueEntryRepository;
+import com.elegax.hms.patients.repository.StaffMemberRepository;
+import com.elegax.hms.patients.service.AppointmentWorkflowService;
+import com.elegax.hms.patients.service.SchedulingService;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -26,11 +32,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Locale;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -43,19 +47,31 @@ public class ReceptionController {
 	private final ConsultationRepository consultationRepository;
 	private final DoctorScheduleRepository doctorScheduleRepository;
 	private final InvestigationRequestRepository investigationRequestRepository;
+	private final StaffMemberRepository staffMemberRepository;
+	private final LeaveRequestRepository leaveRequestRepository;
+	private final SchedulingService schedulingService;
+	private final AppointmentWorkflowService appointmentWorkflowService;
 
 	public ReceptionController(PatientRepository patientRepository,
 							   AppointmentRepository appointmentRepository,
 							   QueueEntryRepository queueEntryRepository,
 							   ConsultationRepository consultationRepository,
 							   DoctorScheduleRepository doctorScheduleRepository,
-							   InvestigationRequestRepository investigationRequestRepository) {
+							   InvestigationRequestRepository investigationRequestRepository,
+							   StaffMemberRepository staffMemberRepository,
+							   LeaveRequestRepository leaveRequestRepository,
+							   SchedulingService schedulingService,
+							   AppointmentWorkflowService appointmentWorkflowService) {
 		this.patientRepository = patientRepository;
 		this.appointmentRepository = appointmentRepository;
 		this.queueEntryRepository = queueEntryRepository;
 		this.consultationRepository = consultationRepository;
 		this.doctorScheduleRepository = doctorScheduleRepository;
 		this.investigationRequestRepository = investigationRequestRepository;
+		this.staffMemberRepository = staffMemberRepository;
+		this.leaveRequestRepository = leaveRequestRepository;
+		this.schedulingService = schedulingService;
+		this.appointmentWorkflowService = appointmentWorkflowService;
 	}
 
 	@GetMapping("/reception/home")
@@ -147,17 +163,43 @@ public class ReceptionController {
 
 	@GetMapping("/reception/appointment/new")
 	public String scheduleAppointment(Model model) {
-		List<DoctorSchedule> availableSchedules = doctorScheduleRepository.findByAvailableTrueOrderByDoctorNameAscDayOfWeekAscStartTimeAsc();
+		Map<String, StaffMember> activeDoctorsByUsername = staffMemberRepository.findAll(Sort.by(Sort.Direction.ASC, "fullName"))
+				.stream()
+				.filter(staff -> "DOCTOR".equalsIgnoreCase(valueOr(staff.getStaffRole(), "")))
+				.filter(staff -> "ACTIVE".equalsIgnoreCase(valueOr(staff.getStatus(), "ACTIVE")))
+				.filter(staff -> staff.getEmail() != null && !staff.getEmail().isBlank())
+				.collect(Collectors.toMap(staff -> staff.getEmail().toLowerCase(), Function.identity(), (first, ignored) -> first));
+		List<DoctorSchedule> availableSchedules = doctorScheduleRepository.findByAvailableTrueOrderByDoctorNameAscDayOfWeekAscStartTimeAsc()
+				.stream()
+				.filter(schedule -> schedule.getDoctorUsername() != null)
+				.filter(schedule -> activeDoctorsByUsername.containsKey(schedule.getDoctorUsername().toLowerCase()))
+				.toList();
 		List<Appointment> bookedAppointments = appointmentRepository.findAll(Sort.by(Sort.Direction.ASC, "scheduledAt"))
 				.stream()
 				.filter(appointment -> appointment.getScheduledAt() != null)
 				.filter(appointment -> appointment.getProviderUsername() != null)
 				.filter(appointment -> !"CANCELLED".equals(appointment.getStatus()) && !"COMPLETED".equals(appointment.getStatus()))
 				.toList();
+		List<LeaveRequest> approvedDoctorLeaves = leaveRequestRepository.findAll(Sort.by(Sort.Direction.ASC, "startDate"))
+				.stream()
+				.filter(leave -> "APPROVED".equalsIgnoreCase(valueOr(leave.getStatus(), "")))
+				.filter(leave -> leave.getStartDate() != null && leave.getEndDate() != null)
+				.filter(leave -> activeDoctorsByUsername.values().stream().anyMatch(doctor -> Objects.equals(doctor.getId(), leave.getStaffMemberId())))
+				.toList();
 		model.addAttribute("pageTitle", "Schedule Appointment");
 		model.addAttribute("patients", patientRepository.findAll(Sort.by(Sort.Direction.ASC, "fullName")));
 		model.addAttribute("doctorSchedules", availableSchedules);
 		model.addAttribute("bookedAppointments", bookedAppointments);
+		model.addAttribute("approvedDoctorLeaves", approvedDoctorLeaves);
+		model.addAttribute("staffById", activeDoctorsByUsername.values().stream().collect(Collectors.toMap(StaffMember::getId, Function.identity())));
+		model.addAttribute("doctorStaffByUsername", activeDoctorsByUsername);
+		model.addAttribute("clinicalDepartments", activeDoctorsByUsername.values()
+				.stream()
+				.map(StaffMember::getDepartment)
+				.filter(department -> department != null && !department.isBlank())
+				.distinct()
+				.sorted(String::compareToIgnoreCase)
+				.toList());
 		model.addAttribute("today", LocalDate.now());
 		model.addAttribute("doctors", availableSchedules.stream()
 				.collect(Collectors.toMap(DoctorSchedule::getDoctorUsername, Function.identity(), (first, ignored) -> first))
@@ -177,53 +219,12 @@ public class ReceptionController {
 									@RequestParam String visitType,
 									@RequestParam String priority,
 									@RequestParam(required = false) String reason) {
-		if (!patientRepository.existsById(patientId)) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found");
-		}
-
 		OffsetDateTime scheduledAt = OffsetDateTime.of(
 				LocalDate.parse(appointmentDate),
 				LocalTime.parse(appointmentTime),
 				ZoneId.systemDefault().getRules().getOffset(OffsetDateTime.now().toInstant())
 		);
-		LocalDate selectedDate = scheduledAt.toLocalDate();
-		LocalTime selectedTime = scheduledAt.toLocalTime();
-		if (selectedDate.isBefore(LocalDate.now())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Appointment date cannot be in the past");
-		}
-		String selectedDay = selectedDate.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
-		DoctorSchedule selectedDoctor = doctorScheduleRepository.findByDoctorUsernameOrderByIdAsc(providerUsername)
-				.stream()
-				.filter(DoctorSchedule::isAvailable)
-				.filter(schedule -> selectedDay.equalsIgnoreCase(schedule.getDayOfWeek()))
-				.filter(schedule -> !selectedTime.isBefore(schedule.getStartTime()) && selectedTime.isBefore(schedule.getEndTime()))
-				.findFirst()
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected doctor is not available for the selected date and time"));
-		boolean slotBooked = appointmentRepository.findAll()
-				.stream()
-				.filter(appointment -> appointment.getScheduledAt() != null)
-				.filter(appointment -> Objects.equals(appointment.getProviderUsername(), providerUsername))
-				.filter(appointment -> !"CANCELLED".equals(appointment.getStatus()) && !"COMPLETED".equals(appointment.getStatus()))
-				.anyMatch(appointment -> Objects.equals(appointment.getScheduledAt().toLocalDate(), selectedDate)
-						&& selectedTime.isBefore(appointment.getScheduledAt().toLocalTime().plusMinutes(30))
-						&& selectedTime.plusMinutes(30).isAfter(appointment.getScheduledAt().toLocalTime()));
-		if (slotBooked) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selected doctor is already booked for this time");
-		}
-
-		Appointment appointment = Appointment.builder()
-				.patientId(patientId)
-				.scheduledAt(scheduledAt)
-				.provider(selectedDoctor.getDoctorName())
-				.providerUsername(providerUsername)
-				.department(department)
-				.visitType(visitType)
-				.priority(priority)
-				.reason(reason)
-				.status("BOOKED")
-				.build();
-
-		appointmentRepository.save(appointment);
+		schedulingService.bookAppointment(patientId, providerUsername, scheduledAt, department, visitType, priority, reason);
 		return "redirect:/reception/appointment?created";
 	}
 
@@ -241,20 +242,7 @@ public class ReceptionController {
 	@PostMapping("/reception/appointment/{appointmentId}/check-in")
 	public String completeCheckIn(@PathVariable Long appointmentId) {
 		Appointment appointment = getAppointment(appointmentId);
-		QueueEntry queueEntry = queueEntryRepository.findByAppointmentId(appointmentId)
-				.orElseGet(() -> QueueEntry.builder()
-						.appointmentId(appointment.getId())
-						.patientId(appointment.getPatientId())
-						.token(buildQueueToken(appointment))
-						.queuedAt(OffsetDateTime.now())
-						.build());
-
-		queueEntry.setStatus("WAITING_FOR_NURSE");
-		queueEntryRepository.save(queueEntry);
-
-		appointment.setStatus("CHECKED_IN");
-		appointment.setCheckedInAt(OffsetDateTime.now());
-		appointmentRepository.save(appointment);
+		appointmentWorkflowService.checkIn(appointment, buildQueueToken(appointment));
 		return "redirect:/reception/queue?checkedIn";
 	}
 
@@ -319,12 +307,7 @@ public class ReceptionController {
 				.build();
 		consultationRepository.save(consultation);
 
-		queueEntry.setStatus("SERVED");
-		queueEntry.setServedAt(OffsetDateTime.now());
-		queueEntryRepository.save(queueEntry);
-
-		appointment.setStatus("COMPLETED");
-		appointmentRepository.save(appointment);
+		appointmentWorkflowService.completeAppointment(appointment, queueEntry);
 		return "redirect:/reception/queue?completed";
 	}
 
@@ -375,6 +358,10 @@ public class ReceptionController {
 		return patients.stream()
 				.filter(patient -> patient.getCreatedAt() != null && patient.getCreatedAt().toLocalDate().equals(today))
 				.count();
+	}
+
+	private String valueOr(String value, String fallback) {
+		return value == null || value.isBlank() ? fallback : value;
 	}
 
 }

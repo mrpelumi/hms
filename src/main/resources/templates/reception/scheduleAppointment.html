@@ -75,20 +75,19 @@
                             <label class="space-y-xs">
                                 <span class="text-caption font-bold text-text-secondary">Department</span>
                                 <select id="department" name="department" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none bg-white text-small" required>
-                                    <option value="General Medicine">General Medicine</option>
-                                    <option value="Cardiology">Cardiology</option>
-                                    <option value="Neurology">Neurology</option>
-                                    <option value="Pediatrics">Pediatrics</option>
-                                    <option value="Laboratory">Laboratory</option>
+                                    <option value="">Select clinical department</option>
+                                    <option th:each="department : ${clinicalDepartments}" th:value="${department}" th:text="${department}">General Medicine</option>
                                 </select>
+                                <p th:if="${#lists.isEmpty(clinicalDepartments)}" class="text-caption text-danger">No clinical department has an active doctor schedule yet.</p>
                             </label>
                             <label class="space-y-xs">
                                 <span class="text-caption font-bold text-text-secondary">Doctor Selection</span>
                                 <select id="providerUsername" name="providerUsername" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none bg-white text-small" required>
                                     <option value="">Select available doctor</option>
                                     <option th:each="doctor : ${doctors}"
+                                            th:with="doctorStaff=${doctorStaffByUsername[#strings.toLowerCase(doctor.doctorUsername)]}"
                                             th:value="${doctor.doctorUsername}"
-                                            th:attr="data-name=${doctor.doctorName}"
+                                            th:attr="data-name=${doctor.doctorName}, data-department=${doctorStaff != null ? doctorStaff.department : ''}"
                                             th:text="${doctor.doctorName}">Doctor</option>
                                 </select>
                                 <p th:if="${#lists.isEmpty(doctors)}" class="text-caption text-danger">No doctor has submitted an available schedule yet.</p>
@@ -129,8 +128,9 @@
                             <p th:if="${#lists.isEmpty(doctorSchedules)}" class="md:col-span-2 rounded-lg bg-surface-container-low p-md text-small text-text-secondary">Doctors will appear here after saving their schedules.</p>
                             <p id="no-selected-schedule" class="md:col-span-2 rounded-lg bg-surface-container-low p-md text-small text-text-secondary">Select a doctor to view submitted schedules.</p>
                             <button th:each="schedule : ${doctorSchedules}" type="button"
+                                    th:with="doctorStaff=${doctorStaffByUsername[#strings.toLowerCase(schedule.doctorUsername)]}"
                                     class="doctor-schedule-row hidden text-left rounded-lg border border-border-base p-md hover:border-primary hover:bg-primary/5 transition-all"
-                                    th:attr="data-doctor=${schedule.doctorUsername}, data-start=${schedule.startTime}, data-end=${schedule.endTime}, data-day=${schedule.dayOfWeek}">
+                                    th:attr="data-doctor=${schedule.doctorUsername}, data-start=${schedule.startTime}, data-end=${schedule.endTime}, data-day=${schedule.dayOfWeek}, data-department=${doctorStaff != null ? doctorStaff.department : ''}">
                                 <div class="flex items-center justify-between gap-md">
                                     <p class="font-bold text-small text-text-primary truncate" th:text="${schedule.doctorName}">Doctor</p>
                                     <span class="text-caption font-bold rounded-full bg-success/10 text-success px-sm py-1">Available</span>
@@ -156,7 +156,9 @@
                         <div class="space-y-md">
                             <label class="space-y-xs block">
                                 <span class="text-caption font-bold text-text-secondary">Date</span>
-                                <input id="appointmentDate" name="appointmentDate" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none text-small" type="date" th:min="${today}" th:attr="data-today=${today}" required>
+                                <select id="appointmentDate" name="appointmentDate" class="w-full p-sm border border-border-base rounded-lg focus:ring-2 focus:ring-primary/20 outline-none text-small" th:attr="data-today=${today}" required>
+                                    <option value="">Select doctor and department first</option>
+                                </select>
                             </label>
                             <label class="space-y-xs block">
                                 <span class="text-caption font-bold text-text-secondary">Time</span>
@@ -198,6 +200,10 @@
             <span th:each="appointment : ${bookedAppointments}"
                   class="booked-slot"
                   th:attr="data-doctor=${appointment.providerUsername}, data-date=${#temporals.format(appointment.scheduledAt, 'yyyy-MM-dd')}, data-time=${#temporals.format(appointment.scheduledAt, 'HH:mm')}"></span>
+            <span th:each="leave : ${approvedDoctorLeaves}" th:with="staff=${staffById[leave.staffMemberId]}"
+                  class="doctor-leave"
+                  th:if="${staff != null}"
+                  th:attr="data-doctor=${#strings.toLowerCase(staff.email)}, data-start=${leave.startDate}, data-end=${leave.endDate}"></span>
         </div>
     </main>
     <script>
@@ -205,23 +211,30 @@
         const timeInput = document.getElementById('appointmentTime');
         const form = document.getElementById('appointment-form');
         const confirmButton = document.getElementById('confirm-button');
+        const departmentSelect = document.getElementById('department');
         const doctorSelect = document.getElementById('providerUsername');
+        const doctorOptions = Array.from(doctorSelect?.querySelectorAll('option[data-department]') || []);
         const patientSelect = document.getElementById('patientId');
         const patientPreviewName = document.getElementById('patient-preview-name');
         const patientPreviewMeta = document.getElementById('patient-preview-meta');
         const scheduleRows = Array.from(document.querySelectorAll('.doctor-schedule-row'));
         const bookedSlots = Array.from(document.querySelectorAll('.booked-slot'));
+        const doctorLeaves = Array.from(document.querySelectorAll('.doctor-leave'));
         const morningSlots = document.getElementById('morning-slots');
         const afternoonSlots = document.getElementById('afternoon-slots');
         const slotHelper = document.getElementById('slot-helper');
         const scheduleCount = document.getElementById('schedule-count');
         const noSelectedSchedule = document.getElementById('no-selected-schedule');
 
-        if (dateInput && !dateInput.value) {
-            dateInput.value = dateInput.dataset.today || new Date().toISOString().slice(0, 10);
+        if (timeInput) timeInput.value = '';
+
+        function normalize(value) {
+            return String(value || '').trim().toLowerCase();
         }
 
-        if (timeInput) timeInput.value = '';
+        function dateToYmd(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
 
         function updatePatientPreview() {
             const option = patientSelect?.selectedOptions?.[0];
@@ -238,6 +251,72 @@
             if (!dateInput?.value) return '';
             const [year, month, day] = dateInput.value.split('-').map(Number);
             return new Date(year, month - 1, day).toLocaleDateString('en-US', { weekday: 'long' });
+        }
+
+        function isDoctorOnLeave(doctor, date) {
+            const normalizedDoctor = normalize(doctor);
+            return doctorLeaves.some(leave => {
+                if (normalize(leave.dataset.doctor) !== normalizedDoctor) return false;
+                return date >= leave.dataset.start && date <= leave.dataset.end;
+            });
+        }
+
+        function updateDoctorOptions() {
+            const selectedDepartment = normalize(departmentSelect?.value);
+            doctorOptions.forEach(option => {
+                const matchesDepartment = selectedDepartment && normalize(option.dataset.department) === selectedDepartment;
+                option.hidden = !matchesDepartment;
+                option.disabled = !matchesDepartment;
+            });
+            if (doctorSelect?.value) {
+                const selectedOption = doctorSelect.selectedOptions?.[0];
+                if (selectedOption?.disabled || selectedOption?.hidden) {
+                    doctorSelect.value = '';
+                }
+            }
+            updateDateOptions();
+            highlightDoctorSchedule();
+        }
+
+        function updateDateOptions() {
+            if (!dateInput) return;
+            const selectedDoctor = doctorSelect?.value || '';
+            const selectedDepartment = normalize(departmentSelect?.value);
+            const previousValue = dateInput.value;
+            dateInput.innerHTML = '';
+
+            if (!selectedDepartment || !selectedDoctor) {
+                dateInput.appendChild(new Option('Select department and doctor first', ''));
+                clearSlots();
+                return;
+            }
+
+            const scheduleDays = new Set(scheduleRows
+                .filter(row => row.dataset.doctor === selectedDoctor && normalize(row.dataset.department) === selectedDepartment)
+                .map(row => row.dataset.day));
+            const todayValue = dateInput.dataset.today || dateToYmd(new Date());
+            const [year, month, day] = todayValue.split('-').map(Number);
+            const startDate = new Date(year, month - 1, day);
+            let availableCount = 0;
+
+            for (let offset = 0; offset < 90; offset += 1) {
+                const candidate = new Date(startDate);
+                candidate.setDate(startDate.getDate() + offset);
+                const value = dateToYmd(candidate);
+                const dayName = candidate.toLocaleDateString('en-US', { weekday: 'long' });
+                if (scheduleDays.has(dayName) && !isDoctorOnLeave(selectedDoctor, value)) {
+                    const label = candidate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit', year: 'numeric' });
+                    dateInput.appendChild(new Option(label, value));
+                    availableCount += 1;
+                }
+            }
+
+            if (!availableCount) {
+                dateInput.appendChild(new Option('No available schedule dates for this doctor', ''));
+            } else if (previousValue && Array.from(dateInput.options).some(option => option.value === previousValue)) {
+                dateInput.value = previousValue;
+            }
+            renderQuickSlots();
         }
 
         function timeToMinutes(time) {
@@ -307,7 +386,15 @@
                 return;
             }
 
-            const matchingSchedules = scheduleRows.filter(row => row.dataset.doctor === selectedDoctor && row.dataset.day === selectedDay);
+            if (isDoctorOnLeave(selectedDoctor, selectedDate)) {
+                if (slotHelper) slotHelper.textContent = 'The selected doctor is on approved leave for this date.';
+                return;
+            }
+
+            const selectedDepartment = normalize(departmentSelect?.value);
+            const matchingSchedules = scheduleRows.filter(row => row.dataset.doctor === selectedDoctor
+                && row.dataset.day === selectedDay
+                && normalize(row.dataset.department) === selectedDepartment);
             if (!matchingSchedules.length) {
                 if (slotHelper) slotHelper.textContent = 'The selected doctor has no submitted schedule for this date.';
                 return;
@@ -335,9 +422,10 @@
 
         function highlightDoctorSchedule() {
             const selectedDoctor = doctorSelect?.value || '';
+            const selectedDepartment = normalize(departmentSelect?.value);
             let visibleCount = 0;
             scheduleRows.forEach(row => {
-                const active = selectedDoctor && row.dataset.doctor === selectedDoctor;
+                const active = selectedDoctor && row.dataset.doctor === selectedDoctor && normalize(row.dataset.department) === selectedDepartment;
                 row.classList.toggle('hidden', !active);
                 row.classList.toggle('bg-primary/5', active);
                 row.classList.toggle('border-primary', active);
@@ -354,16 +442,18 @@
         }
 
         if (doctorSelect) {
-            doctorSelect.addEventListener('change', highlightDoctorSchedule);
+            doctorSelect.addEventListener('change', () => {
+                updateDateOptions();
+                highlightDoctorSchedule();
+            });
+        }
+
+        if (departmentSelect) {
+            departmentSelect.addEventListener('change', updateDoctorOptions);
         }
 
         if (dateInput) {
-            dateInput.addEventListener('change', () => {
-                if (dateInput.min && dateInput.value < dateInput.min) {
-                    dateInput.value = dateInput.min;
-                }
-                renderQuickSlots();
-            });
+            dateInput.addEventListener('change', renderQuickSlots);
         }
 
         if (patientSelect) {
@@ -390,7 +480,7 @@
             });
         }
 
-        highlightDoctorSchedule();
+        updateDoctorOptions();
     </script>
 </div>
 </body>

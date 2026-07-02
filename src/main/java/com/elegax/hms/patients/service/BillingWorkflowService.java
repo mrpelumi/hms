@@ -32,6 +32,21 @@ public class BillingWorkflowService {
                         .build()));
     }
 
+    public void createForAppointmentCheckIn(Long patientId, Long appointmentId) {
+        if (patientId == null || appointmentId == null) {
+            return;
+        }
+        billingRecordRepository.findBySourceTypeAndSourceId("APPOINTMENT_CHECK_IN", appointmentId)
+                .orElseGet(() -> billingRecordRepository.save(BillingRecord.builder()
+                        .patientId(patientId)
+                        .sourceId(appointmentId)
+                        .sourceType("APPOINTMENT_CHECK_IN")
+                        .description("Hospital visit registration")
+                        .quantity(1)
+                        .unitPrice(new BigDecimal("1500.00"))
+                        .build()));
+    }
+
     public void createForInvestigation(InvestigationRequest request) {
         if (request == null || request.getId() == null || request.getPatientId() == null) {
             return;

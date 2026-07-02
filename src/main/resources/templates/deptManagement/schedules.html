@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>Staff Schedules | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1080px] flex-col gap-md text-small">
+            <header>
+                <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                    <a class="hover:text-primary" th:href="@{/department-management/dashboard}">Department Admin</a>
+                    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    <span class="font-bold text-primary">Schedules</span>
+                </nav>
+                <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Create Staff Schedules</h1>
+                <p class="text-small text-text-secondary">Assign or adjust shift patterns for department staff.</p>
+            </header>
+
+            <div th:if="${successMessage}" class="rounded-md border border-success/20 bg-success/10 px-md py-sm font-semibold text-success" th:text="${successMessage}">Updated.</div>
+
+            <section class="grid grid-cols-1 gap-md lg:grid-cols-3">
+                <form class="rounded-lg border border-border-base bg-white p-md shadow-sm" method="post" th:action="@{/department-management/schedules}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <h2 class="text-base font-semibold text-text-primary">Assign Shift</h2>
+                    <div class="mt-sm space-y-sm">
+                        <label class="block space-y-xs">
+                            <span class="text-caption font-bold uppercase text-text-secondary">Staff Member</span>
+                            <select name="staffMemberId" class="w-full rounded-md border border-border-base p-sm text-small" required>
+                                <option value="">Select staff</option>
+                                <option th:each="staff : ${departmentStaff}" th:value="${staff.id}" th:text="${staff.fullName + ' - ' + (staff.jobTitle ?: staff.staffRole)}">Staff</option>
+                            </select>
+                        </label>
+                        <label class="block space-y-xs">
+                            <span class="text-caption font-bold uppercase text-text-secondary">Shift Pattern</span>
+                            <select name="shift" class="w-full rounded-md border border-border-base p-sm text-small" required>
+                                <option value="Morning">Morning</option>
+                                <option value="Afternoon">Afternoon</option>
+                                <option value="Night">Night</option>
+                                <option value="Rotating">Rotating</option>
+                                <option value="Administrative">Administrative</option>
+                                <option value="Unassigned">Unassigned</option>
+                            </select>
+                        </label>
+                        <div class="grid grid-cols-1 gap-sm md:grid-cols-3">
+                            <label class="block space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Date</span>
+                                <input name="shiftDate" type="date" th:value="${today}" class="w-full rounded-md border border-border-base p-sm text-small" required>
+                            </label>
+                            <label class="block space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">Start</span>
+                                <input name="startTime" type="time" class="w-full rounded-md border border-border-base p-sm text-small">
+                            </label>
+                            <label class="block space-y-xs">
+                                <span class="text-caption font-bold uppercase text-text-secondary">End</span>
+                                <input name="endTime" type="time" class="w-full rounded-md border border-border-base p-sm text-small">
+                            </label>
+                        </div>
+                        <label class="block space-y-xs">
+                            <span class="text-caption font-bold uppercase text-text-secondary">Schedule Note</span>
+                            <textarea name="note" class="w-full rounded-md border border-border-base p-sm text-small" rows="3" placeholder="Coverage reason, date range, handover note"></textarea>
+                        </label>
+                        <button class="w-full rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Schedule</button>
+                    </div>
+                </form>
+
+                <article class="rounded-lg border border-border-base bg-white shadow-sm lg:col-span-2">
+                    <div class="border-b border-border-base p-md">
+                        <h2 class="text-base font-semibold text-text-primary">Current Shift Coverage</h2>
+                    </div>
+                    <div class="max-h-[calc(100vh-300px)] overflow-auto">
+                        <table class="w-full min-w-[720px] text-left text-small">
+                            <thead class="sticky top-0 bg-surface-muted text-caption uppercase text-text-secondary">
+                            <tr>
+                                <th class="px-md py-sm font-bold">Staff</th>
+                                <th class="px-md py-sm font-bold">Role</th>
+                                <th class="px-md py-sm font-bold">Shift</th>
+                                <th class="px-md py-sm font-bold">Status</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border-base">
+                            <tr th:each="staff : ${departmentStaff}">
+                                <td class="px-md py-sm font-semibold text-text-primary" th:text="${staff.fullName}">Staff</td>
+                                <td class="px-md py-sm text-text-secondary" th:text="${staff.jobTitle ?: staff.staffRole}">Role</td>
+                                <td class="px-md py-sm text-text-secondary" th:text="${staff.shift ?: 'Unassigned'}">Shift</td>
+                                <td class="px-md py-sm text-text-secondary" th:text="${staff.status ?: 'ACTIVE'}">ACTIVE</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+
+            <section class="rounded-lg border border-border-base bg-white shadow-sm">
+                <div class="border-b border-border-base p-md">
+                    <h2 class="text-base font-semibold text-text-primary">Planned Shift Register</h2>
+                    <p class="text-caption text-text-secondary">Planned shifts feed login attendance matching and lateness checks.</p>
+                </div>
+                <div class="max-h-[260px] overflow-auto">
+                    <table class="w-full min-w-[760px] text-left text-small">
+                        <thead class="sticky top-0 bg-surface-muted text-caption uppercase text-text-secondary">
+                        <tr>
+                            <th class="px-md py-sm font-bold">Date</th>
+                            <th class="px-md py-sm font-bold">Staff ID</th>
+                            <th class="px-md py-sm font-bold">Shift</th>
+                            <th class="px-md py-sm font-bold">Start</th>
+                            <th class="px-md py-sm font-bold">End</th>
+                            <th class="px-md py-sm font-bold">Status</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-base">
+                        <tr th:each="shift : ${plannedShifts}">
+                            <td class="px-md py-sm" th:text="${shift.shiftDate}">Date</td>
+                            <td class="px-md py-sm" th:text="${shift.staffMemberId}">Staff</td>
+                            <td class="px-md py-sm" th:text="${shift.shiftType}">Shift</td>
+                            <td class="px-md py-sm" th:text="${shift.startTime}">Start</td>
+                            <td class="px-md py-sm" th:text="${shift.endTime}">End</td>
+                            <td class="px-md py-sm"><span class="rounded-full bg-primary/10 px-sm py-[2px] text-caption font-bold text-primary" th:text="${shift.status}">ASSIGNED</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(plannedShifts)}">
+                            <td colspan="6" class="px-md py-lg text-center text-text-secondary">No planned shifts yet.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+</body>
+</html>

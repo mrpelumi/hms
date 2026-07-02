@@ -43,6 +43,10 @@
                     <span class="material-symbols-outlined">account_circle</span>
                     <span class="font-body text-body">Profile</span>
                 </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/doctor/leave}">
+                    <span class="material-symbols-outlined">event_busy</span>
+                    <span class="font-body text-body">Leave Requests</span>
+                </a>
             </div>
         </nav>
         <div class="p-lg border-t border-white/10 space-y-xs">
@@ -76,6 +80,10 @@
                     <span class="material-symbols-outlined text-[20px]">monitor_heart</span>
                     <span class="font-small text-small">Nurse Queue</span>
                 </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/nurse/leave}">
+                    <span class="material-symbols-outlined text-[20px]">event_busy</span>
+                    <span class="font-small text-small">Leave Requests</span>
+                </a>
             </div>
         </nav>
         <div class="p-lg border-t border-white/10 space-y-xs">
@@ -104,6 +112,10 @@
                 <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/laboratory/dashboard}">
                     <span class="material-symbols-outlined text-[20px]">biotech</span>
                     <span class="font-small text-small">Lab Dashboard</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/laboratory/leave}">
+                    <span class="material-symbols-outlined text-[20px]">event_busy</span>
+                    <span class="font-small text-small">Leave Requests</span>
                 </a>
             </div>
         </nav>
@@ -134,6 +146,10 @@
                     <span class="material-symbols-outlined text-[20px]">radiology</span>
                     <span class="font-small text-small">Radiology Queue</span>
                 </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/radiology/leave}">
+                    <span class="material-symbols-outlined text-[20px]">event_busy</span>
+                    <span class="font-small text-small">Leave Requests</span>
+                </a>
             </div>
         </nav>
         <div class="p-lg border-t border-white/10 space-y-xs">
@@ -163,6 +179,10 @@
                     <span class="material-symbols-outlined text-[20px]">prescriptions</span>
                     <span class="font-small text-small">Dispense</span>
                 </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/pharmacy/leave}">
+                    <span class="material-symbols-outlined text-[20px]">event_busy</span>
+                    <span class="font-small text-small">Leave Requests</span>
+                </a>
             </div>
         </nav>
         <div class="p-lg border-t border-white/10 space-y-xs">
@@ -191,6 +211,63 @@
                 <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/billing/home}">
                     <span class="material-symbols-outlined text-[20px]">payments</span>
                     <span class="font-small text-small">Billing</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-lg border-t border-white/10 space-y-xs">
+            <form method="post" th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-small text-small">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <aside th:if="${session.userRole == 'PATIENT'}"
+           class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+           style="height: 100vh; overflow-y: auto;" id="main-sidebar">
+        <div class="px-xl py-xl flex items-center gap-md">
+            <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
+            </div>
+            <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
+            <div class="space-y-xs">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Patient Portal</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/patient/dashboard}">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                    <span class="font-small text-small">Dashboard</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/patient/profile}">
+                    <span class="material-symbols-outlined text-[20px]">account_circle</span>
+                    <span class="font-small text-small">Profile</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/patient/appointments}">
+                    <span class="material-symbols-outlined text-[20px]">event</span>
+                    <span class="font-small text-small">Appointments</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/patient/records}">
+                    <span class="material-symbols-outlined text-[20px]">clinical_notes</span>
+                    <span class="font-small text-small">Records</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/patient/prescriptions}">
+                    <span class="material-symbols-outlined text-[20px]">prescriptions</span>
+                    <span class="font-small text-small">Prescriptions</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/patient/reports}">
+                    <span class="material-symbols-outlined text-[20px]">lab_profile</span>
+                    <span class="font-small text-small">Reports</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/patient/billing}">
+                    <span class="material-symbols-outlined text-[20px]">payments</span>
+                    <span class="font-small text-small">Bills</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/patient/messages}">
+                    <span class="material-symbols-outlined text-[20px]">chat</span>
+                    <span class="font-small text-small">Care Team</span>
                 </a>
             </div>
         </nav>
@@ -397,7 +474,7 @@
         </div>
     </aside>
 
-    <aside th:if="${session.userRole != 'DOCTOR' && session.userRole != 'NURSE' && session.userRole != 'LABORATORY' && session.userRole != 'RADIOLOGY' && session.userRole != 'PHARMACY' && session.userRole != 'BILLING' && session.userRole != 'RECEPTIONIST' && session.userRole != 'HR' && session.userRole != 'HOSPITAL_ADMIN' && session.userRole != 'DEPARTMENT_MANAGER'}"
+    <aside th:if="${session.userRole != 'DOCTOR' && session.userRole != 'NURSE' && session.userRole != 'LABORATORY' && session.userRole != 'RADIOLOGY' && session.userRole != 'PHARMACY' && session.userRole != 'BILLING' && session.userRole != 'PATIENT' && session.userRole != 'RECEPTIONIST' && session.userRole != 'HR' && session.userRole != 'HOSPITAL_ADMIN' && session.userRole != 'DEPARTMENT_MANAGER'}"
            class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
            style="height: 100vh; overflow-y: auto;" id="main-sidebar">
         <div class="px-xl py-xl flex items-center gap-md">

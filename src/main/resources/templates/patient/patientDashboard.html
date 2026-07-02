@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Patient Dashboard | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <section class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Patient Dashboard</h1>
+          <p class="text-small text-text-secondary">Welcome, <span th:text="${patientName}">Patient</span>. Track appointments, visit records, reports, bills, and care-team messages.</p>
+        </div>
+        <div class="flex flex-wrap gap-sm">
+          <a th:href="@{/patient/appointments/new}" class="inline-flex items-center gap-xs rounded-md bg-primary px-md py-sm font-semibold text-white">
+            <span class="material-symbols-outlined text-[18px]">event_available</span>
+            Book Appointment
+          </a>
+          <a th:href="@{/patient/billing}" class="inline-flex items-center gap-xs rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">
+            <span class="material-symbols-outlined text-[18px]">payments</span>
+            Pay Bills
+          </a>
+        </div>
+      </header>
+
+      <section th:if="${!profileComplete}" class="rounded-lg border border-warning/30 bg-warning/10 p-md">
+        <p class="font-semibold text-text-primary">Complete your patient profile to unlock appointment booking and portal services.</p>
+        <a th:href="@{/patient/profile}" class="mt-sm inline-flex rounded-md bg-primary px-md py-sm font-semibold text-white">Complete Profile</a>
+      </section>
+
+      <section class="grid grid-cols-2 gap-sm lg:grid-cols-4">
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Upcoming Appointments</p>
+          <p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${upcomingCount}">0</p>
+        </article>
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Consultations</p>
+          <p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${#lists.size(consultations)}">0</p>
+        </article>
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Reports Ready</p>
+          <p class="mt-xs text-[24px] font-semibold text-primary" th:text="${readyReportCount}">0</p>
+        </article>
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Outstanding Bills</p>
+          <p class="mt-xs text-[24px] font-semibold text-danger" th:text="${outstandingCount}">0</p>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 gap-md lg:grid-cols-3">
+        <article class="rounded-lg border border-border-base bg-white shadow-sm lg:col-span-2">
+          <div class="border-b border-border-base p-md">
+            <h2 class="text-base font-semibold text-text-primary">Appointment Status</h2>
+          </div>
+          <div class="max-h-[340px] overflow-auto">
+            <table class="w-full min-w-[760px] text-left text-small">
+              <thead class="sticky top-0 bg-surface-muted text-caption uppercase text-text-secondary">
+              <tr>
+                <th class="px-md py-sm font-bold">Date</th>
+                <th class="px-md py-sm font-bold">Provider</th>
+                <th class="px-md py-sm font-bold">Visit</th>
+                <th class="px-md py-sm font-bold">Status</th>
+              </tr>
+              </thead>
+              <tbody class="divide-y divide-border-base">
+              <tr th:each="appointment : ${appointments}">
+                <td class="px-md py-sm" th:text="${appointment.scheduledAt != null ? #temporals.format(appointment.scheduledAt, 'dd MMM yyyy hh:mm a') : '-'}">Date</td>
+                <td class="px-md py-sm" th:text="${appointment.provider ?: 'Provider pending'}">Provider</td>
+                <td class="px-md py-sm text-text-secondary" th:text="${appointment.visitType ?: 'Consultation'}">Visit</td>
+                <td class="px-md py-sm"><span class="rounded-full bg-primary/10 px-sm py-[2px] text-caption font-bold text-primary" th:text="${appointment.status ?: 'BOOKED'}">BOOKED</span></td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(appointments)}"><td colspan="4" class="px-md py-lg text-center text-text-secondary">No appointments yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <aside class="space-y-md">
+          <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Outstanding Balance</h2>
+            <p class="mt-xs text-[24px] font-semibold text-danger" th:text="${outstandingTotal}">0.00</p>
+            <a th:href="@{/patient/billing}" class="mt-sm inline-flex rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">View Bills</a>
+          </article>
+          <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+            <h2 class="text-base font-semibold text-text-primary">Latest Messages</h2>
+            <div class="mt-sm space-y-sm">
+              <p th:each="message : ${messages}" class="rounded-md bg-surface-muted p-sm text-caption" th:text="${message.subject + ' - ' + message.status}">Message</p>
+              <p th:if="${#lists.isEmpty(messages)}" class="text-caption text-text-secondary">No messages sent yet.</p>
+            </div>
+          </article>
+        </aside>
+      </section>
+    </section>
+  </main>
+</div>
+</body>
+</html>

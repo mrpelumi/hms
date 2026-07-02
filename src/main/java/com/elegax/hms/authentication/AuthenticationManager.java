@@ -73,6 +73,12 @@ public class AuthenticationManager {
                 .anyMatch(group -> hasRole(group, "billing", "finance", "cashier"));
     }
 
+    public Boolean isPatient(){
+        return getGroups()
+                .stream()
+                .anyMatch(group -> hasRole(group, "patient", "patients"));
+    }
+
     public Boolean isHr(){
         return getGroups()
                 .stream()

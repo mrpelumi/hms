@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><meta charset="utf-8"><title>Patient Profile | Tel Health</title></head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <form class="mx-auto flex w-full max-w-[980px] flex-col gap-md text-small" method="post" th:action="@{/patient/profile}">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Complete Patient Profile</h1>
+          <p class="text-small text-text-secondary">Keep your contact, insurance, emergency, allergy, and demographic details up to date.</p>
+        </div>
+        <button class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Profile</button>
+      </header>
+      <div th:if="${successMessage}" class="rounded-md border border-success/20 bg-success/10 px-md py-sm font-semibold text-success" th:text="${successMessage}">Saved.</div>
+
+      <section class="grid grid-cols-1 gap-md lg:grid-cols-2">
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <h2 class="mb-sm text-base font-semibold text-text-primary">Personal Details</h2>
+          <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
+            <label class="space-y-xs md:col-span-2"><span class="text-caption font-bold uppercase text-text-secondary">Full Name</span><input name="fullName" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.fullName : patientName}" required></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Date of Birth</span><input name="dateOfBirth" type="date" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.dateOfBirth : ''}"></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Gender</span><select name="gender" class="w-full rounded-md border border-border-base p-sm text-small"><option value="">Select</option><option value="Female" th:selected="${patient != null && patient.gender == 'Female'}">Female</option><option value="Male" th:selected="${patient != null && patient.gender == 'Male'}">Male</option><option value="Other" th:selected="${patient != null && patient.gender == 'Other'}">Other</option></select></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Blood Group</span><input name="bloodGroup" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.bloodGroup : ''}"></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Patient ID</span><input readonly class="w-full rounded-md border border-border-base bg-surface-muted p-sm text-small" th:value="${patient != null ? patient.patientId : 'Generated after save'}"></label>
+            <label class="space-y-xs md:col-span-2"><span class="text-caption font-bold uppercase text-text-secondary">Allergies</span><textarea name="allergies" rows="3" class="w-full rounded-md border border-border-base p-sm text-small" th:text="${patient != null ? patient.allergies : ''}"></textarea></label>
+          </div>
+        </article>
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <h2 class="mb-sm text-base font-semibold text-text-primary">Contact and Insurance</h2>
+          <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Email</span><input name="emailAddress" type="email" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.emailAddress : ''}" required></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Phone</span><input name="phoneNumber" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.phoneNumber : ''}" required></label>
+            <label class="space-y-xs md:col-span-2"><span class="text-caption font-bold uppercase text-text-secondary">Residential Address</span><textarea name="residentialAddress" rows="3" class="w-full rounded-md border border-border-base p-sm text-small" th:text="${patient != null ? patient.residentialAddress : ''}" required></textarea></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Insurance Provider</span><input name="insuranceProvider" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.insuranceProvider : ''}"></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Policy Number</span><input name="policyNumber" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.policyNumber : ''}"></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Group ID</span><input name="groupId" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.groupId : ''}"></label>
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Insurance Expiry</span><input name="insuranceExpirationDate" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.insuranceExpirationDate : ''}"></label>
+          </div>
+        </article>
+      </section>
+      <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+        <h2 class="mb-sm text-base font-semibold text-text-primary">Emergency Contact</h2>
+        <div class="grid grid-cols-1 gap-sm md:grid-cols-3">
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Name</span><input name="emergencyContactName" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.emergencyContactName : ''}"></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Relationship</span><input name="emergencyContactRelationship" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.emergencyContactRelationship : ''}"></label>
+          <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Phone</span><input name="emergencyContactPhone" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${patient != null ? patient.emergencyContactPhone : ''}"></label>
+        </div>
+      </section>
+    </form>
+  </main>
+</div>
+</body>
+</html>

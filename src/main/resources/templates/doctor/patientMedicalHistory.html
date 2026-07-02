@@ -200,6 +200,7 @@
                   <th class="px-sm py-xs">Date</th>
                   <th class="px-sm py-xs">Test</th>
                   <th class="px-sm py-xs">Status</th>
+                  <th class="px-sm py-xs text-right">Report</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-border-base">
@@ -210,6 +211,12 @@
                     <p class="text-text-secondary" th:text="${(investigation.requestType ?: '-') + ' | ' + (investigation.priority ?: 'Routine')}">Type</p>
                   </td>
                   <td class="px-sm py-sm" th:text="${investigation.status ?: 'REQUESTED'}">REQUESTED</td>
+                  <td class="px-sm py-sm text-right">
+                    <a th:if="${investigation.status == 'RESULT_READY' || investigation.status == 'COMPLETED'}"
+                       th:href="@{/doctor/investigations/{id}/report(id=${investigation.id})}"
+                       class="rounded-md border border-primary px-sm py-xs text-[11px] font-bold text-primary">View</a>
+                    <span th:if="${investigation.status != 'RESULT_READY' && investigation.status != 'COMPLETED'}" class="text-[11px] text-text-secondary">Pending</span>
+                  </td>
                 </tr>
                 </tbody>
               </table>

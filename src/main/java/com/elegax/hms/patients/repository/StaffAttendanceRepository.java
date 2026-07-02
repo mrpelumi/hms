@@ -6,9 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StaffAttendanceRepository extends JpaRepository<StaffAttendance, Long> {
     List<StaffAttendance> findByAttendanceDate(LocalDate attendanceDate);
+    Optional<StaffAttendance> findByStaffMemberIdAndAttendanceDate(Long staffMemberId, LocalDate attendanceDate);
     long countByAttendanceDateAndStatus(LocalDate attendanceDate, String status);
 }

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>Department Reports | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1080px] flex-col gap-md text-small">
+            <header>
+                <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                    <a class="hover:text-primary" th:href="@{/department-management/dashboard}">Department Admin</a>
+                    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    <span class="font-bold text-primary">Reports</span>
+                </nav>
+                <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Review Department Reports</h1>
+                <p class="text-small text-text-secondary">Operational summary for assigned departments.</p>
+            </header>
+
+            <section class="grid grid-cols-1 gap-sm md:grid-cols-4">
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Staff</p>
+                    <p class="mt-xs text-[24px] font-semibold" th:text="${totalStaff}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Active</p>
+                    <p class="mt-xs text-[24px] font-semibold text-success" th:text="${activeStaff}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Unscheduled</p>
+                    <p class="mt-xs text-[24px] font-semibold text-warning" th:text="${unassignedSchedules}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Escalation Notes</p>
+                    <p class="mt-xs text-[24px] font-semibold text-danger" th:text="${openEscalations}">0</p>
+                </article>
+            </section>
+
+            <section class="rounded-lg border border-border-base bg-white shadow-sm">
+                <div class="border-b border-border-base p-md">
+                    <h2 class="text-base font-semibold text-text-primary">Department Report Notes</h2>
+                </div>
+                <div class="max-h-[calc(100vh-300px)] overflow-auto p-md">
+                    <div th:each="department : ${managedDepartments}" class="mb-sm rounded-md bg-surface-muted p-sm">
+                        <p class="font-semibold text-text-primary" th:text="${department.name}">Department</p>
+                        <p class="text-caption text-text-secondary">Administrator: <span th:text="${department.administrator != null ? department.administrator.fullName : 'Unassigned'}">Admin</span></p>
+                        <p class="mt-xs whitespace-pre-line text-caption text-text-secondary" th:text="${department.notes ?: 'No operational notes yet.'}">Notes</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+</body>
+</html>

@@ -35,6 +35,11 @@ public class Patient {
     @Column(columnDefinition = "text")
     private String residentialAddress;
 
+    // Portal access
+    private String portalUsername;
+    private String keycloakUserId;
+    private String portalAccountStatus;
+
     // Insurance
     private String insuranceProvider;
     private String policyNumber;

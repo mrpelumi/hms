@@ -22,12 +22,14 @@
       </header>
 
       <div th:if="${param.sampleCollected}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Sample marked as collected.</div>
+      <div th:if="${param.resultEntered}" class="rounded-md border border-primary/30 bg-primary/5 px-md py-sm font-semibold text-primary">Result saved for verification.</div>
       <div th:if="${param.completed}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Lab request completed and sent to billing.</div>
       <div th:if="${param.expected}" class="rounded-md border border-primary/30 bg-primary/5 px-md py-sm font-semibold text-primary">Expected result time saved for patient follow-up.</div>
 
-      <section class="grid grid-cols-2 gap-sm lg:grid-cols-4">
+      <section class="grid grid-cols-2 gap-sm lg:grid-cols-5">
         <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Pending</p><p class="text-[22px] font-semibold" th:text="${pendingCount}">0</p></div>
         <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Samples</p><p class="text-[22px] font-semibold" th:text="${collectedCount}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-primary">Entered</p><p class="text-[22px] font-semibold" th:text="${enteredCount}">0</p></div>
         <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Completed</p><p class="text-[22px] font-semibold" th:text="${completedCount}">0</p></div>
         <div class="rounded-lg border border-danger/20 bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-danger">Urgent</p><p class="text-[22px] font-semibold" th:text="${urgentCount}">0</p></div>
       </section>
@@ -48,7 +50,7 @@
               <th class="px-md py-sm">Test</th>
               <th class="px-md py-sm">Priority</th>
               <th class="px-md py-sm">Status</th>
-              <th class="px-md py-sm text-right">Action</th>
+              <th class="px-md py-sm">Workflow</th>
             </tr>
             </thead>
             <tbody class="divide-y divide-border-base">
@@ -76,19 +78,27 @@
                 <p class="mt-xs text-caption text-text-secondary" th:if="${request.expectedResultAt != null}"
                    th:text="${'Expected ' + #temporals.format(request.expectedResultAt, 'MMM dd, hh:mm a')}">Expected</p>
               </td>
-              <td class="px-md py-sm text-right">
-                <form th:if="${request.status != 'SAMPLE_COLLECTED' && request.status != 'RESULT_READY' && request.status != 'COMPLETED'}" class="inline" method="post" th:action="@{/laboratory/requests/{id}/sample(id=${request.id})}">
-                  <button class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary" type="submit">Collect</button>
+              <td class="px-md py-sm">
+                <div class="flex flex-wrap justify-end gap-xs">
+                  <a th:if="${request.status == null || request.status == 'REQUESTED' || request.status == 'RESULT_PENDING'}"
+                     th:href="@{/laboratory/requests/{id}/sample(id=${request.id})}"
+                     class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">Collect Sample</a>
+                  <a th:if="${request.status != 'RESULT_READY' && request.status != 'COMPLETED'}"
+                     th:href="@{/laboratory/requests/{id}/expected(id=${request.id})}"
+                     class="rounded-md border border-warning px-sm py-xs text-caption font-bold text-warning">Expected Result</a>
+                  <a th:if="${request.status == 'SAMPLE_COLLECTED'}"
+                     th:href="@{/laboratory/requests/{id}/result(id=${request.id})}"
+                     class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">Enter Result</a>
+                </div>
+                <form th:if="${request.status == 'RESULT_ENTERED'}" class="mt-xs inline-flex justify-end" method="post" th:action="@{/laboratory/requests/{id}/verify(id=${request.id})}">
+                  <button class="rounded-md bg-success px-sm py-xs text-caption font-bold text-white" type="submit">Verify and Release</button>
                 </form>
-                <form th:if="${request.status != 'RESULT_READY' && request.status != 'COMPLETED'}" class="mt-xs flex flex-col gap-xs" method="post" th:action="@{/laboratory/requests/{id}/expected(id=${request.id})}">
-                  <input class="rounded-md border border-border-base px-xs py-1 text-caption" name="expectedResultAt" type="datetime-local" required>
-                  <input class="rounded-md border border-border-base px-xs py-1 text-caption" name="patientUpdateNote" placeholder="Patient update note">
-                  <button class="rounded-md border border-warning px-sm py-xs text-caption font-bold text-warning" type="submit">Set ETA</button>
-                </form>
-                <form th:if="${request.status != 'RESULT_READY' && request.status != 'COMPLETED'}" class="mt-xs flex flex-col gap-xs" method="post" th:action="@{/laboratory/requests/{id}/complete(id=${request.id})}">
-                  <textarea class="rounded-md border border-border-base px-xs py-1 text-caption" name="resultSummary" rows="2" placeholder="Result summary"></textarea>
-                  <button class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white" type="submit">Result Ready</button>
-                </form>
+                <a th:if="${request.status == 'RESULT_READY' || request.status == 'COMPLETED'}" th:href="@{/laboratory/requests/{id}/report(id=${request.id})}" class="mt-xs inline-flex rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">View Report</a>
+                <div th:if="${request.collectedAt != null || request.performedAt != null || request.verifiedAt != null}" class="mt-xs text-caption text-text-secondary">
+                  <p th:if="${request.collectedAt != null}" th:text="${'Collected by ' + (request.collectedBy ?: '-') + ' at ' + #temporals.format(request.collectedAt, 'MMM dd, hh:mm a')}">Collected</p>
+                  <p th:if="${request.performedAt != null}" th:text="${'Entered by ' + (request.performedBy ?: '-') + ' at ' + #temporals.format(request.performedAt, 'MMM dd, hh:mm a')}">Entered</p>
+                  <p th:if="${request.verifiedAt != null}" th:text="${'Verified by ' + (request.verifiedBy ?: '-') + ' at ' + #temporals.format(request.verifiedAt, 'MMM dd, hh:mm a')}">Verified</p>
+                </div>
               </td>
             </tr>
             </tbody>
