@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title th:text="${formTitle + ' | Tel Health'}">Department | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <form class="mx-auto flex w-full max-w-[860px] flex-col gap-md text-small" method="post" th:action="${formAction}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+                <div>
+                    <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                        <a class="hover:text-primary" th:href="@{/hospital-admin/dashboard}">Hospital Admin</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <a class="hover:text-primary" th:href="@{/hospital-admin/departments}">Departments</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <span class="font-bold text-primary" th:text="${formTitle}">Create Department</span>
+                    </nav>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary" th:text="${formTitle}">Create Department</h1>
+                    <p class="text-small text-text-secondary">Departments can be saved without an administrator and updated later.</p>
+                </div>
+                <div class="flex gap-sm">
+                    <a th:href="@{/hospital-admin/departments}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Cancel</a>
+                    <button class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit" th:text="${submitLabel}">Save</button>
+                </div>
+            </header>
+
+            <section class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                <h2 class="mb-md text-base font-semibold text-text-primary">Department Details</h2>
+                <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
+                    <label class="space-y-xs">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Department Name</span>
+                        <input name="name" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${department.name}" placeholder="e.g. Cardiology" required>
+                    </label>
+                    <label class="space-y-xs">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Type</span>
+                        <select name="departmentType" class="w-full rounded-md border border-border-base p-sm text-small">
+                            <option value="Clinical" th:selected="${department.departmentType == null || department.departmentType == 'Clinical'}">Clinical</option>
+                            <option value="Administrative" th:selected="${department.departmentType == 'Administrative'}">Administrative</option>
+                            <option value="Diagnostic" th:selected="${department.departmentType == 'Diagnostic'}">Diagnostic</option>
+                            <option value="Support" th:selected="${department.departmentType == 'Support'}">Support</option>
+                        </select>
+                    </label>
+                    <label class="space-y-xs">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Location</span>
+                        <input name="location" class="w-full rounded-md border border-border-base p-sm text-small" th:value="${department.location}" placeholder="Block, floor, wing">
+                    </label>
+                    <label class="space-y-xs">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Status</span>
+                        <select name="status" class="w-full rounded-md border border-border-base p-sm text-small">
+                            <option value="ACTIVE" th:selected="${department.status == null || department.status == 'ACTIVE'}">ACTIVE</option>
+                            <option value="INACTIVE" th:selected="${department.status == 'INACTIVE'}">INACTIVE</option>
+                        </select>
+                    </label>
+                    <label class="space-y-xs md:col-span-2">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Department Administrator</span>
+                        <select name="administratorId" class="w-full rounded-md border border-border-base p-sm text-small">
+                            <option value="">Assign later</option>
+                            <option th:each="candidate : ${administratorCandidates}"
+                                    th:value="${candidate.id}"
+                                    th:selected="${department.administrator != null && department.administrator.id == candidate.id}"
+                                    th:text="${candidate.fullName + ' - ' + (candidate.jobTitle ?: candidate.staffRole)}">Administrator</option>
+                        </select>
+                        <span class="text-caption text-text-secondary">Eligible administrators come from active HR/admin staff and staff with the Department Manager access role.</span>
+                    </label>
+                    <label class="space-y-xs md:col-span-2">
+                        <span class="text-caption font-bold uppercase text-text-secondary">Notes</span>
+                        <textarea name="notes" class="w-full rounded-md border border-border-base p-sm text-small" rows="4" th:text="${department.notes}" placeholder="Coverage scope, reporting line, service notes"></textarea>
+                    </label>
+                </div>
+            </section>
+        </form>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>Department Staff | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+            <header>
+                <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                    <a class="hover:text-primary" th:href="@{/department-management/dashboard}">Department Admin</a>
+                    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    <span class="font-bold text-primary">Staff</span>
+                </nav>
+                <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Manage Department Staff</h1>
+                <p class="text-small text-text-secondary">Review active, disabled, and unscheduled staff assigned to your department.</p>
+            </header>
+
+            <section class="grid grid-cols-1 gap-sm md:grid-cols-3">
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Total Staff</p>
+                    <p class="mt-xs text-[24px] font-semibold" th:text="${totalStaff}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Active</p>
+                    <p class="mt-xs text-[24px] font-semibold text-success" th:text="${activeStaff}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Need Schedule</p>
+                    <p class="mt-xs text-[24px] font-semibold text-warning" th:text="${unassignedSchedules}">0</p>
+                </article>
+            </section>
+
+            <section class="rounded-lg border border-border-base bg-white shadow-sm">
+                <div class="border-b border-border-base p-md">
+                    <h2 class="text-base font-semibold text-text-primary">Personnel Directory</h2>
+                </div>
+                <div class="max-h-[calc(100vh-280px)] overflow-auto">
+                    <table class="w-full min-w-[860px] text-left text-small">
+                        <thead class="sticky top-0 bg-surface-muted text-caption uppercase text-text-secondary">
+                        <tr>
+                            <th class="px-md py-sm font-bold">Staff Member</th>
+                            <th class="px-md py-sm font-bold">Role</th>
+                            <th class="px-md py-sm font-bold">Contact</th>
+                            <th class="px-md py-sm font-bold">Shift</th>
+                            <th class="px-md py-sm font-bold">Status</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-base">
+                        <tr th:each="staff : ${departmentStaff}">
+                            <td class="px-md py-sm">
+                                <p class="font-semibold text-text-primary" th:text="${staff.fullName}">Staff Name</p>
+                                <p class="text-caption text-text-secondary" th:text="${staff.staffId ?: 'Pending staff ID'}">STF-0001</p>
+                            </td>
+                            <td class="px-md py-sm">
+                                <p class="font-semibold text-text-primary" th:text="${staff.jobTitle ?: staff.staffRole}">Job Title</p>
+                                <p class="text-caption text-text-secondary" th:text="${staff.staffRole ?: 'Role not set'}">Role</p>
+                            </td>
+                            <td class="px-md py-sm text-text-secondary" th:text="${staff.email ?: staff.phoneNumber ?: 'Not provided'}">email</td>
+                            <td class="px-md py-sm text-text-secondary" th:text="${staff.shift ?: 'Unassigned'}">Unassigned</td>
+                            <td class="px-md py-sm">
+                                <span class="rounded-full px-sm py-[2px] text-caption font-bold"
+                                      th:classappend="${staff.status == 'ACTIVE'} ? ' bg-success/10 text-success' : ' bg-surface-muted text-text-secondary'"
+                                      th:text="${staff.status ?: 'ACTIVE'}">ACTIVE</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div th:if="${#lists.isEmpty(departmentStaff)}" class="p-md text-center text-text-secondary">No staff records are attached to this department.</div>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+</body>
+</html>

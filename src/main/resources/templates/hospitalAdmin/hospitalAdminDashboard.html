@@ -4,7 +4,7 @@
       layout:decorate="~{layout}">
 <head>
     <meta charset="utf-8">
-    <title>Department Admin Dashboard | Tel Health</title>
+    <title>Hospital Admin Dashboard | Tel Health</title>
 </head>
 <body>
 <div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
@@ -13,14 +13,14 @@
             <header class="flex flex-col gap-sm md:flex-row md:items-end md:justify-between">
                 <div>
                     <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
-                        <span>Department Admin</span>
+                        <span>Hospital Admin</span>
                         <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                         <span class="font-bold text-primary">Hospital Dashboard</span>
                     </nav>
                     <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Hospital Operations Dashboard</h1>
                     <p class="text-small text-text-secondary">Review staffing, account provisioning, role assignment, and department activity from one workspace.</p>
                 </div>
-                <a th:href="@{/department-admin/users}" class="inline-flex items-center gap-xs rounded-md bg-primary px-md py-sm font-semibold text-white">
+                <a th:href="@{/hospital-admin/users}" class="inline-flex items-center gap-xs rounded-md bg-primary px-md py-sm font-semibold text-white">
                     <span class="material-symbols-outlined text-[18px]">person_add</span>
                     Create System User
                 </a>
@@ -56,7 +56,7 @@
                             <h2 class="text-base font-semibold text-text-primary">Department Coverage</h2>
                             <p class="text-caption text-text-secondary">Monitor staffing distribution by assigned department.</p>
                         </div>
-                        <a th:href="@{/department-admin/staff}" class="text-caption font-bold text-primary">Review records</a>
+                        <a th:href="@{/hospital-admin/staff}" class="text-caption font-bold text-primary">Review records</a>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[520px] text-left text-small">
@@ -83,17 +83,6 @@
                     </div>
                 </article>
 
-                <aside class="rounded-lg border border-border-base bg-white p-md shadow-sm lg:col-span-4">
-                    <h2 class="text-base font-semibold text-text-primary">Provisioning Workflow</h2>
-                    <ol class="mt-sm space-y-sm text-small">
-                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">dashboard</span><span>View hospital dashboard</span></li>
-                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">badge</span><span>Review employee records</span></li>
-                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">person_add</span><span>Create system user in Keycloak</span></li>
-                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span><span>Assign role and department</span></li>
-                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">verified_user</span><span>Activate account</span></li>
-                        <li class="flex gap-sm"><span class="material-symbols-outlined text-[18px] text-primary">monitoring</span><span>Monitor operations</span></li>
-                    </ol>
-                </aside>
             </section>
         </section>
     </main>

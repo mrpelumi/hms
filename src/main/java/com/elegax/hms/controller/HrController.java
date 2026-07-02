@@ -142,6 +142,14 @@ public class HrController {
         return "redirect:/hr/staff?disabled";
     }
 
+    @PostMapping("/staff/{id}/enable")
+    public String enableStaff(@PathVariable Long id) {
+        StaffMember staffMember = staffMember(id);
+        staffMember.setStatus("ACTIVE");
+        staffMemberRepository.save(staffMember);
+        return "redirect:/hr/staff?enabled";
+    }
+
     @GetMapping("/attendance")
     public String attendance(@RequestParam(required = false) String date, Model model, HttpSession session) {
         session.setAttribute("userRole", "HR");

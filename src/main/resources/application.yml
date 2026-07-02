@@ -38,3 +38,10 @@ spring:
 server:
   port: 9112
 
+
+keycloak:
+  base-url: ${KEYCLOAK_BASE_URL:https://ngcloak.onrender.com}
+  realm: ${KEYCLOAK_REALM:hmsRealm}
+  client-id: ${KEYCLOAK_CLIENT_ID:hmsClient}
+  client-secret: ${KEYCLOAK_CLIENT_SECRET:w9nMST2lsepWTz7DYhAwkI68pFoVVbJ4}
+  grant-type: ${KEYCLOAK_GRANT_TYPE:client_credentials}

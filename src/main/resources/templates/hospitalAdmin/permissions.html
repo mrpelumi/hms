@@ -12,7 +12,7 @@
         <section class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
             <header>
                 <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
-                    <a class="hover:text-primary" th:href="@{/department-admin/dashboard}">Department Admin</a>
+                    <a class="hover:text-primary" th:href="@{/hospital-admin/dashboard}">Hospital Admin</a>
                     <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                     <span class="font-bold text-primary">Roles and Operations</span>
                 </nav>
@@ -24,7 +24,7 @@
                 <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
                     <div class="mb-sm flex items-center justify-between">
                         <h2 class="text-base font-semibold text-text-primary">Role Assignments</h2>
-                        <a th:href="@{/department-admin/users}" class="text-caption font-bold text-primary">Manage users</a>
+                        <a th:href="@{/hospital-admin/users}" class="text-caption font-bold text-primary">Manage users</a>
                     </div>
                     <div class="space-y-xs">
                         <div class="flex items-center justify-between rounded-md bg-surface-muted p-sm" th:each="entry : ${roleCounts}">
@@ -56,7 +56,7 @@
                         <h2 class="text-base font-semibold text-text-primary">Activation and Monitoring Checklist</h2>
                         <p class="text-caption text-text-secondary">Use this page after provisioning to confirm users are ready for live operations.</p>
                     </div>
-                    <span class="rounded-full bg-primary/10 px-sm py-xs text-caption font-bold text-primary">Department Admin Control</span>
+                    <span class="rounded-full bg-primary/10 px-sm py-xs text-caption font-bold text-primary">Hospital Admin Control</span>
                 </div>
                 <div class="grid grid-cols-1 gap-sm md:grid-cols-3">
                     <article class="rounded-md border border-border-base p-sm">
@@ -64,7 +64,7 @@
                             <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
                             <h3 class="font-semibold text-text-primary">Assign Role</h3>
                         </div>
-                        <p class="text-caption text-text-secondary">Confirm the Keycloak role matches the staff workflow role such as Doctor, Nurse, Billing, HR, or Department Admin.</p>
+                        <p class="text-caption text-text-secondary">Confirm the Keycloak role matches the staff workflow role such as Doctor, Nurse, Billing, HR, or Hospital Admin.</p>
                     </article>
                     <article class="rounded-md border border-border-base p-sm">
                         <div class="mb-xs flex items-center gap-xs text-primary">

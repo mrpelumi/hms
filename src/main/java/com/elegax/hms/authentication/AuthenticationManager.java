@@ -1,6 +1,7 @@
 package com.elegax.hms.authentication;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -78,10 +79,19 @@ public class AuthenticationManager {
                 .anyMatch(group -> hasRole(group, "hr", "human resources", "human-resource", "human_resources"));
     }
 
-    public Boolean isDepartmentAdmin(){
+    public Boolean isHospitalAdmin(){
         return getGroups()
                 .stream()
-                .anyMatch(group -> hasRole(group, "department admin", "department-admin", "department_admin", "dept admin", "dept-admin", "dept_admin"));
+                .anyMatch(group -> hasRole(group, "hospital admin", "hospital-admin", "hospital_admin", "hospital administrator", "hospital-administrator", "hospital_administrator"));
+    }
+
+    public Boolean isDepartmentManager(){
+        return getGroups()
+                .stream()
+                .anyMatch(group -> hasRole(group, "department manager", "department-manager", "department_manager",
+                        "department admin", "department-admin", "department_admin",
+                        "department administrator", "department-administrator", "department_administrator",
+                        "dept manager", "dept-manager", "dept admin", "dept-admin"));
     }
 
     public String getUsername() {
@@ -101,13 +111,25 @@ public class AuthenticationManager {
     }
 
     private List<String> getGroups() {
-        return Stream.of(get("group"), get("groups"), get("role"), get("roles"), get("authorities"),
-                        get("realm_access"), get("resource_access"))
-                .flatMap(this::groupValues)
+        return Stream.concat(
+                        Stream.of(get("group"), get("groups"), get("role"), get("roles"), get("authorities"),
+                                        get("realm_access"), get("resource_access"))
+                                .flatMap(this::groupValues),
+                        authorityValues()
+                )
                 .flatMap(this::splitGroupValue)
                 .map(String::trim)
                 .filter(group -> !group.isBlank())
                 .toList();
+    }
+
+    private Stream<String> authorityValues() {
+        Authentication authentication = getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return Stream.empty();
+        }
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority);
     }
 
     private Stream<String> groupValues(Object groups) {
@@ -151,6 +173,9 @@ public class AuthenticationManager {
         }
         if (normalizedGroup.startsWith("role_")) {
             normalizedGroup = normalizedGroup.substring(5);
+        }
+        if (normalizedGroup.startsWith("scope_")) {
+            normalizedGroup = normalizedGroup.substring(6);
         }
         normalizedGroup = normalizedGroup.replace("-", "").replace("_", "").replace(" ", "");
         return normalizedGroup;

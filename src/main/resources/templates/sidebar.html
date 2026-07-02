@@ -39,6 +39,10 @@
                     <span class="material-symbols-outlined">settings</span>
                     <span class="font-body text-body">Schedule</span>
                 </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/doctor/profile}">
+                    <span class="material-symbols-outlined">account_circle</span>
+                    <span class="font-body text-body">Profile</span>
+                </a>
             </div>
         </nav>
         <div class="p-lg border-t border-white/10 space-y-xs">
@@ -291,7 +295,7 @@
         </div>
     </aside>
 
-    <aside th:if="${session.userRole == 'DEPARTMENT_ADMIN'}"
+    <aside th:if="${session.userRole == 'HOSPITAL_ADMIN'}"
            class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
            style="height: 100vh; overflow-y: auto;" id="main-sidebar">
         <div class="px-xl py-xl flex items-center gap-md">
@@ -302,24 +306,28 @@
         </div>
         <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
             <div class="space-y-xs">
-                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Department Admin</p>
-                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/dashboard}">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Hospital Admin</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/dashboard}">
                     <span class="material-symbols-outlined text-[20px]">dashboard</span>
                     <span class="font-small text-small">Hospital Dashboard</span>
                 </a>
-                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/staff}">
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/staff}">
                     <span class="material-symbols-outlined text-[20px]">badge</span>
                     <span class="font-small text-small">Employee Records</span>
                 </a>
-                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/users}">
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/departments}">
+                    <span class="material-symbols-outlined text-[20px]">apartment</span>
+                    <span class="font-small text-small">Departments</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/users}">
                     <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
                     <span class="font-small text-small">System Users</span>
                 </a>
-                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/permissions}">
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/permissions}">
                     <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
                     <span class="font-small text-small">Roles and Permissions</span>
                 </a>
-                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/operations}">
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/operations}">
                     <span class="material-symbols-outlined text-[20px]">monitoring</span>
                     <span class="font-small text-small">Operations Monitor</span>
                 </a>
@@ -336,7 +344,60 @@
         </div>
     </aside>
 
-    <aside th:if="${session.userRole != 'DOCTOR' && session.userRole != 'NURSE' && session.userRole != 'LABORATORY' && session.userRole != 'RADIOLOGY' && session.userRole != 'PHARMACY' && session.userRole != 'BILLING' && session.userRole != 'RECEPTIONIST' && session.userRole != 'HR' && session.userRole != 'DEPARTMENT_ADMIN'}"
+    <aside th:if="${session.userRole == 'DEPARTMENT_MANAGER'}"
+           class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
+           style="height: 100vh; overflow-y: auto;" id="main-sidebar">
+        <div class="px-xl py-xl flex items-center gap-md">
+            <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <img alt="Tel Health Logo" class="w-8 h-8 object-contain" th:src="@{/logo.png}" src="/logo.png">
+            </div>
+            <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xl">
+            <div class="space-y-xs">
+                <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Department Admin</p>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-management/dashboard}">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                    <span class="font-small text-small">Dashboard</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-management/staff}">
+                    <span class="material-symbols-outlined text-[20px]">groups</span>
+                    <span class="font-small text-small">Department Staff</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-management/schedules}">
+                    <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+                    <span class="font-small text-small">Staff Schedules</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-management/workload}">
+                    <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                    <span class="font-small text-small">Workload</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-management/reports}">
+                    <span class="material-symbols-outlined text-[20px]">summarize</span>
+                    <span class="font-small text-small">Reports</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-management/resources}">
+                    <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+                    <span class="font-small text-small">Resources</span>
+                </a>
+                <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-management/escalations}">
+                    <span class="material-symbols-outlined text-[20px]">report</span>
+                    <span class="font-small text-small">Escalations</span>
+                </a>
+            </div>
+        </nav>
+        <div class="p-lg border-t border-white/10 space-y-xs">
+            <form method="post" th:action="@{/logout}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button class="w-full flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 text-red-200" type="submit">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="font-small text-small">Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <aside th:if="${session.userRole != 'DOCTOR' && session.userRole != 'NURSE' && session.userRole != 'LABORATORY' && session.userRole != 'RADIOLOGY' && session.userRole != 'PHARMACY' && session.userRole != 'BILLING' && session.userRole != 'RECEPTIONIST' && session.userRole != 'HR' && session.userRole != 'HOSPITAL_ADMIN' && session.userRole != 'DEPARTMENT_MANAGER'}"
            class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
            style="height: 100vh; overflow-y: auto;" id="main-sidebar">
         <div class="px-xl py-xl flex items-center gap-md">

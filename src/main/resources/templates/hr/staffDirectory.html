@@ -24,6 +24,7 @@
       <div th:if="${param.created}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Staff record created.</div>
       <div th:if="${param.updated}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Staff record updated.</div>
       <div th:if="${param.disabled}" class="rounded-md border border-warning/30 bg-warning/5 px-md py-sm font-semibold text-warning">Staff record disabled.</div>
+      <div th:if="${param.enabled}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Staff record enabled. Hospital Admin can enable the Keycloak account if it was disabled.</div>
 
       <section class="grid grid-cols-2 gap-sm lg:grid-cols-4">
         <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Total</p><p class="text-[22px] font-semibold" th:text="${totalStaff}">0</p></div>
@@ -75,7 +76,12 @@
                 <div class="inline-flex gap-xs">
                   <a th:href="@{/hr/staff/{id}/edit(id=${staff.id})}" class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">Edit</a>
                   <form th:if="${staff.status != 'DISABLED'}" method="post" th:action="@{/hr/staff/{id}/disable(id=${staff.id})}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <button class="rounded-md border border-danger px-sm py-xs text-caption font-bold text-danger" type="submit">Disable</button>
+                  </form>
+                  <form th:if="${staff.status == 'DISABLED'}" method="post" th:action="@{/hr/staff/{id}/enable(id=${staff.id})}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button class="rounded-md border border-success px-sm py-xs text-caption font-bold text-success" type="submit">Enable</button>
                   </form>
                 </div>
               </td>

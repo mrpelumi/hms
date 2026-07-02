@@ -2,10 +2,10 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Department Admin Sidebar</title>
+    <title>Hospital Admin Sidebar</title>
 </head>
 <body>
-<aside th:fragment="departmentAdminSidebar"
+<aside th:fragment="hospitalAdminSidebar"
        class="fixed left-0 top-0 h-full w-sidebar-width sidebar-gradient text-white flex-col hidden md:flex z-[60] shadow-2xl"
        style="height: 100vh; overflow-y: auto;">
     <div class="px-xl py-xl flex items-center gap-md">
@@ -15,24 +15,28 @@
         <span class="font-display text-[20px] font-bold tracking-tight">Tel Health</span>
     </div>
     <nav class="flex-1 overflow-y-auto px-md py-md custom-scrollbar space-y-xs">
-        <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Department Admin</p>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/dashboard}">
+        <p class="px-md text-[11px] font-bold tracking-widest opacity-60 uppercase mb-sm">Hospital Admin</p>
+        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/dashboard}">
             <span class="material-symbols-outlined text-[20px]">dashboard</span>
             <span class="font-small text-small">Hospital Dashboard</span>
         </a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/staff}">
+        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/staff}">
             <span class="material-symbols-outlined text-[20px]">badge</span>
             <span class="font-small text-small">Employee Records</span>
         </a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/users}">
+        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/departments}">
+            <span class="material-symbols-outlined text-[20px]">apartment</span>
+            <span class="font-small text-small">Departments</span>
+        </a>
+        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/users}">
             <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
             <span class="font-small text-small">System Users</span>
         </a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/permissions}">
+        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/permissions}">
             <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
             <span class="font-small text-small">Roles and Permissions</span>
         </a>
-        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/department-admin/operations}">
+        <a class="flex items-center gap-md px-md py-sm rounded-lg transition-all hover:bg-white/10 group" th:href="@{/hospital-admin/operations}">
             <span class="material-symbols-outlined text-[20px]">monitoring</span>
             <span class="font-small text-small">Operations Monitor</span>
         </a>

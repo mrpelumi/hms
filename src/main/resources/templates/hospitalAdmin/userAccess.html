@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>System Users | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+            <header class="flex flex-col gap-sm md:flex-row md:items-end md:justify-between">
+                <div>
+                    <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                        <a class="hover:text-primary" th:href="@{/hospital-admin/dashboard}">Hospital Admin</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <span class="font-bold text-primary">System Users</span>
+                    </nav>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Employee Access Provisioning</h1>
+                    <p class="text-small text-text-secondary">Create system users from employee records, assign access role, assign department, and activate the account.</p>
+                </div>
+                <div class="flex flex-wrap gap-sm">
+                    <div class="flex min-w-[260px] overflow-hidden rounded-md border border-border-base bg-white">
+                        <input id="employee-search" class="min-w-0 flex-1 border-0 px-sm py-sm text-small focus:ring-0" placeholder="Search employee, ID, role">
+                        <button id="employee-search-button" class="inline-flex items-center gap-xs bg-primary px-sm py-sm font-semibold text-white" type="button">
+                            <span class="material-symbols-outlined text-[18px]">search</span>
+                            Search
+                        </button>
+                    </div>
+                    <button id="clear-search-button" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary" type="button">Clear</button>
+                    <select id="department-filter" class="rounded-md border border-border-base bg-white px-md py-sm text-small">
+                        <option value="">All departments</option>
+                        <option th:each="department : ${departments}" th:value="${department}" th:text="${department}">Department</option>
+                    </select>
+                </div>
+            </header>
+
+            <div th:if="${successMessage}" class="rounded-md border border-success/20 bg-success/10 px-md py-sm text-small font-semibold text-success" th:text="${successMessage}">
+                Keycloak account created.
+            </div>
+            <div th:if="${errorMessage}" class="rounded-md border border-error/20 bg-error/10 px-md py-sm text-small font-semibold text-error" th:text="${errorMessage}">
+                Unable to create account.
+            </div>
+
+            <section class="grid grid-cols-1 gap-sm md:grid-cols-3">
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Employee Records</p>
+                    <p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${totalStaff}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Active</p>
+                    <p class="mt-xs text-[24px] font-semibold text-success" th:text="${activeStaff}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Pending System User</p>
+                    <p class="mt-xs text-[24px] font-semibold text-warning" th:text="${pendingUsers}">0</p>
+                </article>
+            </section>
+
+            <section class="rounded-lg border border-border-base bg-white shadow-sm">
+                <div class="border-b border-border-base p-md">
+                    <h2 class="text-base font-semibold text-text-primary">Employee Records and Access Actions</h2>
+                    <p class="text-caption text-text-secondary">Search employees, inspect staff details, and mirror HR staff status into Keycloak user access.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[860px] text-left text-small">
+                        <thead class="bg-surface-muted text-caption uppercase text-text-secondary">
+                        <tr>
+                            <th class="px-md py-sm"><input id="select-all" type="checkbox"></th>
+                            <th class="px-md py-sm">Employee</th>
+                            <th class="px-md py-sm">Role</th>
+                            <th class="px-md py-sm">Department</th>
+                            <th class="px-md py-sm">HR Status</th>
+                            <th class="px-md py-sm">Account</th>
+                            <th class="px-md py-sm text-right">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-base">
+                        <tr class="staff-row hover:bg-surface-muted/60" th:each="staff : ${staffMembers}"
+                            th:data-department="${staff.department}"
+                            th:attr="data-search=${#strings.toLowerCase((staff.fullName ?: '') + ' ' + (staff.staffId ?: '') + ' ' + (staff.email ?: '') + ' ' + (staff.department ?: '') + ' ' + (staff.jobTitle ?: '') + ' ' + (staff.staffRole ?: '') + ' ' + (staff.status ?: ''))}"
+                            th:with="accountState=${accountStates[staff.id]}">
+                            <td class="px-md py-sm"><input class="staff-check" type="checkbox"></td>
+                            <td class="px-md py-sm">
+                                <p class="font-semibold text-text-primary" th:text="${staff.fullName}">Staff Name</p>
+                                <p class="text-caption text-text-secondary" th:text="${staff.staffId ?: 'Staff ID pending'}">STAFF-001</p>
+                            </td>
+                            <td class="px-md py-sm" th:text="${staff.staffRole ?: 'UNASSIGNED'}">DOCTOR</td>
+                            <td class="px-md py-sm" th:text="${staff.department ?: 'Unassigned'}">Department</td>
+                            <td class="px-md py-sm">
+                                <span class="rounded-full px-sm py-xs text-caption font-bold"
+                                      th:classappend="${staff.status == 'DISABLED'} ? ' bg-danger/10 text-danger' : ' bg-success/10 text-success'"
+                                      th:text="${staff.status ?: 'ACTIVE'}">ACTIVE</span>
+                            </td>
+                            <td class="px-md py-sm">
+                                <span class="rounded-full px-sm py-xs text-caption font-bold"
+                                      th:classappend="${accountState == 'ENABLED'} ? ' bg-success/10 text-success' : (${accountState == 'DISABLED'} ? ' bg-danger/10 text-danger' : ' bg-warning/10 text-warning')"
+                                      th:text="${accountState == 'ENABLED'} ? 'KEYCLOAK ENABLED' : (${accountState == 'DISABLED'} ? 'KEYCLOAK DISABLED' : 'PENDING')">PENDING</span>
+                            </td>
+                            <td class="px-md py-sm text-right">
+                                <a th:href="@{/hospital-admin/staff/{id}(id=${staff.id})}" class="rounded-md border border-border-base px-sm py-xs text-caption font-bold text-text-primary">
+                                    View
+                                </a>
+                                <form th:if="${accountState == 'MISSING'}" class="inline-flex" method="post" th:action="@{/hospital-admin/staff/{id}/keycloak-user(id=${staff.id})}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="provision-button rounded-md bg-primary px-sm py-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50" type="submit"
+                                            th:disabled="${staff.email == null || staff.email.isBlank() || staff.staffRole == null || staff.staffRole.isBlank()}">
+                                        Create User
+                                    </button>
+                                </form>
+                                <form th:if="${accountState == 'ENABLED'}" class="inline-flex" method="post" th:action="@{/hospital-admin/staff/{id}/keycloak-user/disable(id=${staff.id})}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="provision-button rounded-md border border-danger px-sm py-xs font-semibold text-danger" type="submit">
+                                        Disable User
+                                    </button>
+                                </form>
+                                <form th:if="${accountState == 'DISABLED'}" class="inline-flex" method="post" th:action="@{/hospital-admin/staff/{id}/keycloak-user/enable(id=${staff.id})}">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <button class="provision-button rounded-md bg-success px-sm py-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50" type="submit"
+                                            th:disabled="${staff.status == 'DISABLED'}"
+                                            th:title="${staff.status == 'DISABLED'} ? 'HR must enable this staff record first' : 'Enable Keycloak user'">
+                                        Enable User
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(staffMembers)}">
+                            <td class="px-md py-md text-text-secondary" colspan="7">No employee records available.</td>
+                        </tr>
+                        <tr id="no-search-results" class="hidden">
+                            <td class="px-md py-md text-center text-text-secondary" colspan="7">No employee matched your search.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+    <script>
+        const departmentFilter = document.getElementById('department-filter');
+        const employeeSearch = document.getElementById('employee-search');
+        const employeeSearchButton = document.getElementById('employee-search-button');
+        const clearSearchButton = document.getElementById('clear-search-button');
+        const staffRows = Array.from(document.querySelectorAll('.staff-row'));
+        const noSearchResults = document.getElementById('no-search-results');
+
+        function applyFilters() {
+            const query = employeeSearch?.value.trim().toLowerCase() || '';
+            let visibleCount = 0;
+            staffRows.forEach(row => {
+                const department = row.dataset.department || '';
+                const matchesDepartment = !departmentFilter?.value || department === departmentFilter.value;
+                const matchesSearch = !query || (row.dataset.search || '').includes(query);
+                const isVisible = matchesDepartment && matchesSearch;
+                row.classList.toggle('hidden', !isVisible);
+                if (isVisible) visibleCount += 1;
+            });
+            noSearchResults?.classList.toggle('hidden', visibleCount > 0);
+        }
+
+        departmentFilter?.addEventListener('change', applyFilters);
+        employeeSearchButton?.addEventListener('click', applyFilters);
+        employeeSearch?.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                applyFilters();
+            }
+        });
+        clearSearchButton?.addEventListener('click', () => {
+            if (employeeSearch) employeeSearch.value = '';
+            if (departmentFilter) departmentFilter.value = '';
+            applyFilters();
+        });
+        document.getElementById('select-all')?.addEventListener('change', event => {
+            document.querySelectorAll('.staff-check').forEach(input => input.checked = event.target.checked);
+        });
+    </script>
+</div>
+</body>
+</html>

@@ -89,6 +89,7 @@
                                     <option value="PHARMACY" data-default-department="Pharmacy">Pharmacy</option>
                                     <option value="BILLING" data-default-department="Billing">Billing</option>
                                     <option value="HR" data-default-department="Human Resources">Human Resources</option>
+                                    <option value="DEPARTMENT_MANAGER" data-default-department="Administration">Department Manager</option>
                                 </select>
                                 <span class="text-caption text-text-secondary">Example: a pediatrician uses access role Doctor and department Pediatrics.</span>
                             </label>
@@ -227,7 +228,8 @@
             RADIOLOGY: ['Radiology', 'X-Ray', 'Ultrasound', 'CT / MRI'],
             PHARMACY: ['Pharmacy', 'Dispensary', 'Drug Store'],
             BILLING: ['Billing', 'Accounts', 'Insurance / Claims'],
-            HR: ['Human Resources', 'Payroll Administration', 'Staff Welfare']
+            HR: ['Human Resources', 'Payroll Administration', 'Staff Welfare'],
+            DEPARTMENT_MANAGER: ['Administration', 'Human Resources', 'Operations Administration', 'Clinical Administration', 'Finance Administration']
         };
 
         function appendDepartmentOption(value, selectedValue) {

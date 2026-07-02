@@ -34,6 +34,7 @@ public class DoctorController {
     private final PrescriptionRepository prescriptionRepository;
     private final InvestigationRequestRepository investigationRequestRepository;
     private final DoctorScheduleRepository doctorScheduleRepository;
+    private final StaffMemberRepository staffMemberRepository;
     private final AuthenticationManager authenticationManager;
     private final BillingWorkflowService billingWorkflowService;
 
@@ -44,6 +45,7 @@ public class DoctorController {
                             PrescriptionRepository prescriptionRepository,
                             InvestigationRequestRepository investigationRequestRepository,
                             DoctorScheduleRepository doctorScheduleRepository,
+                            StaffMemberRepository staffMemberRepository,
                             AuthenticationManager authenticationManager,
                             BillingWorkflowService billingWorkflowService) {
         this.patientRepository = patientRepository;
@@ -53,6 +55,7 @@ public class DoctorController {
         this.prescriptionRepository = prescriptionRepository;
         this.investigationRequestRepository = investigationRequestRepository;
         this.doctorScheduleRepository = doctorScheduleRepository;
+        this.staffMemberRepository = staffMemberRepository;
         this.authenticationManager = authenticationManager;
         this.billingWorkflowService = billingWorkflowService;
     }
@@ -73,6 +76,22 @@ public class DoctorController {
         session.setAttribute("userRole", "DOCTOR");
         addQueueModel(model, activeQueueEntries());
         return "doctor/patientQueue";
+    }
+
+    @GetMapping("/profile")
+    public String profile(Model model, HttpSession session) {
+        session.setAttribute("userRole", "DOCTOR");
+        StaffMember doctor = currentDoctorStaffMember();
+        List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctorUsernameOrderByIdAsc(currentDoctorUsername());
+        model.addAttribute("doctor", doctor);
+        model.addAttribute("doctorName", doctor != null ? doctor.getFullName() : authenticationManager.getDisplayName());
+        model.addAttribute("doctorEmail", doctor != null ? doctor.getEmail() : authenticationManager.getUsername());
+        model.addAttribute("schedules", schedules);
+        model.addAttribute("appointmentCount", appointmentsForCurrentDoctor().size());
+        model.addAttribute("completedCount", appointmentsForCurrentDoctor().stream()
+                .filter(appointment -> "COMPLETED".equals(appointment.getStatus()))
+                .count());
+        return "doctor/profile";
     }
 
     @PostMapping("/queue/{queueEntryId}/call")
@@ -526,12 +545,28 @@ public class DoctorController {
         return username.isBlank() ? authenticationManager.getDisplayName() : username;
     }
 
+    private StaffMember currentDoctorStaffMember() {
+        String username = currentDoctorUsername();
+        String displayName = authenticationManager.getDisplayName();
+        return staffMemberRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .filter(member -> "DOCTOR".equalsIgnoreCase(valueOr(member.getStaffRole(), "")))
+                .filter(member -> valueOr(member.getEmail(), "").equalsIgnoreCase(username)
+                        || valueOr(member.getFullName(), "").equalsIgnoreCase(displayName))
+                .findFirst()
+                .orElse(null);
+    }
+
     private boolean allText(String... values) {
         return Arrays.stream(values).allMatch(this::hasText);
     }
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private String valueOr(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 
     private List<String> scheduleDays() {

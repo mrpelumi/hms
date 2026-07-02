@@ -56,9 +56,14 @@ public class HomeController {
             return "redirect:/hr/dashboard";
         }
 
-        if (authenticationManager.isDepartmentAdmin()) {
-            session.setAttribute("userRole", "DEPARTMENT_ADMIN");
-            return "redirect:/department-admin/dashboard";
+        if (authenticationManager.isDepartmentManager()) {
+            session.setAttribute("userRole", "DEPARTMENT_MANAGER");
+            return "redirect:/department-management/dashboard";
+        }
+
+        if (authenticationManager.isHospitalAdmin()) {
+            session.setAttribute("userRole", "HOSPITAL_ADMIN");
+            return "redirect:/hospital-admin/dashboard";
         }
 
         if (authenticationManager.isReceptionist()) {
@@ -67,7 +72,7 @@ public class HomeController {
         }
 
         session.removeAttribute("userRole");
-        return "redirect:/login?error=missing-role";
+        return "redirect:/?error=missing-role";
     }
 
 }

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="utf-8">
+    <title>Departments | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+    <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+        <section class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+            <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+                <div>
+                    <nav class="mb-xs flex items-center gap-xs text-caption text-text-secondary">
+                        <a class="hover:text-primary" th:href="@{/hospital-admin/dashboard}">Hospital Admin</a>
+                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                        <span class="font-bold text-primary">Departments</span>
+                    </nav>
+                    <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Department Dashboard</h1>
+                    <p class="text-small text-text-secondary">Review hospital departments, administrators, and department status.</p>
+                </div>
+                <a th:href="@{/hospital-admin/departments/new}" class="inline-flex items-center justify-center gap-xs rounded-md bg-primary px-md py-sm font-semibold text-white">
+                    <span class="material-symbols-outlined text-[18px]">add</span>
+                    Create Department
+                </a>
+            </header>
+
+            <div th:if="${successMessage}" class="rounded-md border border-success/20 bg-success/10 px-md py-sm font-semibold text-success" th:text="${successMessage}">Department saved.</div>
+            <div th:if="${errorMessage}" class="rounded-md border border-danger/20 bg-danger/10 px-md py-sm font-semibold text-danger" th:text="${errorMessage}">Unable to save department.</div>
+
+            <section class="grid grid-cols-1 gap-sm md:grid-cols-3">
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Departments</p>
+                    <p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${totalDepartments}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Active</p>
+                    <p class="mt-xs text-[24px] font-semibold text-success" th:text="${activeDepartments}">0</p>
+                </article>
+                <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+                    <p class="text-caption font-bold uppercase text-text-secondary">Awaiting Administrator</p>
+                    <p class="mt-xs text-[24px] font-semibold text-warning" th:text="${unassignedDepartments}">0</p>
+                </article>
+            </section>
+
+            <section class="rounded-lg border border-border-base bg-white shadow-sm">
+                <div class="flex flex-col gap-xs border-b border-border-base p-md md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 class="text-base font-semibold text-text-primary">Created Departments</h2>
+                        <p class="text-caption text-text-secondary">Latest department administrator assignments are shown here.</p>
+                    </div>
+                    <a th:href="@{/hospital-admin/departments/new}" class="inline-flex items-center gap-xs rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">
+                        <span class="material-symbols-outlined text-[16px]">add</span>
+                        New
+                    </a>
+                </div>
+
+                <div class="max-h-[calc(100vh-330px)] overflow-auto">
+                    <table class="w-full min-w-[860px] text-left text-small">
+                        <thead class="sticky top-0 z-10 bg-surface-muted text-caption uppercase text-text-secondary">
+                        <tr>
+                            <th class="px-md py-sm font-bold">Department</th>
+                            <th class="px-md py-sm font-bold">Type</th>
+                            <th class="px-md py-sm font-bold">Administrator</th>
+                            <th class="px-md py-sm font-bold">Location</th>
+                            <th class="px-md py-sm font-bold">Status</th>
+                            <th class="px-md py-sm font-bold text-right">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-base">
+                        <tr th:each="department : ${departments}" class="align-top">
+                            <td class="px-md py-sm">
+                                <p class="font-semibold text-text-primary" th:text="${department.name}">Cardiology</p>
+                                <p class="mt-1 max-w-[300px] truncate text-caption text-text-secondary" th:text="${department.notes ?: 'No notes added'}">No notes added</p>
+                            </td>
+                            <td class="px-md py-sm text-text-secondary" th:text="${department.departmentType ?: 'Clinical'}">Clinical</td>
+                            <td class="px-md py-sm">
+                                <p class="font-semibold text-text-primary" th:text="${department.administrator != null ? department.administrator.fullName : 'Unassigned'}">Unassigned</p>
+                                <p class="text-caption text-text-secondary" th:if="${department.administrator != null}" th:text="${department.administrator.staffRole}">DEPARTMENT_MANAGER</p>
+                            </td>
+                            <td class="px-md py-sm text-text-secondary" th:text="${department.location ?: 'Unassigned'}">Block A</td>
+                            <td class="px-md py-sm">
+                                <span class="rounded-full px-sm py-[2px] text-caption font-bold"
+                                      th:classappend="${department.status == 'ACTIVE'} ? ' bg-success/10 text-success' : ' bg-surface-muted text-text-secondary'"
+                                      th:text="${department.status ?: 'ACTIVE'}">ACTIVE</span>
+                            </td>
+                            <td class="px-md py-sm">
+                                <div class="flex justify-end gap-xs">
+                                    <a th:href="@{/hospital-admin/departments/{id}/edit(id=${department.id})}" class="inline-flex items-center gap-xs rounded-md border border-border-base px-sm py-xs text-caption font-bold text-text-primary">
+                                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                                        Update
+                                    </a>
+                                    <form th:if="${department.status != 'INACTIVE'}" method="post" th:action="@{/hospital-admin/departments/{id}/disable(id=${department.id})}">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="inline-flex items-center gap-xs rounded-md border border-danger/30 px-sm py-xs text-caption font-bold text-danger" type="submit">
+                                            <span class="material-symbols-outlined text-[16px]">block</span>
+                                            Disable
+                                        </button>
+                                    </form>
+                                    <form th:if="${department.status == 'INACTIVE'}" method="post" th:action="@{/hospital-admin/departments/{id}/enable(id=${department.id})}">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="inline-flex items-center gap-xs rounded-md border border-success/30 px-sm py-xs text-caption font-bold text-success" type="submit">
+                                            <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                                            Enable
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div th:if="${#lists.isEmpty(departments)}" class="p-lg text-center">
+                        <p class="font-semibold text-text-primary">No departments have been created yet.</p>
+                        <p class="mt-xs text-caption text-text-secondary">Create a department now, then assign an administrator when one is available.</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+</body>
+</html>
