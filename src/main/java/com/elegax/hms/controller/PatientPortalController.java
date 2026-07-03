@@ -25,8 +25,11 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/patient")
@@ -35,6 +38,8 @@ public class PatientPortalController {
     private final PatientRepository patientRepository;
     private final AppointmentRepository appointmentRepository;
     private final DoctorScheduleRepository doctorScheduleRepository;
+    private final StaffMemberRepository staffMemberRepository;
+    private final LeaveRequestRepository leaveRequestRepository;
     private final ConsultationRepository consultationRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final InvestigationRequestRepository investigationRequestRepository;
@@ -46,6 +51,8 @@ public class PatientPortalController {
     public PatientPortalController(PatientRepository patientRepository,
                                    AppointmentRepository appointmentRepository,
                                    DoctorScheduleRepository doctorScheduleRepository,
+                                   StaffMemberRepository staffMemberRepository,
+                                   LeaveRequestRepository leaveRequestRepository,
                                    ConsultationRepository consultationRepository,
                                    PrescriptionRepository prescriptionRepository,
                                    InvestigationRequestRepository investigationRequestRepository,
@@ -56,6 +63,8 @@ public class PatientPortalController {
         this.patientRepository = patientRepository;
         this.appointmentRepository = appointmentRepository;
         this.doctorScheduleRepository = doctorScheduleRepository;
+        this.staffMemberRepository = staffMemberRepository;
+        this.leaveRequestRepository = leaveRequestRepository;
         this.consultationRepository = consultationRepository;
         this.prescriptionRepository = prescriptionRepository;
         this.investigationRequestRepository = investigationRequestRepository;
@@ -106,18 +115,61 @@ public class PatientPortalController {
     @GetMapping("/appointments/new")
     public String newAppointment(Model model, HttpSession session) {
         addBaseModel(model, session);
-        model.addAttribute("doctorSchedules", doctorScheduleRepository.findByAvailableTrueOrderByDoctorNameAscDayOfWeekAscStartTimeAsc());
+        Map<String, StaffMember> activeDoctorsByUsername = staffMemberRepository.findAll(Sort.by(Sort.Direction.ASC, "fullName"))
+                .stream()
+                .filter(staff -> "DOCTOR".equalsIgnoreCase(valueOr(staff.getStaffRole(), "")))
+                .filter(staff -> "ACTIVE".equalsIgnoreCase(valueOr(staff.getStatus(), "ACTIVE")))
+                .filter(staff -> staff.getEmail() != null && !staff.getEmail().isBlank())
+                .collect(Collectors.toMap(staff -> staff.getEmail().toLowerCase(), Function.identity(), (first, ignored) -> first));
+        List<DoctorSchedule> availableSchedules = doctorScheduleRepository.findByAvailableTrueOrderByDoctorNameAscDayOfWeekAscStartTimeAsc()
+                .stream()
+                .filter(schedule -> schedule.getDoctorUsername() != null)
+                .filter(schedule -> activeDoctorsByUsername.containsKey(schedule.getDoctorUsername().toLowerCase()))
+                .toList();
+        List<Appointment> bookedAppointments = appointmentRepository.findAll(Sort.by(Sort.Direction.ASC, "scheduledAt"))
+                .stream()
+                .filter(appointment -> appointment.getScheduledAt() != null)
+                .filter(appointment -> appointment.getProviderUsername() != null)
+                .filter(appointment -> !"CANCELLED".equalsIgnoreCase(valueOr(appointment.getStatus(), ""))
+                        && !"COMPLETED".equalsIgnoreCase(valueOr(appointment.getStatus(), "")))
+                .toList();
+        List<LeaveRequest> approvedDoctorLeaves = leaveRequestRepository.findAll(Sort.by(Sort.Direction.ASC, "startDate"))
+                .stream()
+                .filter(leave -> "APPROVED".equalsIgnoreCase(valueOr(leave.getStatus(), "")))
+                .filter(leave -> leave.getStartDate() != null && leave.getEndDate() != null)
+                .filter(leave -> activeDoctorsByUsername.values().stream().anyMatch(doctor -> Objects.equals(doctor.getId(), leave.getStaffMemberId())))
+                .toList();
+        model.addAttribute("doctorSchedules", availableSchedules);
+        model.addAttribute("bookedAppointments", bookedAppointments);
+        model.addAttribute("approvedDoctorLeaves", approvedDoctorLeaves);
+        model.addAttribute("staffById", activeDoctorsByUsername.values().stream().collect(Collectors.toMap(StaffMember::getId, Function.identity())));
+        model.addAttribute("doctorStaffByUsername", activeDoctorsByUsername);
+        model.addAttribute("clinicalDepartments", activeDoctorsByUsername.values()
+                .stream()
+                .map(StaffMember::getDepartment)
+                .filter(department -> department != null && !department.isBlank())
+                .distinct()
+                .sorted(String::compareToIgnoreCase)
+                .toList());
+        model.addAttribute("today", LocalDate.now());
+        model.addAttribute("doctors", availableSchedules.stream()
+                .collect(Collectors.toMap(DoctorSchedule::getDoctorUsername, Function.identity(), (first, ignored) -> first))
+                .values()
+                .stream()
+                .sorted((first, second) -> String.valueOf(first.getDoctorName()).compareToIgnoreCase(String.valueOf(second.getDoctorName())))
+                .toList());
         return "patient/bookAppointment";
     }
 
     @PostMapping("/appointments")
     public String bookAppointment(@RequestParam String providerUsername,
+                                  @RequestParam String department,
                                   @RequestParam String scheduledAt,
                                   @RequestParam String visitType,
                                   @RequestParam(required = false) String reason,
                                   RedirectAttributes redirectAttributes) {
         Patient patient = requireCurrentPatient();
-        schedulingService.bookAppointment(patient.getId(), providerUsername, parseAppointmentDateTime(scheduledAt), "Outpatient Department", visitType, "Routine", reason);
+        schedulingService.bookAppointment(patient.getId(), providerUsername, parseAppointmentDateTime(scheduledAt), department, visitType, "Routine", reason);
         redirectAttributes.addFlashAttribute("successMessage", "Appointment booked.");
         return "redirect:/patient/appointments";
     }

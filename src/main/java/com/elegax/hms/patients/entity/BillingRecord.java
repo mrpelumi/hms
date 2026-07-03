@@ -25,6 +25,14 @@ public class BillingRecord {
     private BigDecimal unitPrice;
     private BigDecimal totalAmount;
     private String status;
+    private String invoiceNumber;
+    private String paymentMethod;
+    private BigDecimal amountPaid;
+    private String paymentReference;
+    private String paidBy;
+    private String receivedBy;
+    private String confirmationNote;
+    private String receiptProofPath;
     private OffsetDateTime createdAt;
     private OffsetDateTime paidAt;
 
@@ -42,6 +50,9 @@ public class BillingRecord {
         }
         if (status == null) {
             status = "UNPAID";
+        }
+        if (invoiceNumber == null || invoiceNumber.isBlank()) {
+            invoiceNumber = "INV-" + System.currentTimeMillis();
         }
     }
 }

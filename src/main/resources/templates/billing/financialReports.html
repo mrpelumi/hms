@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><meta charset="utf-8"><title>Financial Reports | Tel Health</title></head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1180px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div><h1 class="text-[22px] leading-7 font-semibold text-text-primary">Financial Reporting</h1><p class="text-small text-text-secondary">Revenue, outstanding balances, and service category totals.</p></div>
+        <form method="get" th:action="@{/billing/reports}" class="flex flex-wrap items-center gap-sm"><input name="from" th:value="${from}" type="date" class="rounded-md border border-border-base px-sm py-xs text-small"><input name="to" th:value="${to}" type="date" class="rounded-md border border-border-base px-sm py-xs text-small"><button class="rounded-md bg-primary px-md py-xs font-semibold text-white" type="submit">Apply</button></form>
+      </header>
+      <section class="grid grid-cols-2 gap-sm lg:grid-cols-4"><div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Gross Billings</p><p class="text-[22px] font-semibold" th:text="${#numbers.formatDecimal(grossBillings, 1, 'COMMA', 2, 'POINT')}">0.00</p></div><div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-success">Revenue</p><p class="text-[22px] font-semibold" th:text="${#numbers.formatDecimal(totalRevenue, 1, 'COMMA', 2, 'POINT')}">0.00</p></div><div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-warning">Outstanding</p><p class="text-[22px] font-semibold" th:text="${#numbers.formatDecimal(unpaidTotal, 1, 'COMMA', 2, 'POINT')}">0.00</p></div><div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Paid Items</p><p class="text-[22px] font-semibold" th:text="${paidCount}">0</p></div></section>
+      <section class="grid grid-cols-1 gap-md lg:grid-cols-2">
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><h2 class="text-base font-semibold text-text-primary">Revenue by Source</h2><table class="mt-sm w-full text-left text-small" data-page-size="8"><tbody class="divide-y divide-border-base"><tr th:each="entry : ${sourceTotals}"><td class="py-sm font-semibold" th:text="${entry.key}">Source</td><td class="py-sm text-right" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr><tr th:if="${sourceTotals == null || sourceTotals.isEmpty()}"><td class="py-lg text-center text-text-secondary" colspan="2">No report data.</td></tr></tbody></table></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><h2 class="text-base font-semibold text-text-primary">Revenue by Payment Method</h2><table class="mt-sm w-full text-left text-small" data-page-size="8"><tbody class="divide-y divide-border-base"><tr th:each="entry : ${paymentMethodTotals}"><td class="py-sm font-semibold" th:text="${entry.key}">Method</td><td class="py-sm text-right" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr><tr th:if="${paymentMethodTotals == null || paymentMethodTotals.isEmpty()}"><td class="py-lg text-center text-text-secondary" colspan="2">No payment data.</td></tr></tbody></table></div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

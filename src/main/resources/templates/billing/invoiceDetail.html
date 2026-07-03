@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Invoice Detail | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden bg-surface-muted px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1060px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Invoice</h1>
+          <p class="text-small text-text-secondary">Review charges, payment status, and patient billing details.</p>
+        </div>
+        <div class="flex flex-wrap gap-sm">
+          <a th:href="@{/billing/invoices}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Back</a>
+          <a th:href="@{/billing/invoices/{id}/download(id=${record.id})}" class="rounded-md bg-primary px-md py-sm font-semibold text-white">Download PDF</a>
+          <a th:if="${record.status != 'PAID'}" th:href="@{/billing/payments/{id}(id=${record.id})}" class="rounded-md border border-primary px-md py-sm font-semibold text-primary">Record Payment</a>
+        </div>
+      </header>
+
+      <section class="overflow-hidden rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="bg-primary px-xl py-lg text-white">
+          <div class="flex flex-col gap-md md:flex-row md:items-start md:justify-between">
+            <div>
+              <p class="text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Tel Health Enterprise</p>
+              <h2 class="mt-xs text-[28px] font-semibold leading-8">Clinical Invoice</h2>
+              <p class="mt-xs text-small text-primary-fixed">Outpatient Department Billing</p>
+            </div>
+            <div class="text-left md:text-right">
+              <p class="text-[11px] font-bold uppercase tracking-widest text-primary-fixed">Invoice Number</p>
+              <p class="mt-xs text-lg font-semibold" th:text="${record.invoiceNumber ?: ('INV-' + record.id)}">INV</p>
+              <span class="mt-sm inline-flex rounded-full bg-white/15 px-md py-xs text-caption font-bold"
+                    th:text="${record.status ?: 'UNPAID'}">UNPAID</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-md border-b border-border-base p-lg md:grid-cols-2">
+          <div class="rounded-lg border border-border-base bg-surface-container-low p-md">
+            <p class="text-caption font-bold uppercase text-text-secondary">Bill From</p>
+            <p class="mt-xs text-base font-semibold text-text-primary">Tel Health Enterprise</p>
+            <p class="text-caption text-text-secondary">Outpatient Department Billing</p>
+            <p class="text-caption text-text-secondary">billing@telhealth.local</p>
+          </div>
+          <div class="rounded-lg border border-border-base bg-surface-container-low p-md">
+            <p class="text-caption font-bold uppercase text-text-secondary">Bill To</p>
+            <p class="mt-xs text-base font-semibold text-text-primary" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+            <p class="text-caption text-text-secondary" th:text="${patient != null ? 'Patient ID: ' + patient.patientId : 'Patient ID: -'}">PID</p>
+            <p class="text-caption text-text-secondary" th:text="${patient != null ? 'Phone: ' + (patient.phoneNumber ?: '-') : 'Phone: -'}">Phone</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-sm border-b border-border-base p-lg md:grid-cols-4">
+          <div><p class="text-[11px] font-bold uppercase text-text-secondary">Invoice Date</p><p class="font-semibold text-text-primary" th:text="${record.createdAt != null ? #temporals.format(record.createdAt, 'MMM dd, yyyy') : '-'}">-</p></div>
+          <div><p class="text-[11px] font-bold uppercase text-text-secondary">Due Date</p><p class="font-semibold text-text-primary" th:text="${dueDate != null ? #temporals.format(dueDate, 'MMM dd, yyyy') : '-'}">-</p></div>
+          <div><p class="text-[11px] font-bold uppercase text-text-secondary">Source</p><p class="font-semibold text-text-primary" th:text="${record.sourceType ?: '-'}">-</p></div>
+          <div><p class="text-[11px] font-bold uppercase text-text-secondary">Payment</p><p class="font-semibold text-text-primary" th:text="${record.paymentMethod ?: 'Pending'}">Pending</p></div>
+        </div>
+
+        <div class="p-lg">
+          <table class="w-full text-left text-small" data-page-size="8">
+            <thead class="bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+            <tr>
+              <th class="px-md py-sm">Description</th>
+              <th class="px-md py-sm">Source</th>
+              <th class="px-md py-sm text-right">Qty</th>
+              <th class="px-md py-sm text-right">Unit Price</th>
+              <th class="px-md py-sm text-right">Total</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr>
+              <td class="px-md py-sm font-semibold text-text-primary" th:text="${record.description ?: 'Clinical service'}">Service</td>
+              <td class="px-md py-sm text-text-secondary" th:text="${record.sourceType ?: '-'}">Source</td>
+              <td class="px-md py-sm text-right" th:text="${record.quantity ?: 1}">1</td>
+              <td class="px-md py-sm text-right" th:text="${#numbers.formatDecimal(record.unitPrice ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+              <td class="px-md py-sm text-right font-semibold" th:text="${#numbers.formatDecimal(record.totalAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+            </tr>
+            </tbody>
+          </table>
+
+          <div class="mt-lg grid grid-cols-1 gap-md md:grid-cols-[1fr_320px]">
+            <div class="rounded-lg border border-border-base bg-surface-container-low p-md">
+              <p class="text-caption font-bold uppercase text-text-secondary">Payment Details</p>
+              <div class="mt-sm grid grid-cols-1 gap-xs text-caption text-text-secondary md:grid-cols-2">
+                <p><span class="font-bold text-text-primary">Status:</span> <span th:text="${record.status ?: 'UNPAID'}">UNPAID</span></p>
+                <p><span class="font-bold text-text-primary">Paid At:</span> <span th:text="${record.paidAt != null ? #temporals.format(record.paidAt, 'MMM dd, yyyy hh:mm a') : '-'}">-</span></p>
+                <p><span class="font-bold text-text-primary">Reference:</span> <span th:text="${record.paymentReference ?: '-'}">-</span></p>
+                <p><span class="font-bold text-text-primary">Received By:</span> <span th:text="${record.receivedBy ?: '-'}">-</span></p>
+              </div>
+            </div>
+            <div class="rounded-lg border border-border-base bg-white p-md">
+              <div class="flex items-center justify-between text-small"><span>Subtotal</span><span th:text="${#numbers.formatDecimal(record.totalAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></div>
+              <div class="mt-sm flex items-center justify-between text-small"><span>Tax</span><span>0.00</span></div>
+              <div class="mt-md flex items-center justify-between border-t border-border-base pt-md text-lg font-semibold"><span>Total Due</span><span class="text-primary" th:text="${#numbers.formatDecimal(record.totalAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></div>
+            </div>
+          </div>
+
+          <div class="mt-lg rounded-lg border border-primary/20 bg-primary/5 p-md">
+            <p class="text-caption font-bold uppercase text-primary">Notes</p>
+            <p class="mt-xs text-caption text-text-secondary">Please keep this invoice for payment reconciliation and patient account records. This computer-generated invoice is valid without signature.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

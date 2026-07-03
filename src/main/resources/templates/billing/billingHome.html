@@ -15,6 +15,11 @@
           <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Billing and Finance</h1>
           <p class="text-small text-text-secondary">Charges generated from OPD consultation, laboratory, radiology, and pharmacy.</p>
         </div>
+        <div class="flex flex-wrap gap-sm">
+          <a th:href="@{/billing/invoices}" class="rounded-md border border-primary px-md py-sm font-semibold text-primary">Invoices</a>
+          <a th:href="@{/billing/payments}" class="rounded-md border border-primary px-md py-sm font-semibold text-primary">Payments</a>
+          <a th:href="@{/billing/reports}" class="rounded-md bg-primary px-md py-sm font-semibold text-white">Reports</a>
+        </div>
       </header>
 
       <div th:if="${param.paid}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Payment recorded.</div>
@@ -68,9 +73,10 @@
                       th:text="${record.status}">UNPAID</span>
               </td>
               <td class="px-md py-sm text-right">
-                <form th:if="${record.status != 'PAID'}" method="post" th:action="@{/billing/records/{id}/pay(id=${record.id})}">
-                  <button class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white" type="submit">Record Payment</button>
-                </form>
+                <div class="flex flex-wrap justify-end gap-xs">
+                  <a th:href="@{/billing/invoices/{id}(id=${record.id})}" class="rounded-md border border-primary px-sm py-xs text-caption font-bold text-primary">Invoice</a>
+                  <a th:if="${record.status != 'PAID'}" th:href="@{/billing/payments/{id}(id=${record.id})}" class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white">Payment</a>
+                </div>
                 <span th:if="${record.status == 'PAID'}" class="text-caption text-text-secondary"
                       th:text="${record.paidAt != null ? #temporals.format(record.paidAt, 'MMM dd, hh:mm a') : 'Paid'}">Paid</span>
               </td>

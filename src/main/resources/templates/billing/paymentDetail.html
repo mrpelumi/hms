@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Record Payment | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden bg-surface-muted px-md py-md md:px-lg">
+    <form id="payment-form"
+          class="mx-auto flex w-full max-w-[1040px] flex-col gap-md text-small"
+          method="post"
+          enctype="multipart/form-data"
+          th:action="@{/billing/records/{id}/pay(id=${record.id})}">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Record Payment</h1>
+          <p class="text-small text-text-secondary">
+            Confirm payment evidence for
+            <span class="font-semibold text-text-primary" th:text="${record.invoiceNumber ?: ('INV-' + record.id)}">INV</span>
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-sm">
+          <a th:href="@{/billing/payments}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Back</a>
+          <a th:href="@{/billing/invoices/{id}(id=${record.id})}" class="rounded-md border border-primary px-md py-sm font-semibold text-primary">View Invoice</a>
+          <button class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit"
+                  th:text="${record.status == 'PAID' ? 'Update Confirmation' : 'Confirm Payment'}">Confirm Payment</button>
+        </div>
+      </header>
+
+      <section th:if="${param.paid}" class="rounded-lg border border-green-200 bg-green-50 px-md py-sm text-small font-semibold text-green-800">
+        Payment confirmation saved successfully.
+      </section>
+
+      <section class="grid grid-cols-1 gap-md lg:grid-cols-[1fr_320px]">
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <div class="grid grid-cols-1 gap-md md:grid-cols-3">
+            <div>
+              <p class="text-caption font-bold uppercase text-text-secondary">Patient</p>
+              <p class="mt-xs font-semibold text-text-primary" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+              <p class="text-caption text-text-secondary" th:text="${patient != null ? patient.patientId : '-'}">PID</p>
+            </div>
+            <div>
+              <p class="text-caption font-bold uppercase text-text-secondary">Invoice Total</p>
+              <p class="mt-xs text-xl font-semibold text-text-primary" th:text="${#numbers.formatDecimal(record.totalAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</p>
+              <p class="text-caption text-text-secondary" th:text="${record.description ?: 'Clinical service'}">Service</p>
+            </div>
+            <div>
+              <p class="text-caption font-bold uppercase text-text-secondary">Current Status</p>
+              <span class="mt-xs inline-flex rounded-full bg-primary/10 px-md py-xs text-caption font-bold text-primary" th:text="${record.status ?: 'UNPAID'}">UNPAID</span>
+              <p class="mt-xs text-caption text-text-secondary" th:text="${record.paidAt != null ? 'Confirmed ' + #temporals.format(record.paidAt, 'MMM dd, yyyy hh:mm a') : 'Awaiting confirmation'}">Awaiting confirmation</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Confirmation Audit</p>
+          <div class="mt-sm space-y-xs text-caption text-text-secondary">
+            <p><span class="font-bold text-text-primary">Confirmed by:</span> <span th:text="${record.receivedBy != null ? record.receivedBy : (currentOfficer != null ? currentOfficer : '-')}">Officer</span></p>
+            <p><span class="font-bold text-text-primary">Confirmed at:</span> <span th:text="${record.paidAt != null ? #temporals.format(record.paidAt, 'MMM dd, yyyy hh:mm a') : 'On submit'}">On submit</span></p>
+            <p><span class="font-bold text-text-primary">Stored proof:</span>
+              <a th:if="${record.receiptProofPath != null}" th:href="${record.receiptProofPath}" class="font-semibold text-primary" target="_blank">Open receipt</a>
+              <span th:unless="${record.receiptProofPath != null}">Not uploaded</span>
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white p-lg shadow-sm">
+        <div class="mb-md">
+          <h2 class="text-base font-semibold text-text-primary">Payment Evidence</h2>
+          <p class="text-caption text-text-secondary">Use bank, POS, cash receipt, gateway, or insurance authorization details to verify the payment before confirming.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-md md:grid-cols-2">
+          <label class="space-y-xs">
+            <span class="text-caption font-bold uppercase text-text-secondary">Payment Method</span>
+            <select name="paymentMethod" required class="w-full rounded-md border border-border-base bg-white px-sm py-sm text-small focus:border-primary focus:outline-none">
+              <option value="Cash" th:selected="${record.paymentMethod == null || record.paymentMethod == 'Cash'}">Cash</option>
+              <option value="Card" th:selected="${record.paymentMethod == 'Card'}">Card / POS</option>
+              <option value="Bank Transfer" th:selected="${record.paymentMethod == 'Bank Transfer'}">Bank Transfer</option>
+              <option value="Online Gateway" th:selected="${record.paymentMethod == 'Online Gateway'}">Online Gateway</option>
+              <option value="Insurance" th:selected="${record.paymentMethod == 'Insurance'}">Insurance / HMO</option>
+              <option value="Mobile Money" th:selected="${record.paymentMethod == 'Mobile Money'}">Mobile Money</option>
+            </select>
+          </label>
+
+          <label class="space-y-xs">
+            <span class="text-caption font-bold uppercase text-text-secondary">Amount Paid</span>
+            <input name="amountPaid" required type="number" min="0" step="0.01"
+                   class="w-full rounded-md border border-border-base px-sm py-sm text-small focus:border-primary focus:outline-none"
+                   th:value="${defaultPaymentAmount}">
+          </label>
+
+          <label class="space-y-xs">
+            <span class="text-caption font-bold uppercase text-text-secondary">Payment Reference</span>
+            <input name="paymentReference" required
+                   class="w-full rounded-md border border-border-base px-sm py-sm text-small focus:border-primary focus:outline-none"
+                   placeholder="Receipt, POS, transfer, gateway, or HMO reference"
+                   th:value="${record.paymentReference}">
+          </label>
+
+          <label class="space-y-xs">
+            <span class="text-caption font-bold uppercase text-text-secondary">Paid By</span>
+            <input name="paidBy" required
+                   class="w-full rounded-md border border-border-base px-sm py-sm text-small focus:border-primary focus:outline-none"
+                   placeholder="Patient, guardian, company, insurer, or payer name"
+                   th:value="${record.paidBy ?: (patient != null ? patient.fullName : '')}">
+          </label>
+
+          <label class="space-y-xs md:col-span-2">
+            <span class="text-caption font-bold uppercase text-text-secondary">Confirmation Note</span>
+            <textarea name="confirmationNote" rows="4" required
+                      class="w-full resize-y rounded-md border border-border-base px-sm py-sm text-small leading-5 focus:border-primary focus:outline-none"
+                      placeholder="Example: Verified bank transfer in account statement, POS slip matched terminal batch, or cash counted at desk."
+                      th:text="${record.confirmationNote}"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white p-lg shadow-sm">
+        <div class="grid grid-cols-1 gap-md md:grid-cols-[1fr_280px] md:items-center">
+          <div>
+            <h2 class="text-base font-semibold text-text-primary">Receipt or Proof Upload</h2>
+            <p class="mt-xs text-caption text-text-secondary">Optional supporting evidence from POS, transfer alert, third-party gateway, insurance authorization, or patient receipt.</p>
+          </div>
+          <label class="flex min-h-[132px] cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-primary/50 bg-primary/5 px-md py-md text-center transition hover:bg-primary/10">
+            <input id="receiptProof" name="receiptProof" type="file" class="sr-only" accept="image/png,image/jpeg,image/webp,application/pdf">
+            <span class="material-symbols-outlined text-[30px] text-primary">cloud_upload</span>
+            <span class="mt-xs block max-w-full text-small font-semibold text-text-primary">Upload payment proof</span>
+            <span id="receipt-proof-label" class="mt-xs block max-w-full truncate text-caption text-text-secondary">PDF, JPG, PNG, or WEBP</span>
+          </label>
+        </div>
+      </section>
+    </form>
+
+    <script>
+      const receiptInput = document.getElementById('receiptProof');
+      const receiptLabel = document.getElementById('receipt-proof-label');
+
+      receiptInput?.addEventListener('change', () => {
+        const file = receiptInput.files?.[0];
+        receiptLabel.textContent = file ? file.name : 'PDF, JPG, PNG, or WEBP';
+      });
+    </script>
+  </main>
+</div>
+</body>
+</html>
