@@ -5,6 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -74,9 +75,20 @@ public class AuthenticationManager {
     }
 
     public Boolean isPatient(){
-        return getGroups()
+        return isPatientRealmLogin() || getGroups()
                 .stream()
                 .anyMatch(group -> hasRole(group, "patient", "patients"));
+    }
+
+    public Boolean isPatientRealmLogin() {
+        Authentication authentication = getAuthentication();
+        if (authentication instanceof OAuth2AuthenticationToken oauth2Authentication) {
+            if ("keycloak-patient".equalsIgnoreCase(oauth2Authentication.getAuthorizedClientRegistrationId())) {
+                return true;
+            }
+        }
+        String issuer = firstNonBlank(get("iss"));
+        return issuer.toLowerCase(Locale.ROOT).contains("patient");
     }
 
     public Boolean isHr(){

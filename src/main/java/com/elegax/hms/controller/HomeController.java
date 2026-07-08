@@ -23,8 +23,28 @@ public class HomeController {
         return "landingPage";
     }
 
+    @GetMapping("/login")
+    public String login() {
+        return "redirect:/login/staff";
+    }
+
+    @GetMapping("/login/staff")
+    public String staffLogin() {
+        return "redirect:/oauth2/authorization/keycloak";
+    }
+
+    @GetMapping("/login/patient")
+    public String patientLogin() {
+        return "redirect:/oauth2/authorization/keycloak-patient";
+    }
+
     @GetMapping("/home")
     public String home(HttpSession session) {
+        if (authenticationManager.isPatientRealmLogin()) {
+            session.setAttribute("userRole", "PATIENT");
+            return "redirect:/patient/dashboard";
+        }
+
         if (authenticationManager.isDoctor()) {
             recordStaffLoginAttendance();
             session.setAttribute("userRole", "DOCTOR");

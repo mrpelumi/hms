@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Pharmacy Inventory | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden bg-surface-muted px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1220px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Pharmacy Inventory</h1>
+          <p class="text-small text-text-secondary">Manage medication stock, batch details, expiry, reorder levels, and billing prices.</p>
+        </div>
+        <a th:href="@{/pharmacy/dispense}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Back to Dispense</a>
+      </header>
+
+      <div th:if="${param.created}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Inventory item created.</div>
+      <div th:if="${param.updated}" class="rounded-md border border-success/30 bg-success/5 px-md py-sm font-semibold text-success">Inventory item updated.</div>
+
+      <section class="grid grid-cols-2 gap-sm lg:grid-cols-4">
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Active Items</p><p class="text-[22px] font-semibold" th:text="${activeCount}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Low Stock</p><p class="text-[22px] font-semibold text-warning" th:text="${lowStockCount}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Expired</p><p class="text-[22px] font-semibold text-danger" th:text="${expiredCount}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Stock Value</p><p class="text-[22px] font-semibold" th:text="${#numbers.formatDecimal(inventoryValue ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</p></div>
+      </section>
+
+      <section class="grid grid-cols-1 gap-md xl:grid-cols-[380px_1fr]">
+        <aside class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <h2 class="text-base font-semibold text-text-primary">Create Stock Item</h2>
+          <form class="mt-md grid grid-cols-1 gap-sm" method="post" th:action="@{/pharmacy/inventory}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Medication Name</span><input name="medicationName" class="w-full rounded-md border border-border-base px-sm py-xs text-small" required></label>
+            <div class="grid grid-cols-2 gap-sm">
+              <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Strength</span><input name="strength" class="w-full rounded-md border border-border-base px-sm py-xs text-small" placeholder="500mg"></label>
+              <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Dosage Form</span><input name="dosageForm" class="w-full rounded-md border border-border-base px-sm py-xs text-small" placeholder="Tablet"></label>
+            </div>
+            <div class="grid grid-cols-2 gap-sm">
+              <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Batch Number</span><input name="batchNumber" class="w-full rounded-md border border-border-base px-sm py-xs text-small"></label>
+              <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Expiry Date</span><input name="expiryDate" class="w-full rounded-md border border-border-base px-sm py-xs text-small" type="date"></label>
+            </div>
+            <div class="grid grid-cols-2 gap-sm">
+              <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Quantity</span><input name="quantityOnHand" class="w-full rounded-md border border-border-base px-sm py-xs text-small" type="number" min="0"></label>
+              <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Reorder Level</span><input name="reorderLevel" class="w-full rounded-md border border-border-base px-sm py-xs text-small" type="number" min="0"></label>
+            </div>
+            <div class="grid grid-cols-2 gap-sm">
+              <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Unit Cost</span><input name="unitCost" class="w-full rounded-md border border-border-base px-sm py-xs text-small" type="number" min="0" step="0.01"></label>
+              <label class="space-y-xs"><span class="text-caption font-bold uppercase text-text-secondary">Selling Price</span><input name="sellingPrice" class="w-full rounded-md border border-border-base px-sm py-xs text-small" type="number" min="0" step="0.01"></label>
+            </div>
+            <button class="rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit">Save Stock Item</button>
+          </form>
+        </aside>
+
+        <article class="rounded-lg border border-border-base bg-white shadow-sm">
+          <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-text-primary">Stock Register</h2>
+              <p class="text-caption text-text-secondary">Update stock, prices, expiry, and active status.</p>
+            </div>
+            <input id="inventory-search" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs" placeholder="Search medicine, batch, form" type="text">
+          </div>
+          <div class="max-h-[calc(100vh-320px)] overflow-auto">
+            <table class="w-full min-w-[1120px] text-left text-small" data-page-size="10">
+              <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+              <tr>
+                <th class="px-md py-sm">Medicine</th>
+                <th class="px-md py-sm">Batch / Expiry</th>
+                <th class="px-md py-sm text-right">Stock</th>
+                <th class="px-md py-sm text-right">Cost</th>
+                <th class="px-md py-sm text-right">Price</th>
+                <th class="px-md py-sm">Status</th>
+                <th class="px-md py-sm">Update</th>
+              </tr>
+              </thead>
+              <tbody class="divide-y divide-border-base">
+              <tr th:if="${#lists.isEmpty(inventoryItems)}"><td colspan="7" class="px-md py-lg text-center text-text-secondary">No inventory items yet.</td></tr>
+              <tr th:each="item : ${inventoryItems}" class="inventory-row"
+                  th:with="stock=${item.quantityOnHand != null ? item.quantityOnHand : 0}, reorder=${item.reorderLevel != null ? item.reorderLevel : 0}"
+                  th:attr="data-search=${#strings.toLowerCase((item.medicationName ?: '') + ' ' + (item.strength ?: '') + ' ' + (item.dosageForm ?: '') + ' ' + (item.batchNumber ?: '') + ' ' + (item.status ?: ''))}">
+                <td class="px-md py-sm">
+                  <p class="font-semibold" th:text="${item.medicationName}">Medicine</p>
+                  <p class="text-caption text-text-secondary" th:text="${(item.strength ?: '-') + ' | ' + (item.dosageForm ?: '-')}">Details</p>
+                </td>
+                <td class="px-md py-sm">
+                  <p th:text="${item.batchNumber ?: '-'}">Batch</p>
+                  <p class="text-caption text-text-secondary" th:text="${item.expiryDate ?: '-'}">Expiry</p>
+                </td>
+                <td class="px-md py-sm text-right" th:classappend="${stock <= reorder} ? ' text-warning font-bold' : ''" th:text="${stock + ' / ' + reorder}">0</td>
+                <td class="px-md py-sm text-right" th:text="${#numbers.formatDecimal(item.unitCost ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                <td class="px-md py-sm text-right font-semibold" th:text="${#numbers.formatDecimal(item.sellingPrice ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                <td class="px-md py-sm"><span class="rounded-full bg-primary/10 px-sm py-[2px] text-caption font-bold text-primary" th:text="${item.status ?: 'ACTIVE'}">ACTIVE</span></td>
+                <td class="px-md py-sm">
+                  <form class="grid grid-cols-6 gap-xs" method="post" th:action="@{/pharmacy/inventory/{id}(id=${item.id})}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input name="medicationName" class="col-span-2 rounded-md border border-border-base px-xs py-xs text-caption" th:value="${item.medicationName}" required>
+                    <input name="strength" class="rounded-md border border-border-base px-xs py-xs text-caption" th:value="${item.strength}">
+                    <input name="dosageForm" class="rounded-md border border-border-base px-xs py-xs text-caption" th:value="${item.dosageForm}">
+                    <input name="batchNumber" class="rounded-md border border-border-base px-xs py-xs text-caption" th:value="${item.batchNumber}">
+                    <input name="expiryDate" class="rounded-md border border-border-base px-xs py-xs text-caption" type="date" th:value="${item.expiryDate}">
+                    <input name="quantityOnHand" class="rounded-md border border-border-base px-xs py-xs text-caption" type="number" min="0" th:value="${stock}">
+                    <input name="reorderLevel" class="rounded-md border border-border-base px-xs py-xs text-caption" type="number" min="0" th:value="${reorder}">
+                    <input name="unitCost" class="rounded-md border border-border-base px-xs py-xs text-caption" type="number" min="0" step="0.01" th:value="${item.unitCost}">
+                    <input name="sellingPrice" class="rounded-md border border-border-base px-xs py-xs text-caption" type="number" min="0" step="0.01" th:value="${item.sellingPrice}">
+                    <select name="status" class="rounded-md border border-border-base px-xs py-xs text-caption">
+                      <option value="ACTIVE" th:selected="${item.status == null || item.status == 'ACTIVE'}">Active</option>
+                      <option value="INACTIVE" th:selected="${item.status == 'INACTIVE'}">Inactive</option>
+                    </select>
+                    <button class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white" type="submit">Save</button>
+                  </form>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+  <script>
+    const inventorySearch = document.getElementById('inventory-search');
+    const inventoryRows = Array.from(document.querySelectorAll('.inventory-row'));
+    inventorySearch?.addEventListener('input', () => {
+      const query = inventorySearch.value.trim().toLowerCase();
+      inventoryRows.forEach(row => row.classList.toggle('hidden', query && !row.dataset.search.includes(query)));
+    });
+  </script>
+</div>
+</body>
+</html>

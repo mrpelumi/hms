@@ -2,6 +2,7 @@ package com.elegax.hms.patients.service;
 
 import com.elegax.hms.patients.entity.BillingRecord;
 import com.elegax.hms.patients.entity.InvestigationRequest;
+import com.elegax.hms.patients.entity.PharmacyDispense;
 import com.elegax.hms.patients.entity.Prescription;
 import com.elegax.hms.patients.repository.BillingRecordRepository;
 import org.springframework.stereotype.Service;
@@ -78,8 +79,32 @@ public class BillingWorkflowService {
                         .build()));
     }
 
+    public void createForPharmacyDispense(PharmacyDispense dispense) {
+        if (dispense == null || dispense.getId() == null || dispense.getPatientId() == null) {
+            return;
+        }
+        billingRecordRepository.findBySourceTypeAndSourceId("PHARMACY", dispense.getId())
+                .orElseGet(() -> billingRecordRepository.save(BillingRecord.builder()
+                        .patientId(dispense.getPatientId())
+                        .sourceId(dispense.getId())
+                        .sourceType("PHARMACY")
+                        .description("Dispensed medication: " + valueOr(dispense.getMedicationName(), "Medication"))
+                        .quantity(dispense.getQuantityDispensed())
+                        .unitPrice(valueOr(dispense.getUnitPrice(), BigDecimal.ZERO))
+                        .totalAmount(valueOr(dispense.getTotalAmount(), BigDecimal.ZERO))
+                        .build()));
+    }
+
     private boolean isRadiology(InvestigationRequest request) {
         String type = request.getRequestType() == null ? "" : request.getRequestType();
         return type.equalsIgnoreCase("Radiology") || type.equalsIgnoreCase("Imaging");
+    }
+
+    private String valueOr(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private BigDecimal valueOr(BigDecimal value, BigDecimal fallback) {
+        return value == null ? fallback : value;
     }
 }

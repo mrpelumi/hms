@@ -219,11 +219,12 @@
         const registrationDocuments = document.getElementById('registrationDocuments');
         const profilePictureLabel = document.getElementById('profile-picture-label');
         const registrationDocumentsLabel = document.getElementById('registration-documents-label');
+        const clinicalDepartments = ['Outpatient Department', 'General Medicine', 'Pediatrics', 'Cardiology', 'Neurology', 'Emergency', 'Surgery', 'Obstetrics and Gynecology', 'Orthopedics', 'ENT', 'Ophthalmology'];
         const sharedDepartments = ['Administration', 'Other / Cross-functional'];
         const departmentOptionsByRole = {
             RECEPTIONIST: ['Reception / Front Desk', 'OPD Registration', 'Patient Records'],
-            NURSE: ['OPD Nursing', 'Triage', 'Emergency Nursing', 'Ward Nursing', 'Maternity', 'Pediatrics Nursing', 'Immunization / Public Health'],
-            DOCTOR: ['Outpatient Department', 'General Medicine', 'Pediatrics', 'Cardiology', 'Neurology', 'Emergency', 'Surgery', 'Obstetrics and Gynecology', 'Orthopedics', 'ENT', 'Ophthalmology'],
+            NURSE: ['All Clinical Departments', ...clinicalDepartments, 'Triage', 'Ward Nursing', 'Theatre Nursing', 'Immunization / Public Health'],
+            DOCTOR: clinicalDepartments,
             LABORATORY: ['Laboratory', 'Hematology', 'Clinical Chemistry', 'Microbiology', 'Sample Collection'],
             RADIOLOGY: ['Radiology', 'X-Ray', 'Ultrasound', 'CT / MRI'],
             PHARMACY: ['Pharmacy', 'Dispensary', 'Drug Store'],

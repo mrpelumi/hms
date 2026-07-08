@@ -31,9 +31,11 @@ public class BillingRecord {
     private String paymentReference;
     private String paidBy;
     private String receivedBy;
+    private String patientPaymentNote;
     private String confirmationNote;
     private String receiptProofPath;
     private OffsetDateTime createdAt;
+    private OffsetDateTime paymentSubmittedAt;
     private OffsetDateTime paidAt;
 
     @PrePersist

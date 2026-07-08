@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Pharmacy Billing | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden bg-surface-muted px-md py-md md:px-lg">
+    <div class="mx-auto flex w-full max-w-[1220px] flex-col gap-md text-small">
+      <header class="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-[22px] leading-7 font-semibold text-text-primary">Pharmacy Billing</h1>
+          <p class="text-small text-text-secondary">Track bills generated from dispensed medication and hand payment confirmation to billing officers.</p>
+        </div>
+        <a th:href="@{/pharmacy/dispense}" class="rounded-md border border-border-base bg-white px-md py-sm font-semibold text-text-primary">Back to Dispense</a>
+      </header>
+
+      <section class="grid grid-cols-2 gap-sm lg:grid-cols-4">
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Pharmacy Bills</p><p class="text-[22px] font-semibold" th:text="${#lists.size(pharmacyBills)}">0</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Paid Revenue</p><p class="text-[22px] font-semibold text-success" th:text="${#numbers.formatDecimal(totalPharmacyRevenue ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Pending Amount</p><p class="text-[22px] font-semibold text-warning" th:text="${#numbers.formatDecimal(pendingPharmacyAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</p></div>
+        <div class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-[11px] font-bold uppercase text-text-secondary">Submitted Payments</p><p class="text-[22px] font-semibold" th:text="${submittedCount}">0</p></div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="flex flex-col gap-sm border-b border-border-base px-md py-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-text-primary">Generated Pharmacy Bills</h2>
+            <p class="text-caption text-text-secondary">Bills appear in patient billing and billing officer payment processing.</p>
+          </div>
+          <input id="bill-search" class="w-full rounded-md border border-border-base px-sm py-xs text-small md:max-w-xs" placeholder="Search patient, invoice, medicine" type="text">
+        </div>
+        <div class="max-h-[calc(100vh-370px)] overflow-auto">
+          <table class="w-full min-w-[980px] text-left text-small" data-page-size="10">
+            <thead class="sticky top-0 z-10 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+            <tr>
+              <th class="px-md py-sm">Patient</th>
+              <th class="px-md py-sm">Invoice</th>
+              <th class="px-md py-sm">Medication</th>
+              <th class="px-md py-sm text-right">Qty</th>
+              <th class="px-md py-sm text-right">Amount</th>
+              <th class="px-md py-sm">Payment</th>
+              <th class="px-md py-sm">Status</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr th:if="${#lists.isEmpty(pharmacyBills)}"><td colspan="7" class="px-md py-lg text-center text-text-secondary">No pharmacy bills generated yet.</td></tr>
+            <tr th:each="record : ${pharmacyBills}" class="bill-row"
+                th:with="patient=${patientsById[record.patientId]}, submitted=${#strings.contains(record.status ?: '', 'SUBMITTED')}"
+                th:attr="data-search=${#strings.toLowerCase((patient != null ? patient.fullName : '') + ' ' + (patient != null ? patient.patientId : '') + ' ' + (record.invoiceNumber ?: '') + ' ' + (record.description ?: '') + ' ' + (record.status ?: ''))}">
+              <td class="px-md py-sm">
+                <p class="font-semibold" th:text="${patient != null ? patient.fullName : 'Unknown Patient'}">Patient</p>
+                <p class="text-caption text-text-secondary" th:text="${patient != null ? patient.patientId : '-'}">PID</p>
+              </td>
+              <td class="px-md py-sm">
+                <p class="font-semibold" th:text="${record.invoiceNumber ?: ('INV-' + record.id)}">INV</p>
+                <p class="text-caption text-text-secondary" th:text="${record.createdAt != null ? #temporals.format(record.createdAt, 'dd MMM yyyy') : '-'}">Date</p>
+              </td>
+              <td class="px-md py-sm" th:text="${record.description ?: 'Dispensed medication'}">Medication</td>
+              <td class="px-md py-sm text-right" th:text="${record.quantity ?: 1}">1</td>
+              <td class="px-md py-sm text-right font-semibold" th:text="${#numbers.formatDecimal(record.totalAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+              <td class="px-md py-sm">
+                <p th:text="${record.paymentMethod ?: 'Not submitted'}">Method</p>
+                <p class="text-caption text-text-secondary" th:text="${record.paymentReference ?: '-'}">Reference</p>
+              </td>
+              <td class="px-md py-sm">
+                <span class="rounded-full px-sm py-[2px] text-caption font-bold"
+                      th:classappend="${record.status == 'PAID'} ? ' bg-success/10 text-success' : (${submitted} ? ' bg-warning/10 text-warning' : ' bg-danger/10 text-danger')"
+                      th:text="${record.status ?: 'UNPAID'}">UNPAID</span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-border-base bg-white shadow-sm">
+        <div class="border-b border-border-base px-md py-sm">
+          <h2 class="text-base font-semibold text-text-primary">Recent Dispense Transactions</h2>
+        </div>
+        <div class="max-h-[260px] overflow-auto">
+          <table class="w-full min-w-[760px] text-left text-small" data-page-size="8">
+            <thead class="sticky top-0 bg-surface-muted text-[11px] font-bold uppercase text-text-secondary">
+            <tr><th class="px-md py-sm">Medication</th><th class="px-md py-sm">Batch</th><th class="px-md py-sm text-right">Qty</th><th class="px-md py-sm text-right">Unit Price</th><th class="px-md py-sm text-right">Total</th><th class="px-md py-sm">Dispensed</th></tr>
+            </thead>
+            <tbody class="divide-y divide-border-base">
+            <tr th:each="dispense : ${dispenses}">
+              <td class="px-md py-sm font-semibold" th:text="${dispense.medicationName}">Medicine</td>
+              <td class="px-md py-sm text-text-secondary" th:text="${dispense.batchNumber ?: '-'}">Batch</td>
+              <td class="px-md py-sm text-right" th:text="${dispense.quantityDispensed}">1</td>
+              <td class="px-md py-sm text-right" th:text="${#numbers.formatDecimal(dispense.unitPrice ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+              <td class="px-md py-sm text-right font-semibold" th:text="${#numbers.formatDecimal(dispense.totalAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+              <td class="px-md py-sm text-text-secondary" th:text="${dispense.dispensedAt != null ? #temporals.format(dispense.dispensedAt, 'dd MMM yyyy hh:mm a') : '-'}">Date</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(dispenses)}"><td colspan="6" class="px-md py-lg text-center text-text-secondary">No dispense transactions yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const billSearch = document.getElementById('bill-search');
+    const billRows = Array.from(document.querySelectorAll('.bill-row'));
+    billSearch?.addEventListener('input', () => {
+      const query = billSearch.value.trim().toLowerCase();
+      billRows.forEach(row => row.classList.toggle('hidden', query && !row.dataset.search.includes(query)));
+    });
+  </script>
+</div>
+</body>
+</html>

@@ -1,9 +1,126 @@
 <!DOCTYPE html>
-<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
-<head><meta charset="utf-8"><title>Billing | Tel Health</title></head>
-<body><div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width"><main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden px-md py-md md:px-lg"><section class="mx-auto flex w-full max-w-[1080px] flex-col gap-md text-small">
-  <header><h1 class="text-[22px] font-semibold text-text-primary">Bills and Payments</h1><p class="text-small text-text-secondary">View bills raised from consultations, prescriptions, laboratory, and radiology services.</p></header>
-  <div th:if="${successMessage}" class="rounded-md border border-success/20 bg-success/10 px-md py-sm font-semibold text-success" th:text="${successMessage}">Paid.</div>
-  <section class="grid grid-cols-1 gap-sm md:grid-cols-2"><article class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-caption font-bold uppercase text-text-secondary">Outstanding</p><p class="mt-xs text-[24px] font-semibold text-danger" th:text="${outstandingTotal}">0.00</p></article><article class="rounded-lg border border-border-base bg-white p-md shadow-sm"><p class="text-caption font-bold uppercase text-text-secondary">Unpaid Bills</p><p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${outstandingCount}">0</p></article></section>
-  <section class="rounded-lg border border-border-base bg-white shadow-sm"><div class="max-h-[calc(100vh-300px)] overflow-auto"><table class="w-full min-w-[860px] text-left text-small"><thead class="sticky top-0 bg-surface-muted text-caption uppercase text-text-secondary"><tr><th class="px-md py-sm">Date</th><th class="px-md py-sm">Description</th><th class="px-md py-sm">Type</th><th class="px-md py-sm">Amount</th><th class="px-md py-sm">Status</th><th class="px-md py-sm text-right">Action</th></tr></thead><tbody class="divide-y divide-border-base"><tr th:each="bill : ${bills}"><td class="px-md py-sm" th:text="${bill.createdAt != null ? #temporals.format(bill.createdAt, 'dd MMM yyyy') : '-'}">Date</td><td class="px-md py-sm font-semibold" th:text="${bill.description ?: 'Clinical charge'}">Charge</td><td class="px-md py-sm" th:text="${bill.sourceType ?: '-'}">Type</td><td class="px-md py-sm" th:text="${bill.totalAmount}">0.00</td><td class="px-md py-sm"><span class="rounded-full px-sm py-[2px] text-caption font-bold" th:classappend="${bill.status == 'PAID'} ? ' bg-success/10 text-success' : ' bg-danger/10 text-danger'" th:text="${bill.status ?: 'UNPAID'}">UNPAID</span></td><td class="px-md py-sm text-right"><form th:if="${bill.status != 'PAID'}" method="post" th:action="@{/patient/billing/{id}/pay(id=${bill.id})}"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button class="rounded-md bg-primary px-sm py-xs text-caption font-bold text-white" type="submit">Pay</button></form><span th:if="${bill.status == 'PAID'}" class="text-caption text-success">Paid</span></td></tr><tr th:if="${#lists.isEmpty(bills)}"><td colspan="6" class="px-md py-lg text-center text-text-secondary">No bills yet.</td></tr></tbody></table></div></section>
-</section></main></div></body></html>
+<html class="light" lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <meta charset="utf-8">
+  <title>Billing | Tel Health</title>
+</head>
+<body>
+<div layout:fragment="content" class="flex h-full min-h-0 min-w-0 flex-col md:pl-sidebar-width">
+  <main class="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden bg-surface-muted px-md py-md md:px-lg">
+    <section class="mx-auto flex w-full max-w-[1120px] flex-col gap-md text-small">
+      <header>
+        <h1 class="text-[22px] font-semibold text-text-primary">Bills and Payments</h1>
+        <p class="text-small text-text-secondary">Submit payment evidence for billing confirmation.</p>
+      </header>
+
+      <div th:if="${successMessage}" class="rounded-md border border-success/20 bg-success/10 px-md py-sm font-semibold text-success" th:text="${successMessage}">Payment submitted.</div>
+
+      <section class="grid grid-cols-1 gap-sm md:grid-cols-2">
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Outstanding</p>
+          <p class="mt-xs text-[24px] font-semibold text-danger" th:text="${#numbers.formatDecimal(outstandingTotal ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</p>
+        </article>
+        <article class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <p class="text-caption font-bold uppercase text-text-secondary">Open Bills</p>
+          <p class="mt-xs text-[24px] font-semibold text-text-primary" th:text="${outstandingCount}">0</p>
+        </article>
+      </section>
+
+      <section class="flex flex-col gap-md">
+        <article th:each="bill : ${bills}"
+                 th:with="submitted=${#strings.contains(bill.status ?: '', 'SUBMITTED')}, displayAmount=${bill.amountPaid != null ? bill.amountPaid : (bill.totalAmount != null ? bill.totalAmount : 0)}"
+                 class="rounded-lg border border-border-base bg-white p-md shadow-sm">
+          <div class="grid grid-cols-1 gap-md lg:grid-cols-[1fr_430px]">
+            <div>
+              <div class="flex flex-col gap-sm md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p class="text-caption font-bold uppercase text-text-secondary" th:text="${bill.invoiceNumber ?: ('INV-' + bill.id)}">Invoice</p>
+                  <h2 class="mt-xs text-base font-semibold text-text-primary" th:text="${bill.description ?: 'Clinical charge'}">Clinical charge</h2>
+                  <p class="text-caption text-text-secondary">
+                    <span th:text="${bill.sourceType ?: 'Billing'}">Billing</span>
+                    <span> | </span>
+                    <span th:text="${bill.createdAt != null ? #temporals.format(bill.createdAt, 'dd MMM yyyy') : '-'}">Date</span>
+                  </p>
+                </div>
+                <div class="text-left md:text-right">
+                  <p class="text-caption font-bold uppercase text-text-secondary">Amount</p>
+                  <p class="text-lg font-semibold text-text-primary" th:text="${#numbers.formatDecimal(bill.totalAmount ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</p>
+                  <span class="mt-xs inline-flex rounded-full px-sm py-[2px] text-caption font-bold"
+                        th:classappend="${bill.status == 'PAID'} ? ' bg-success/10 text-success' : (${submitted} ? ' bg-warning/10 text-warning' : ' bg-danger/10 text-danger')"
+                        th:text="${bill.status ?: 'UNPAID'}">UNPAID</span>
+                </div>
+              </div>
+
+              <div th:if="${submitted}" class="mt-md rounded-lg border border-warning/20 bg-warning/10 p-sm text-caption text-text-primary">
+                Payment evidence has been submitted and is awaiting billing officer confirmation.
+                <span th:if="${bill.paymentSubmittedAt != null}" th:text="${' Submitted ' + #temporals.format(bill.paymentSubmittedAt, 'dd MMM yyyy hh:mm a')}">Submitted</span>
+              </div>
+
+              <div th:if="${bill.status == 'PAID'}" class="mt-md rounded-lg border border-success/20 bg-success/10 p-sm text-caption text-success">
+                Payment confirmed by billing.
+                <span th:if="${bill.paidAt != null}" th:text="${' Confirmed ' + #temporals.format(bill.paidAt, 'dd MMM yyyy hh:mm a')}">Confirmed</span>
+              </div>
+            </div>
+
+            <form th:if="${bill.status != 'PAID'}"
+                  class="rounded-lg border border-border-base bg-surface-container-low p-md"
+                  method="post"
+                  enctype="multipart/form-data"
+                  th:action="@{/patient/billing/{id}/pay(id=${bill.id})}">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+              <div class="grid grid-cols-1 gap-sm md:grid-cols-2">
+                <label class="space-y-xs">
+                  <span class="text-caption font-bold uppercase text-text-secondary">Method</span>
+                  <select name="paymentMethod" required class="w-full rounded-md border border-border-base bg-white px-sm py-xs text-small">
+                    <option value="Bank Transfer" th:selected="${bill.paymentMethod == 'Bank Transfer'}">Bank Transfer</option>
+                    <option value="Card" th:selected="${bill.paymentMethod == 'Card'}">Card / POS</option>
+                    <option value="Online Gateway" th:selected="${bill.paymentMethod == 'Online Gateway'}">Online Gateway</option>
+                    <option value="Insurance" th:selected="${bill.paymentMethod == 'Insurance'}">Insurance / HMO</option>
+                    <option value="Cash" th:selected="${bill.paymentMethod == 'Cash'}">Cash at Desk</option>
+                  </select>
+                </label>
+                <label class="space-y-xs">
+                  <span class="text-caption font-bold uppercase text-text-secondary">Amount Paid</span>
+                  <input name="amountPaid" type="number" min="0" step="0.01" required
+                         class="w-full rounded-md border border-border-base px-sm py-xs text-small"
+                         th:value="${displayAmount}">
+                </label>
+                <label class="space-y-xs">
+                  <span class="text-caption font-bold uppercase text-text-secondary">Reference</span>
+                  <input name="paymentReference" required class="w-full rounded-md border border-border-base px-sm py-xs text-small"
+                         placeholder="Transfer, POS, receipt, or auth code" th:value="${bill.paymentReference}">
+                </label>
+                <label class="space-y-xs">
+                  <span class="text-caption font-bold uppercase text-text-secondary">Paid By</span>
+                  <input name="paidBy" required class="w-full rounded-md border border-border-base px-sm py-xs text-small"
+                         th:value="${bill.paidBy ?: patientName}">
+                </label>
+                <label class="space-y-xs md:col-span-2">
+                  <span class="text-caption font-bold uppercase text-text-secondary">Patient Note</span>
+                  <textarea name="patientPaymentNote" rows="2" class="w-full resize-y rounded-md border border-border-base px-sm py-xs text-small"
+                            placeholder="Add any detail that helps billing verify the payment." th:text="${bill.patientPaymentNote}"></textarea>
+                </label>
+                <label class="space-y-xs md:col-span-2">
+                  <span class="text-caption font-bold uppercase text-text-secondary">Proof Upload</span>
+                  <input name="receiptProof" type="file" accept="image/png,image/jpeg,image/webp,application/pdf"
+                         class="w-full rounded-md border border-dashed border-primary/40 bg-white px-sm py-sm text-caption">
+                  <a th:if="${bill.receiptProofPath != null}" th:href="${bill.receiptProofPath}" target="_blank" class="text-caption font-semibold text-primary">View submitted proof</a>
+                </label>
+              </div>
+              <button class="mt-md w-full rounded-md bg-primary px-md py-sm font-semibold text-white" type="submit"
+                      th:text="${submitted ? 'Update Submission' : 'Submit Payment'}">Submit Payment</button>
+            </form>
+          </div>
+        </article>
+
+        <article th:if="${#lists.isEmpty(bills)}" class="rounded-lg border border-border-base bg-white p-lg text-center text-text-secondary shadow-sm">
+          No bills yet.
+        </article>
+      </section>
+    </section>
+  </main>
+</div>
+</body>
+</html>

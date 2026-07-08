@@ -23,11 +23,20 @@ public class KeycloakService {
     @Value("${keycloak.realm:hmsRealm}")
     private String realm;
 
+    @Value("${keycloak.patient.realm:hms-patient}")
+    private String patientRealm;
+
     @Value("${keycloak.client-id}")
     private String clientId;
 
+    @Value("${keycloak.patient.client-id:${spring.security.oauth2.client.registration.keycloak-patient.client-id:hms-patient-client}}")
+    private String patientClientId;
+
     @Value("${keycloak.client-secret}")
     private String clientSecret;
+
+    @Value("${keycloak.patient.client-secret:${spring.security.oauth2.client.registration.keycloak-patient.client-secret:}}")
+    private String patientClientSecret;
 
     @Value("${keycloak.grant-type:client_credentials}")
     private String grantType;
@@ -40,13 +49,13 @@ public class KeycloakService {
         validateStaffMember(staffMember);
 
         String username = staffMember.getEmail().trim().toLowerCase(Locale.ROOT);
-        String accessToken = bearerToken();
-        Map<String, Object> existingUser = findUser(accessToken, username);
+        String accessToken = bearerToken(realm, clientId, clientSecret);
+        Map<String, Object> existingUser = findUser(accessToken, realm, username);
         if (existingUser != null) {
             String userId = String.valueOf(existingUser.get("id"));
             keycloakFeignClient.updateUser(accessToken, realm, userId, Map.of("enabled", true));
-            assignGroup(accessToken, userId, staffMember.getStaffRole());
-            resetTemporaryPassword(accessToken, userId);
+            assignGroup(accessToken, realm, userId, staffMember.getStaffRole());
+            resetTemporaryPassword(accessToken, realm, userId);
             return new ProvisionedUser(userId, username, true);
         }
 
@@ -68,21 +77,21 @@ public class KeycloakService {
         )));
 
         keycloakFeignClient.createUser(accessToken, realm, user);
-        Map<String, Object> createdUser = findUser(accessToken, username);
+        Map<String, Object> createdUser = findUser(accessToken, realm, username);
         if (createdUser == null) {
             throw new IllegalStateException("Keycloak user was created but could not be found by username: " + username);
         }
 
         String userId = String.valueOf(createdUser.get("id"));
-        assignGroup(accessToken, userId, staffMember.getStaffRole());
+        assignGroup(accessToken, realm, userId, staffMember.getStaffRole());
         return new ProvisionedUser(userId, username, false);
     }
 
     public ProvisionedUser setStaffUserEnabled(StaffMember staffMember, boolean enabled) {
         validateStaffMember(staffMember);
         String username = staffMember.getEmail().trim().toLowerCase(Locale.ROOT);
-        String accessToken = bearerToken();
-        Map<String, Object> existingUser = findUser(accessToken, username);
+        String accessToken = bearerToken(realm, clientId, clientSecret);
+        Map<String, Object> existingUser = findUser(accessToken, realm, username);
         if (existingUser == null || existingUser.get("id") == null) {
             throw new IllegalStateException("Keycloak user does not exist for " + username);
         }
@@ -96,13 +105,13 @@ public class KeycloakService {
         validatePatient(patient);
 
         String username = patient.getEmailAddress().trim().toLowerCase(Locale.ROOT);
-        String accessToken = bearerToken();
-        Map<String, Object> existingUser = findUser(accessToken, username);
+        String accessToken = bearerToken(patientRealm, patientClientId, patientClientSecret);
+        Map<String, Object> existingUser = findUser(accessToken, patientRealm, username);
         if (existingUser != null) {
             String userId = String.valueOf(existingUser.get("id"));
-            keycloakFeignClient.updateUser(accessToken, realm, userId, userUpdateForPatient(patient, true));
-            assignGroup(accessToken, userId, "PATIENT");
-            resetTemporaryPassword(accessToken, userId, TEMPORARY_PATIENT_PASSWORD);
+            keycloakFeignClient.updateUser(accessToken, patientRealm, userId, userUpdateForPatient(patient, true));
+            assignGroup(accessToken, patientRealm, userId, "PATIENT");
+            resetTemporaryPassword(accessToken, patientRealm, userId, TEMPORARY_PATIENT_PASSWORD);
             return new ProvisionedUser(userId, username, true);
         }
 
@@ -117,23 +126,31 @@ public class KeycloakService {
                 "temporary", true
         )));
 
-        keycloakFeignClient.createUser(accessToken, realm, user);
-        Map<String, Object> createdUser = findUser(accessToken, username);
+        keycloakFeignClient.createUser(accessToken, patientRealm, user);
+        Map<String, Object> createdUser = findUser(accessToken, patientRealm, username);
         if (createdUser == null) {
             throw new IllegalStateException("Keycloak patient user was created but could not be found by username: " + username);
         }
 
         String userId = String.valueOf(createdUser.get("id"));
-        assignGroup(accessToken, userId, "PATIENT");
+        assignGroup(accessToken, patientRealm, userId, "PATIENT");
         return new ProvisionedUser(userId, username, false);
     }
 
-    private String bearerToken() {
+    private String bearerToken(String tokenRealm, String tokenClientId, String tokenClientSecret) {
+        if (tokenRealm == null || tokenRealm.isBlank()) {
+            throw new IllegalStateException("Keycloak realm is not configured");
+        }
+        if (tokenClientId == null || tokenClientId.isBlank()) {
+            throw new IllegalStateException("Keycloak client id is not configured for realm " + tokenRealm);
+        }
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("client_id", clientId);
-        params.add("client_secret", clientSecret);
+        params.add("client_id", tokenClientId);
+        if (tokenClientSecret != null && !tokenClientSecret.isBlank()) {
+            params.add("client_secret", tokenClientSecret);
+        }
         params.add("grant_type", grantType);
-        Map<String, Object> token = keycloakFeignClient.getAccessToken(realm, params);
+        Map<String, Object> token = keycloakFeignClient.getAccessToken(tokenRealm, params);
         Object accessToken = token.get("access_token");
         if (accessToken == null || String.valueOf(accessToken).isBlank()) {
             throw new IllegalStateException("Keycloak access token response did not include access_token");
@@ -141,22 +158,22 @@ public class KeycloakService {
         return "Bearer " + accessToken;
     }
 
-    private Map<String, Object> findUser(String accessToken, String username) {
-        List<Map<String, Object>> users = responseBody(keycloakFeignClient.findUsers(accessToken, realm, null, username, true));
+    private Map<String, Object> findUser(String accessToken, String targetRealm, String username) {
+        List<Map<String, Object>> users = responseBody(keycloakFeignClient.findUsers(accessToken, targetRealm, null, username, true));
         if (!users.isEmpty()) {
             return users.get(0);
         }
-        users = responseBody(keycloakFeignClient.findUsers(accessToken, realm, username, null, true));
+        users = responseBody(keycloakFeignClient.findUsers(accessToken, targetRealm, username, null, true));
         return users.isEmpty() ? null : users.get(0);
     }
 
-    private void assignGroup(String accessToken, String userId, String staffRole) {
+    private void assignGroup(String accessToken, String targetRealm, String userId, String staffRole) {
         String groupName = groupNameForRole(staffRole);
         if (groupName.isBlank()) {
             return;
         }
 
-        List<Map<String, Object>> groups = keycloakFeignClient.getRealmGroups(accessToken, realm, groupName);
+        List<Map<String, Object>> groups = keycloakFeignClient.getRealmGroups(accessToken, targetRealm, groupName);
         Map<String, Object> group = groups.stream()
                 .filter(candidate -> groupName.equalsIgnoreCase(String.valueOf(candidate.get("name"))))
                 .findFirst()
@@ -164,15 +181,15 @@ public class KeycloakService {
         if (group == null || group.get("id") == null) {
             throw new IllegalStateException("Keycloak group not found for staff role: " + groupName);
         }
-        keycloakFeignClient.addUserToGroup(accessToken, realm, userId, String.valueOf(group.get("id")));
+        keycloakFeignClient.addUserToGroup(accessToken, targetRealm, userId, String.valueOf(group.get("id")));
     }
 
-    private void resetTemporaryPassword(String accessToken, String userId) {
-        resetTemporaryPassword(accessToken, userId, TEMPORARY_STAFF_PASSWORD);
+    private void resetTemporaryPassword(String accessToken, String targetRealm, String userId) {
+        resetTemporaryPassword(accessToken, targetRealm, userId, TEMPORARY_STAFF_PASSWORD);
     }
 
-    private void resetTemporaryPassword(String accessToken, String userId, String password) {
-        keycloakFeignClient.resetPassword(accessToken, realm, userId, Map.of(
+    private void resetTemporaryPassword(String accessToken, String targetRealm, String userId, String password) {
+        keycloakFeignClient.resetPassword(accessToken, targetRealm, userId, Map.of(
                 "type", "password",
                 "value", password,
                 "temporary", true

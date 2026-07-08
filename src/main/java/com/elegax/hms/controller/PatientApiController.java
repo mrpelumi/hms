@@ -59,17 +59,20 @@ public class PatientApiController {
                 .emergencyContactPhone(dto.getEmergencyContactPhone())
                 .build();
 
+        Patient savedPatient = patientRepository.save(p);
+
         try {
-            KeycloakService.ProvisionedUser portalUser = keycloakService.provisionPatientUser(p);
-            p.setKeycloakUserId(portalUser.userId());
-            p.setPortalUsername(portalUser.username());
-            p.setPortalAccountStatus(portalUser.existingAccount() ? "EXISTING_ACCOUNT_LINKED" : "CREATED");
+            KeycloakService.ProvisionedUser portalUser = keycloakService.provisionPatientUser(savedPatient);
+            savedPatient.setKeycloakUserId(portalUser.userId());
+            savedPatient.setPortalUsername(portalUser.username());
+            savedPatient.setPortalAccountStatus(portalUser.existingAccount() ? "EXISTING_ACCOUNT_LINKED" : "CREATED");
         } catch (RuntimeException ex) {
+            patientRepository.delete(savedPatient);
             redirectAttributes.addFlashAttribute("errorMessage", "Patient was not saved because the portal account could not be created: " + ex.getMessage());
             return "redirect:/reception/registration?portalError";
         }
 
-        patientRepository.save(p);
+        patientRepository.save(savedPatient);
         return "redirect:/reception/registration?created";
     }
 

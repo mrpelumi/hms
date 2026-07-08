@@ -68,6 +68,26 @@
         </aside>
       </section>
 
+      <section th:if="${record.paymentSubmittedAt != null || record.patientPaymentNote != null || record.receiptProofPath != null}"
+               class="rounded-lg border border-warning/20 bg-warning/10 p-lg shadow-sm">
+        <div class="mb-md">
+          <h2 class="text-base font-semibold text-text-primary">Patient Payment Submission</h2>
+          <p class="text-caption text-text-secondary">Review the patient-submitted evidence before confirming the invoice.</p>
+        </div>
+        <div class="grid grid-cols-1 gap-sm text-caption text-text-secondary md:grid-cols-3">
+          <p><span class="font-bold text-text-primary">Submitted:</span> <span th:text="${record.paymentSubmittedAt != null ? #temporals.format(record.paymentSubmittedAt, 'MMM dd, yyyy hh:mm a') : '-'}">-</span></p>
+          <p><span class="font-bold text-text-primary">Amount:</span> <span th:text="${#numbers.formatDecimal(record.amountPaid ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></p>
+          <p><span class="font-bold text-text-primary">Reference:</span> <span th:text="${record.paymentReference ?: '-'}">-</span></p>
+          <p><span class="font-bold text-text-primary">Method:</span> <span th:text="${record.paymentMethod ?: '-'}">-</span></p>
+          <p><span class="font-bold text-text-primary">Paid by:</span> <span th:text="${record.paidBy ?: '-'}">-</span></p>
+          <p><span class="font-bold text-text-primary">Proof:</span>
+            <a th:if="${record.receiptProofPath != null}" th:href="${record.receiptProofPath}" class="font-semibold text-primary" target="_blank">Open submitted proof</a>
+            <span th:unless="${record.receiptProofPath != null}">Not uploaded</span>
+          </p>
+        </div>
+        <p class="mt-sm rounded-md bg-white/70 p-sm text-caption text-text-secondary" th:text="${record.patientPaymentNote ?: 'No patient note provided.'}">No patient note provided.</p>
+      </section>
+
       <section class="rounded-lg border border-border-base bg-white p-lg shadow-sm">
         <div class="mb-md">
           <h2 class="text-base font-semibold text-text-primary">Payment Evidence</h2>

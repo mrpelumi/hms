@@ -19,7 +19,7 @@ public class SecurityConfig {
 		// Authorize requests
 		http
 				.authorizeHttpRequests(authorize -> authorize
-						.requestMatchers("/", "/logo.png", "/favicon.ico", "/static/**", "/css/**", "/js/**", "/images/**", "/login").permitAll()
+						.requestMatchers("/", "/logo.png", "/favicon.ico", "/static/**", "/css/**", "/js/**", "/images/**", "/login", "/login/staff", "/login/patient").permitAll()
 						.anyRequest().authenticated()
 				)
 				// OAuth2 login (Keycloak web login). Always return through "/home" so

@@ -166,7 +166,7 @@ public class NurseController {
         model.addAttribute("stationName", nurse.map(StaffMember::getDepartment).filter(department -> !department.isBlank()).orElse("Clinical Intake"));
         model.addAttribute("nurseUnit", nurse.map(StaffMember::getDepartment).orElse("No nurse unit assigned"));
         model.addAttribute("nurseScopeNotice", nurse.isPresent()
-                ? "Showing patients for " + valueOr(nurse.get().getDepartment(), "your assigned nursing unit") + "."
+                ? nurseScopeNotice(nurse.get().getDepartment())
                 : "No staff profile was found for this nurse account, so the patient queue is hidden.");
     }
 
@@ -224,7 +224,16 @@ public class NurseController {
         return appointmentMatchesNurseUnit(nurse.getDepartment(), appointment);
     }
 
+    private String nurseScopeNotice(String nurseDepartment) {
+        return isAllDepartmentScope(nurseDepartment)
+                ? "Showing patients across all clinical departments."
+                : "Showing patients for " + valueOr(nurseDepartment, "your assigned nursing unit") + ".";
+    }
+
     private boolean appointmentMatchesNurseUnit(String nurseDepartment, Appointment appointment) {
+        if (isAllDepartmentScope(nurseDepartment)) {
+            return true;
+        }
         String unit = normalizeScope(nurseDepartment);
         if (unit.isBlank()) {
             return false;
@@ -241,6 +250,9 @@ public class NurseController {
 
         if (isEmergencyScope(unit)) {
             return isEmergencyScope(appointmentScope);
+        }
+        if (isSurgeryScope(unit)) {
+            return isSurgeryScope(appointmentScope);
         }
         if (isOpdScope(unit)) {
             return appointmentScope.isBlank() || isOpdScope(appointmentScope) || appointmentScope.contains("generalmedicine");
@@ -267,6 +279,19 @@ public class NurseController {
 
     private boolean isEmergencyScope(String value) {
         return value.contains("emergency") || value.contains("urgent");
+    }
+
+    private boolean isSurgeryScope(String value) {
+        return value.contains("surgery") || value.contains("surgical") || value.contains("theatre") || value.contains("operatingroom");
+    }
+
+    private boolean isAllDepartmentScope(String value) {
+        String scope = valueOr(value, "").toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "");
+        return scope.contains("allclinicaldepartments")
+                || scope.contains("alldepartments")
+                || scope.contains("crossfunctional")
+                || scope.contains("crosscoverage")
+                || scope.contains("floatpool");
     }
 
     private boolean isOpdScope(String value) {

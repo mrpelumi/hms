@@ -246,6 +246,9 @@ public class DepartmentManagementController {
         if (managed.contains("emergency")) {
             return staff.contains("emergency") || staff.contains("triage");
         }
+        if (isSurgeryScope(managed)) {
+            return isSurgeryScope(staff);
+        }
         return false;
     }
 
@@ -310,6 +313,10 @@ public class DepartmentManagementController {
 
     private boolean isOpdScope(String value) {
         return value.contains("opd") || value.contains("outpatient") || value.contains("generalmedicine");
+    }
+
+    private boolean isSurgeryScope(String value) {
+        return value.contains("surgery") || value.contains("surgical") || value.contains("theatre") || value.contains("operatingroom");
     }
 
     private String normalizeDepartmentScope(String value) {

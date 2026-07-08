@@ -20,6 +20,8 @@
         <a class="font-bold text-primary" th:href="@{/patient/profile}">Complete profile</a>
       </section>
 
+      <div th:if="${errorMessage}" class="rounded-md border border-danger/20 bg-danger/10 px-md py-sm font-semibold text-danger" th:text="${errorMessage}">Unable to book appointment.</div>
+
       <form id="appointment-form" class="grid grid-cols-1 gap-md lg:grid-cols-[1fr_320px]" method="post" th:action="@{/patient/appointments}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <input id="scheduledAt" name="scheduledAt" type="hidden" required>

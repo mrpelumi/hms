@@ -26,15 +26,23 @@ spring:
         provider:
           keycloak:
             issuer-uri: ${ISSUER_URI:https://ngcloak.onrender.com/realms/hmsRealm}
+          keycloak-patient:
+            issuer-uri: ${PATIENT_ISSUER_URI:https://ngcloak.onrender.com/realms/hms-patient}
 
         registration:
           keycloak:
             provider: keycloak
-            client-id: ${KEYCLOAK_CLIENT_ID:hmsClient}
-            client-secret: ${KEYCLOAK_CLIENT_SECRET:w9nMST2lsepWTz7DYhAwkI68pFoVVbJ4}
+            client-id: ${KEYCLOAK_STAFF_CLIENT_ID:${KEYCLOAK_CLIENT_ID:hmsClient}}
+            client-secret: ${KEYCLOAK_STAFF_CLIENT_SECRET:${KEYCLOAK_CLIENT_SECRET:w9nMST2lsepWTz7DYhAwkI68pFoVVbJ4}}
             authorization-grant-type: authorization_code
             scope: openid,profile,email
 
+          keycloak-patient:
+            provider: keycloak-patient
+            client-id: ${KEYCLOAK_PATIENT_CLIENT_ID:hms-patient-client}
+            client-secret: ${KEYCLOAK_PATIENT_CLIENT_SECRET:3FzJ2fULq6i8B60fpbB2zHJU5NjScVz8}
+            authorization-grant-type: authorization_code
+            scope: openid,profile,email
 server:
   port: 9112
 
@@ -45,3 +53,7 @@ keycloak:
   client-id: ${KEYCLOAK_CLIENT_ID:hmsClient}
   client-secret: ${KEYCLOAK_CLIENT_SECRET:w9nMST2lsepWTz7DYhAwkI68pFoVVbJ4}
   grant-type: ${KEYCLOAK_GRANT_TYPE:client_credentials}
+  patient:
+    realm: ${KEYCLOAK_PATIENT_REALM:hms-patient}
+    client-id: ${KEYCLOAK_PATIENT_CLIENT_ID:hms-patient-client}
+    client-secret: ${KEYCLOAK_PATIENT_CLIENT_SECRET:3FzJ2fULq6i8B60fpbB2zHJU5NjScVz8}

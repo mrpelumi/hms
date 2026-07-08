@@ -13,12 +13,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -168,8 +172,13 @@ public class PatientPortalController {
                                   @RequestParam String visitType,
                                   @RequestParam(required = false) String reason,
                                   RedirectAttributes redirectAttributes) {
-        Patient patient = requireCurrentPatient();
-        schedulingService.bookAppointment(patient.getId(), providerUsername, parseAppointmentDateTime(scheduledAt), department, visitType, "Routine", reason);
+        try {
+            Patient patient = requireCurrentPatient();
+            schedulingService.bookAppointment(patient.getId(), providerUsername, parseAppointmentDateTime(scheduledAt), department, visitType, "Routine", reason);
+        } catch (ResponseStatusException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", valueOr(exception.getReason(), "Unable to book this appointment. Please select another available slot."));
+            return "redirect:/patient/appointments/new";
+        }
         redirectAttributes.addFlashAttribute("successMessage", "Appointment booked.");
         return "redirect:/patient/appointments";
     }
@@ -241,15 +250,32 @@ public class PatientPortalController {
     }
 
     @PostMapping("/billing/{id}/pay")
-    public String payBill(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String payBill(@PathVariable Long id,
+                          @RequestParam String paymentMethod,
+                          @RequestParam(required = false) BigDecimal amountPaid,
+                          @RequestParam String paymentReference,
+                          @RequestParam String paidBy,
+                          @RequestParam(required = false) String patientPaymentNote,
+                          @RequestParam(required = false) MultipartFile receiptProof,
+                          RedirectAttributes redirectAttributes) {
         Patient patient = requireCurrentPatient();
         BillingRecord bill = billingRecordRepository.findById(id)
                 .filter(record -> Objects.equals(record.getPatientId(), patient.getId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bill not found"));
-        bill.setStatus("PAID");
-        bill.setPaidAt(OffsetDateTime.now());
+        BigDecimal submittedAmount = amountPaid == null ? valueOr(bill.getTotalAmount(), BigDecimal.ZERO) : amountPaid;
+        BigDecimal totalAmount = valueOr(bill.getTotalAmount(), BigDecimal.ZERO);
+        bill.setStatus(submittedAmount.compareTo(totalAmount) >= 0 ? "PAYMENT_SUBMITTED" : "PARTIAL_PAYMENT_SUBMITTED");
+        bill.setPaymentMethod(paymentMethod);
+        bill.setAmountPaid(submittedAmount);
+        bill.setPaymentReference(paymentReference);
+        bill.setPaidBy(paidBy);
+        bill.setPatientPaymentNote(patientPaymentNote);
+        bill.setReceiptProofPath(storePatientPaymentProof(bill, receiptProof));
+        bill.setPaymentSubmittedAt(OffsetDateTime.now());
+        bill.setPaidAt(null);
+        bill.setReceivedBy(null);
         billingRecordRepository.save(bill);
-        redirectAttributes.addFlashAttribute("successMessage", "Payment recorded.");
+        redirectAttributes.addFlashAttribute("successMessage", "Payment submitted for billing confirmation.");
         return "redirect:/patient/billing";
     }
 
@@ -353,5 +379,26 @@ public class PatientPortalController {
 
     private String valueOr(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private BigDecimal valueOr(BigDecimal value, BigDecimal fallback) {
+        return value == null ? fallback : value;
+    }
+
+    private String storePatientPaymentProof(BillingRecord bill, MultipartFile receiptProof) {
+        if (receiptProof == null || receiptProof.isEmpty()) {
+            return bill.getReceiptProofPath();
+        }
+        try {
+            Path uploadDirectory = Path.of("src", "main", "resources", "static", "uploads", "patient-payment-proofs");
+            Files.createDirectories(uploadDirectory);
+            String originalName = valueOr(receiptProof.getOriginalFilename(), "payment-proof").replaceAll("[^A-Za-z0-9._-]", "_");
+            String filename = "invoice-" + bill.getId() + "-" + System.currentTimeMillis() + "-" + originalName;
+            Path target = uploadDirectory.resolve(filename).toAbsolutePath();
+            receiptProof.transferTo(target);
+            return "/uploads/patient-payment-proofs/" + filename;
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to store payment proof", exception);
+        }
     }
 }
