@@ -69,7 +69,7 @@ jobs:
       #   env:
       #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       #     RAILWAY_PROJECT_ID: 15274145-d441-4d6d-8f0e-4f45993a2e5b
-      #     RAILWAY_SERVICE_ID: exquisite-harmony
+      #     RAILWAY_SERVICE_ID: hms
       #   run: |
       #     IMAGE_REF="kazeemakinrinde/hms:latest"
       #     echo "Updating service image to: $IMAGE_REF"
@@ -79,3 +79,4 @@ jobs:
           #testpush
           #testcicd
         #testagain
+        #
